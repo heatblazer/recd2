@@ -10,6 +10,7 @@ SUBDIRS += \
     udp-client \
     DFT \   #discrete fourier transform
     udp-streamer \ # udp treamer plugin
-    NULL
+    NULL \
+    recorder
 
 
