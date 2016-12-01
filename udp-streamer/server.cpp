@@ -13,8 +13,7 @@ struct udp_data_t
 {
     uint32_t    counter;
     uint8_t     null_bytes[32];
-    int16_t    data[16][32];
-
+    int16_t    data[32][16];
 };
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -262,7 +261,7 @@ interface_t *Server::getSelf(void)
 } // udp
 } // plugin
 
-interface_t *get_interface()
+const interface_t *get_interface()
 {
     interface_t* piface = plugin::udp::Server::Instance().getSelf();
 

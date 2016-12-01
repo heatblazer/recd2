@@ -8,6 +8,7 @@
 
 //  local hdrs //
 #include "utils/recorder-config.h"
+#include "plugin-iface.h"
 
 namespace plugin {
 namespace rec {
@@ -84,6 +85,7 @@ private:
 
     QString m_directory;
 
+    static struct interface_t iface;
     static Recorder* s_inst;
 };
 

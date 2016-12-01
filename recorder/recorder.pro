@@ -7,7 +7,7 @@ TARGET = recorder
 CONFIG += console
 CONFIG -= app_bundle
 
-TEMPLATE = lib
+TEMPLATE = app
 
 SOURCES += main.cpp \
     utils/logger.cpp \

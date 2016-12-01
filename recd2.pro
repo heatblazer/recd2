@@ -1,9 +1,9 @@
 TEMPLATE = subdirs
 
 DISTFILES += README.md \
-             recorder-config.xml \# the config file
+             recorder-config.xml \  # the config file
              recd2.pri \
-                plugin-interface.h # plugin iface
+             plugin-interface.h     # plugin iface
 
 SUBDIRS += \
     udp-server \   # original program

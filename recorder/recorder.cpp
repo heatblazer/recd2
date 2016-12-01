@@ -40,6 +40,9 @@ namespace rec {
 // statics
 uint32_t Recorder::s_UID = 0;
 Recorder* Recorder::s_inst = nullptr;
+struct interface_t Recorder::iface = {0,0,0,
+                                      0,0,0,
+                                      0,0,0};
 //////////////////////////////////////////////////////////////////////////////////
 
 Recorder::Recorder(QObject *parent)
@@ -209,6 +212,45 @@ void Recorder::deinit()
             r->m_wavs[i] = nullptr;
         }
     }
+}
+
+void Recorder::copy(const void *src, void *dst, int len)
+{
+    (void) src;
+    (void) dst;
+    (void) len;
+}
+
+int Recorder::put_data(void *data)
+{
+    if (iface.nextPlugin != NULL) {
+        iface.nextPlugin->put_data(data);
+    }
+    return 0;
+}
+
+int Recorder::put_ndata(void *data, int len)
+{
+    if (iface.nextPlugin != NULL) {
+        iface.nextPlugin->put_ndata(data, len);
+    }
+}
+
+void *Recorder::get_data()
+{
+    return NULL;
+}
+
+int Recorder::main_proxy(int argc, char **argv)
+{
+    (void) argc;
+    (void) argv;
+    return 0;
+}
+
+interface_t *Recorder::getSelf()
+{
+    return &iface;
 }
 
 WavIface *Recorder::getWavByName(const QString &fname)
@@ -428,3 +470,19 @@ void Recorder::performHotSwap(const QString &file)
 
 } // rec
 } // plugin
+
+const struct interface_t* get_interface()
+{
+    interface_t* pif = plugin::rec::Recorder::Instance().getSelf();
+    pif->init = &plugin::rec::Recorder::init;
+    pif->deinit = &plugin::rec::Recorder::deinit;
+    pif->put_data = &plugin::rec::Recorder::put_data;
+    pif->put_ndata = &plugin::rec::Recorder::put_ndata;
+    pif->get_data = &plugin::rec::Recorder::get_data;
+    pif->main_proxy = &plugin::rec::Recorder::main_proxy;
+    pif->getSelf = &plugin::rec::Recorder::getSelf;
+    pif->copy = &plugin::rec::Recorder::copy;
+    pif->nextPlugin = nullptr;
+
+    return plugin::rec::Recorder::Instance().getSelf();
+}
