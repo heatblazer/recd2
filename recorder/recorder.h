@@ -25,15 +25,22 @@ class Recorder : public QObject
 {
     Q_OBJECT // this class may be emiter
 public:
-    explicit Recorder(QObject* parent=nullptr);
-    virtual ~Recorder(); // we may inherit it too
     // will use later the num_channels when concept is more clear
-    bool init();
-    void deinit();
+    static Recorder& Instance();
+    static void init();
+    static void deinit(void);
+    static void copy(const void* src, void* dst, int len);
+    static int put_data(void* data);
+    static int put_ndata(void* data, int len);
+    static void* get_data(void);
+    static int main_proxy(int argc, char** argv);
+    static struct interface_t* getSelf(void);
+
     WavIface *getWavByName(const QString& fname);
 
-
 private:
+    explicit Recorder(QObject* parent=nullptr);
+    virtual ~Recorder(); // we may inherit it too
     bool setupWavFiles();
 
 signals:
@@ -77,6 +84,7 @@ private:
 
     QString m_directory;
 
+    static Recorder* s_inst;
 };
 
 } // rec

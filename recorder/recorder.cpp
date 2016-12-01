@@ -13,6 +13,8 @@
 
 static const char* THIS_FILE = "recorder.cpp";
 
+// helpers
+///////////////////////////////////////////////////////////////////////////////////
 /// aux function to check for digits
 /// \brief is_digit
 /// \param str digit str
@@ -30,11 +32,15 @@ static inline const char* is_digit(const char* str) {
 #undef DIGIT
     return digit;
 }
+///////////////////////////////////////////////////////////////////////////////////
 
 namespace plugin {
 namespace rec {
 
+// statics
 uint32_t Recorder::s_UID = 0;
+Recorder* Recorder::s_inst = nullptr;
+//////////////////////////////////////////////////////////////////////////////////
 
 Recorder::Recorder(QObject *parent)
     : QObject(parent),
@@ -51,12 +57,18 @@ Recorder::~Recorder()
 {
 }
 
-/// TODO: config file
-/// will apply timestapm from the config later
-/// \brief Recorder::init
-/// \return true by default , false for future if something happens
-bool Recorder::init()
+Recorder &Recorder::Instance()
 {
+    if (s_inst == nullptr) {
+        s_inst = new Recorder;
+    }
+
+    return *s_inst;
+}
+
+void Recorder::init()
+{
+    Recorder* r = &Instance();
     char init_msg[256] = {0};
     char buff[256]={0};
     bool res = true;
@@ -76,17 +88,17 @@ bool Recorder::init()
     const MPair<QString, QString> max =
             RecorderConfig::Instance().getAttribPairFromTag("Channels", "count");
     if (max.m_type1 == "") {
-        m_maxChans = 32;
+        r->m_maxChans = 32;
     } else {
         bool res = false;
-        m_maxChans = max.m_type2.toInt(&res);
-        if (!res || m_maxChans > 127 || m_maxChans <= 0) {
+        r->m_maxChans = max.m_type2.toInt(&res);
+        if (!res || r->m_maxChans > 127 || r->m_maxChans <= 0) {
             // precatuions !!!
-            m_maxChans = 32;
+            r->m_maxChans = 32;
         }
     }
 
-    for(int i=0; i < m_maxChans; ++i) {
+    for(int i=0; i < r->m_maxChans; ++i) {
         s_UID++;
         if (dir.m_type1 != "") {
             snprintf(buff, sizeof(buff), "%s/%d-%d-%s.wav",
@@ -94,22 +106,22 @@ bool Recorder::init()
                     i,
                     s_UID,
                     DateTime::getTimeString());
-            m_directory = dir.m_type2;
+            r->m_directory = dir.m_type2;
         } else {
             snprintf(buff, sizeof(buff), "%d-%d-%s.wav", i,
                     s_UID,
                     DateTime::getTimeString());
-            m_directory.clear();
+            r->m_directory.clear();
         }
-        m_wavs[i] = new Wav(buff);
+        r->m_wavs[i] = new Wav(buff);
     }
     // open files when everything is ok and setup
-    res &= setupWavFiles();
+    res &= r->setupWavFiles();
 
-    for(int i=0; i < m_maxChans; ++i) {
-        res &= m_wavs[i]->open(i);
+    for(int i=0; i < r->m_maxChans; ++i) {
+        res &= r->m_wavs[i]->open(i);
         if (res) {
-            m_filewatcher.addPath(m_wavs[i]->getFileName());
+            r->m_filewatcher.addPath(r->m_wavs[i]->getFileName());
         }
     }
 
@@ -140,9 +152,9 @@ bool Recorder::init()
                 Logger::Instance().logMessage(THIS_FILE, init_msg);
             }
             // set the timer
-            m_hotswap.setInterval(time);
-            connect(&m_hotswap, SIGNAL(timeout()), this, SLOT(hotSwapFiles()));
-            m_hotswap.start();
+            r->m_hotswap.setInterval(time);
+            connect(&r->m_hotswap, SIGNAL(timeout()), &Instance(), SLOT(hotSwapFiles()));
+            r->m_hotswap.start();
         } else {
             // setup filesize change
             Logger::Instance().logMessage(THIS_FILE, "HotSwap is set to file size changed!\n");
@@ -158,43 +170,45 @@ bool Recorder::init()
                 }
                 const char* size = is_digit(max_size.m_type2.toStdString().data());
                 ulong mfs = QString(size).toLong(&res);
-                m_maxFileSize = mfs * max_size_modifier;
+                r->m_maxFileSize = mfs * max_size_modifier;
 
                 if(!res) {
-                    m_maxFileSize = 30000000; // 30Mb
+                    r->m_maxFileSize = 30000000; // 30Mb
                 }
             }
-            snprintf(init_msg, sizeof(init_msg), "File size limit is: (%d) bytes\n", m_maxFileSize);
+            snprintf(init_msg, sizeof(init_msg),
+                     "File size limit is: (%d) bytes\n", r->m_maxFileSize);
             Logger::Instance().logMessage(THIS_FILE, init_msg);
 
-            connect(&m_filewatcher, SIGNAL(fileChanged(QString)),
-                    this, SLOT(performHotSwap(QString)));
+            connect(&r->m_filewatcher, SIGNAL(fileChanged(QString)),
+                    &Instance(), SLOT(performHotSwap(QString)));
         }
     } else {
         // setup the default logic
         // swap by size
-        connect(&m_filewatcher, SIGNAL(fileChanged(QString)),
-                this, SLOT(performHotSwap(QString)));
+        connect(&r->m_filewatcher, SIGNAL(fileChanged(QString)),
+                &Instance(), SLOT(performHotSwap(QString)));
     }
 
-    return res;
 }
 
 void Recorder::deinit()
 {
+    Recorder* r = &Instance();
+
     Logger::Instance().logMessage(THIS_FILE, "Deinitializing recorder...\n");
     Logger::Instance().logMessage(THIS_FILE, "Closing all opened records...\n");
-    for(int i=0; i < m_maxChans; ++i) {
-        if (m_wavs[i] != nullptr && m_wavs[i]->isOpened()) {
+    for(int i=0; i < r->m_maxChans; ++i) {
+        if (r->m_wavs[i] != nullptr && r->m_wavs[i]->isOpened()) {
             static char msg[256] = {0};
-            snprintf(msg, sizeof(msg), "Closing file: (%s)\n", m_wavs[i]->getFileName());
+            snprintf(msg, sizeof(msg), "Closing file: (%s)\n",
+                     r->m_wavs[i]->getFileName());
             Logger::Instance().logMessage(THIS_FILE, msg);
-            m_wavs[i]->close();
-            delete m_wavs[i];
-            m_wavs[i] = nullptr;
+            r->m_wavs[i]->close();
+            delete r->m_wavs[i];
+            r->m_wavs[i] = nullptr;
         }
     }
-
 }
 
 WavIface *Recorder::getWavByName(const QString &fname)

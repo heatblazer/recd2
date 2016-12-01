@@ -28,4 +28,5 @@ HEADERS += \
     utils/writer.h \
     config.h \
     recorder.h \
-    types.h
+    types.h \
+    plugin-iface.h
