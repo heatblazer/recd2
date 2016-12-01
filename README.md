@@ -48,6 +48,9 @@ A wav playback with waveform for listening the records.
             void*   (*get_data)(void);
             void    (*deinit)();
             int     (*main_proxy)(int, char**);
+            struct interface_t* getSelf();
+            void* this_plugin;
+            struct interface_t* nextPlugin;
         };
 
         const struct interface_t* get_interface();
@@ -130,6 +133,7 @@ A wav playback with waveform for listening the records.
     25.11.2016: Configurable channel count.
     27.11.2016: Tested flippin 32x16 sample data to 16x32... working ax expected.
     30.11.2016: Started to implement a firstclass plugin architecture.
+    01.12.2016: Changed the plugin api to successfully chain multiple plugins.
 
 ## KISS FFT
     KISS FFT - A mixed-radix Fast Fourier Transform based up on the principle,
