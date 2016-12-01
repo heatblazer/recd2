@@ -6,11 +6,11 @@ DISTFILES += README.md \
                 plugin-interface.h # plugin iface
 
 SUBDIRS += \
-    udp-server \
-    udp-client \
-    DFT \   #discrete fourier transform
+    udp-server \   # original program
+    udp-client \   # test client
+    DFT \          # discrete fourier transform
     udp-streamer \ # udp treamer plugin
-    NULL \
-    recorder
+    NULL \         # dummy test plugin
+    recorder       # recorder plugin
 
 

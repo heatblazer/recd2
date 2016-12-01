@@ -85,6 +85,12 @@
     path="/home/ilian/github/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/NULL/libNULL.so"
     />
 
+<Plugin
+    name="rec"
+    order="1"
+    enabled="true"
+    path="/home/ilian/github/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/recorder/librecorder.so"
+    />
 
 
 </Config>
