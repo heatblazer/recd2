@@ -1,5 +1,5 @@
 #include "plugin-manager.h"
-
+#include "defs.h"
 
 // std //
 #include <iostream>
@@ -10,19 +10,6 @@
 static const char* THIS_FILE = "plugin-manager.cpp";
 
 namespace iz {
-
-struct interface_t
-{
-    void    (*init)(void);
-    void    (*copy)(const void*, void*, int);
-    int     (*put_ndata)(void*, int);
-    int     (*put_data)(void*);
-    void*   (*get_data)(void);
-    void    (*deinit)(void);
-    int     (*main_proxy)(int, char**);
-    void*   this_interface;
-    interface_t* nextPlugin;
-};
 
 typedef struct interface_t* (*get_interface)();
 
@@ -56,7 +43,8 @@ bool RecPluginMngr::loadLibrary(const QString &src, const QString& name)
                 || lib_symbols->put_data == nullptr
                 || lib_symbols->put_ndata == nullptr
                 || lib_symbols->main_proxy == nullptr
-                || lib_symbols->copy == nullptr)
+                || lib_symbols->copy == nullptr
+                || lib_symbols->getSelf == nullptr)
         {
             load_all_res = false;
 
@@ -67,6 +55,7 @@ bool RecPluginMngr::loadLibrary(const QString &src, const QString& name)
             iface.put_data = lib_symbols->put_data;
             iface.put_ndata = lib_symbols->put_ndata;
             iface.main_proxy = lib_symbols->main_proxy;
+            iface.getSelf = lib_symbols->getSelf;
             load_all_res = true;
             m_plugins[name] = iface;
             m_listPlugins.append(iface);

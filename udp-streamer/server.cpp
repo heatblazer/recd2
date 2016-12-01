@@ -239,13 +239,18 @@ int Server::p_main(int argc, char **argv)
     return 0;
 }
 
+interface_t *Server::getSelf(void)
+{
+    return &iface;
+}
+
 
 } // udp
 } // plugin
 
 interface_t *get_interface()
 {
-    interface_t* piface = &plugin::udp::Server::Instance().iface;
+    interface_t* piface = plugin::udp::Server::Instance().getSelf();
 
     piface->init = &plugin::udp::Server::init;
     piface->deinit = &plugin::udp::Server::deinit;
@@ -254,7 +259,8 @@ interface_t *get_interface()
     piface->put_ndata = &plugin::udp::Server::put_ndata;
     piface->get_data = &plugin::udp::Server::get_data;
     piface->main_proxy = &plugin::udp::Server::p_main;
+    piface->getSelf   = &plugin::udp::Server::getSelf;
     piface->nextPlugin = nullptr;
 
-    return &plugin::udp::Server::Instance().iface;
+    return plugin::udp::Server::Instance().getSelf();
 }

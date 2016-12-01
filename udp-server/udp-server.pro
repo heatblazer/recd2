@@ -24,7 +24,8 @@ SOURCES += main.cpp \
     utils/writer.cpp \
     plugin-manager.cpp \
     utils/logger.cpp \
-    utils/json-writer.cpp
+    utils/json-writer.cpp \
+    defs.cpp
 
 HEADERS += \
     server.h \

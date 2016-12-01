@@ -40,7 +40,7 @@ public:
     static int put_ndata(void* data, int len);
     static void* get_data(void);
     static int p_main(int argc, char** argv);
-    static struct interface_t iface;
+    static struct interface_t* getSelf(void);
 
 private:
     enum States {
@@ -53,6 +53,7 @@ private:
                 MISSED_DATAGRAM = 6
     };
 
+    static struct interface_t iface;
 
 signals:
     void dataReady(const udp_data_t& data);

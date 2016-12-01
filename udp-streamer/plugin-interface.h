@@ -14,6 +14,7 @@ struct interface_t
     void*   (*get_data)(void);
     void    (*deinit)(void);
     int     (*main_proxy)(int, char**);
+    struct interface_t* (*getSelf)(void);
     void*   this_interface; // used temporaly for connection
     struct interface_t* nextPlugin; // next put data
 };

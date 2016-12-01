@@ -1,6 +1,8 @@
 #ifndef RECORDERIFACE_H
 #define RECORDERIFACE_H
 
+#include "defs.h"
+
 namespace iz {
 
 /// plugin reflection
@@ -15,6 +17,8 @@ struct RecIface
     void*   (*get_data)(void);
     void    (*deinit)(void);
     int     (*main_proxy)(int, char**); // if we need to call lib in main
+    interface_t* (*getSelf)(void);
+
     void*   this_interface;
     RecIface* next;
 };
