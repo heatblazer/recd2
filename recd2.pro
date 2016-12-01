@@ -9,6 +9,7 @@ SUBDIRS += \
     udp-server \
     udp-client \
     DFT \   #discrete fourier transform
-    udp-streamer # udp treamer plugin
+    udp-streamer \ # udp treamer plugin
+    NULL
 
 

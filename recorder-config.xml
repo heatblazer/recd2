@@ -72,18 +72,18 @@
 
 
 <Plugin
-    name="DFT"
+    name="udpstreamer"
     order="1"
     enabled="true"
-    path="/home/ilian/github/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/DFT/libDFT.so"
+    path="/home/ilian/github/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/udp-streamer/libudp-streamer.so"
     />
 
 <Plugin
-    name="ErrorPlugin"
-    order="2"
+    name="null"
+    order="1"
     enabled="true"
-    path="not a valid path"
-/>
+    path="/home/ilian/github/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/NULL/libNULL.so"
+    />
 
 
 

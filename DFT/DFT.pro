@@ -12,7 +12,8 @@ SOURCES += main.cpp \
     External/tools/kiss_fftndr.c \
     External/tools/kiss_fftr.c \
     External/tools/psdpng.c \
-    External/kiss_fft.c
+    External/kiss_fft.c \
+    null.cpp
 
 HEADERS += \
     plugin-interface.h \

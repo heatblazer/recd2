@@ -28,6 +28,7 @@ private:
     void resolve();
     static QHash<QString, RecIface> m_plugins;
     static QList<RecIface> m_listPlugins;
+    static InterfaceList m_pluginLinks;
 };
 
 } // iz

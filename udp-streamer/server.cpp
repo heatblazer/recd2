@@ -68,6 +68,9 @@ void Server::init()
 
     connect(udp, SIGNAL(readyRead()),
             &Instance(), SLOT(readyReadUdp())/*, Qt::DirectConnection*/);
+
+    connect(&Instance(), SIGNAL(dataReady(udp_data_t*)),
+            &Instance(), SLOT(hDataReady(udp_data_t*)));
     if (bres) {
 
         printf("Bind OK!\n");
@@ -130,11 +133,11 @@ void Server::readyReadUdp()
                     // always write a null bytes packet on missed udp
                     if(!m_conn_info.onetimeSynch) {
                         m_conn_info.onetimeSynch = true;
-                        emit Instance().dataReady(err_udp);
+                        emit Instance().dataReady(&err_udp);
 
                     } else {
                         for(int i=0; i < errs; ++i) {
-                            emit Instance().dataReady(err_udp);
+                            emit Instance().dataReady(&err_udp);
                         }
                     }
 
@@ -142,7 +145,7 @@ void Server::readyReadUdp()
                 // will use a new logic emit the udp struct
                 // to the recorder, so now we don`t need
                 // to depend each other
-                    emit Instance().dataReady(*udp);
+                    emit Instance().dataReady(udp);
                 }
 
              } else {
@@ -152,6 +155,13 @@ void Server::readyReadUdp()
 
     } else {
         Instance().disconnected();
+    }
+}
+
+void Server::hDataReady(udp_data_t *data)
+{
+    for(int i=0; i < 32; ++i) {
+        put_ndata((udp_data_t*)&data[i], 16);
     }
 }
 
@@ -222,8 +232,12 @@ int Server::put_data(void *data)
 
 int Server::put_ndata(void *data, int len)
 {
+    printf("Putting a data to ...");
     if (iface.nextPlugin != NULL) {
+        printf("Next loaded plugin!\n");
         iface.nextPlugin->put_ndata(data, len);
+    } else {
+        printf("No one...\n");
     }
     return 0;
 }

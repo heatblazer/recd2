@@ -1,5 +1,5 @@
-#ifndef PLUGININTERFACE_H
-#define PLUGININTERFACE_H
+#ifndef PLUGINIFACE_H
+#define PLUGINIFACE_H
 
 #ifdef __cplusplus
 extern "C"{
@@ -15,14 +15,14 @@ struct interface_t
     void    (*deinit)();
     int     (*main_proxy)(int, char**);
     struct interface_t* (*getSelf)(void);
-    void*   this_interface; // used temporaly for connection
-    struct interface_t* nextPlugin; // next put frame
+    void*   none;
+    struct interface_t* nextPlugin;
 };
 
 const struct interface_t* get_interface();
-
 #ifdef __cplusplus
 }
 #endif
 
-#endif // PLUGININTERFACE_H
+
+#endif // PLUGINIFACE_H

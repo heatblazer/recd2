@@ -15,6 +15,7 @@ typedef struct interface_t* (*get_interface)();
 
 QHash<QString, RecIface> RecPluginMngr::m_plugins;
 QList<RecIface> RecPluginMngr::m_listPlugins;
+InterfaceList RecPluginMngr::m_pluginLinks;
 
 /// Plugin loader
 /// \brief RecPluginMngr::loadLibrary
@@ -59,6 +60,8 @@ bool RecPluginMngr::loadLibrary(const QString &src, const QString& name)
             load_all_res = true;
             m_plugins[name] = iface;
             m_listPlugins.append(iface);
+
+            m_pluginLinks.put(iface.getSelf());
         }
 
     } else {

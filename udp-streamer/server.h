@@ -56,10 +56,11 @@ private:
     static struct interface_t iface;
 
 signals:
-    void dataReady(const udp_data_t& data);
+    void dataReady(udp_data_t* data);
 
 private slots:
     void readyReadUdp();
+    void hDataReady(udp_data_t *data);
     void checkConnection();
     void route(States state);
     void disconnected();

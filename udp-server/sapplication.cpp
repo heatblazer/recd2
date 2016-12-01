@@ -132,6 +132,7 @@ int SApplication::init()
         return -1;
     }
 
+    // important ! inti all plugins before
     initAllPlugins();
 
     Logger::Instance().logMessage(THIS_FILE, "Initializing application...\n");
