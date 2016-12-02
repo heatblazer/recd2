@@ -227,19 +227,29 @@ void Recorder::copy(const void *src, void *dst, int len)
 
 int Recorder::put_data(void *data)
 {
-    printf("Recorder: put data...\n");
+    printf("Recorder: put data ");
     if (iface.nextPlugin != NULL) {
+        puts("next loaded plugin.");
         iface.nextPlugin->put_data(data);
+    } else {
+        puts("no one.");
     }
+    udp_data_t* udp = (udp_data_t*) data;
+    Instance().record(*udp);
     return 0;
 }
 
 int Recorder::put_ndata(void *data, int len)
 {
-    printf("Recorder: put data...\n");
+    printf("Recorder: put data to ");
     if (iface.nextPlugin != NULL) {
+        puts("next loaded plugin.");
         iface.nextPlugin->put_ndata(data, len);
+    } else {
+        puts(" no one.");
     }
+    udp_data_t* udp = (udp_data_t*) data;
+    Instance().record(*udp);
 }
 
 void *Recorder::get_data()
@@ -386,6 +396,7 @@ void Recorder::record(const udp_data_t &data)
             // TODO: test!
             // pass the data to multiple plugins
             // TODO: fill in later when a specific need is pending.
+            m_wavs[i]->write((short*) data.data[i], 16);
          }
     }
 }

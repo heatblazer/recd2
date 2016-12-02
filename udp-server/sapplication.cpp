@@ -213,18 +213,20 @@ void SApplication::deinit()
     Daemon::log("SApplication::deinit()!\n");
 
     // close all files that are being recorded
-    m_recorder.deinit();
+    //m_recorder.deinit();
 
     // stop the server ... if something has to be done
-    m_server.deinit();
+    //m_server.deinit();
 
     // finally deinit plugins, since somebody may still
     // depend on them... better make sure your plugin
     // has finished it`s job to prevent artifacts
+#if 0
     for(int i=0; i < m_plugins.count(); ++i) {
         // deinit in priority order
         m_plugins.at(i).deinit();
     }
+#endif
 
     m_user_server.wait(1000);
 }

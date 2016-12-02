@@ -90,11 +90,12 @@ void Client::transmit()
     static uint32_t counter = 0;
     uint16_t* buff = (uint16_t*) gen_sawtooth(16);
     if (buff) {
-        for(int i=0; i < 16; ++i) {
-            for(int j=0; j < 32; j++) {
-                m_packet.packet.data[i][j] = buff[i];
+        for(int i=0; i < 32; ++i) {
+            for(int j=0; j < 16; j++) {
+                m_packet.packet.data[i][j] = buff[j];
             }
         }
+
         memset(m_packet.packet.null_bytes, 0, sizeof(m_packet.packet.null_bytes)
                                                 / sizeof(m_packet.packet.null_bytes[0]));
         m_packet.packet.counter = ++counter;

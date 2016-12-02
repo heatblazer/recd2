@@ -13,7 +13,7 @@ struct udp_data_t
 {
     uint32_t    counter;
     uint8_t     null_bytes[32];
-    uint16_t    data[16][32];
+    uint16_t    data[32][16];
 };
 class Client : public QObject
 {
