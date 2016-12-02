@@ -16,10 +16,10 @@ InterfaceList::~InterfaceList()
 void InterfaceList::put(interface_t* iface)
 {
     if (head == nullptr) {
-        head = iface->getSelf();
+        head = iface;
         tail = head;
     } else {
-        interface_t* newone = iface->getSelf();
+        interface_t* newone = iface;
         tail->nextPlugin = newone;
         tail = newone;
     }
@@ -37,6 +37,12 @@ interface_t* InterfaceList::getBack()
     return tmp;
 }
 
+/// clear all
+/// careful: they may not be used,
+/// first perform a deinit logic to
+/// finish your tasks
+/// \brief InterfaceList::clear
+///
 void InterfaceList::clear()
 {
     while (head != nullptr) {

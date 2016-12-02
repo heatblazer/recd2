@@ -58,9 +58,11 @@ bool RecPluginMngr::loadLibrary(const QString &src, const QString& name)
             iface.main_proxy = lib_symbols->main_proxy;
             iface.getSelf = lib_symbols->getSelf;
             load_all_res = true;
+            // these are to be removed soon
             m_plugins[name] = iface;
             m_listPlugins.append(iface);
 
+            // link the plugins from here
             m_pluginLinks.put(iface.getSelf());
         }
 

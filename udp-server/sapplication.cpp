@@ -165,12 +165,13 @@ int SApplication::init()
         } else {
             udp = false;
         }
+#if 0
         // they need not to depend each other
         if (!m_recorder.init()) {
             Logger::Instance().logMessage(THIS_FILE, "Failed initialize recorder\n");
             return -1;
         }
-
+#endif
 #ifdef HEARTATTACK
         bool attack = true;
 #else

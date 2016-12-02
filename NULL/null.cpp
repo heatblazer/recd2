@@ -10,8 +10,6 @@ static void init()
 
 static int put_ndata(void *data, int len)
 {
-    (void) data;
-    (void) len;
     printf("NULL: Dummy put data! Pass it to next...\n");
     if (s_iface.nextPlugin != NULL) {
         s_iface.put_ndata(data, len);
@@ -23,7 +21,6 @@ static int put_ndata(void *data, int len)
 
 static int put_data(void *data)
 {
-    (void) data;
     printf("NULL: Dummy put data! Pass it to next...\n");
     if (s_iface.nextPlugin != NULL) {
         s_iface.put_data(data);

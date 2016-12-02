@@ -76,6 +76,10 @@ void Recorder::init()
     char buff[256]={0};
     bool res = true;
 
+    // hardcoded for now
+    RecorderConfig::Instance().fastLoadFile("recorder-config.xml");
+
+
     Logger::Instance().logMessage(THIS_FILE, "Initializing recorder...\n");
     const MPair<QString, QString>& dir =
             RecorderConfig::Instance()
@@ -223,6 +227,7 @@ void Recorder::copy(const void *src, void *dst, int len)
 
 int Recorder::put_data(void *data)
 {
+    printf("Recorder: put data...\n");
     if (iface.nextPlugin != NULL) {
         iface.nextPlugin->put_data(data);
     }
@@ -231,6 +236,7 @@ int Recorder::put_data(void *data)
 
 int Recorder::put_ndata(void *data, int len)
 {
+    printf("Recorder: put data...\n");
     if (iface.nextPlugin != NULL) {
         iface.nextPlugin->put_ndata(data, len);
     }
@@ -482,6 +488,7 @@ const struct interface_t* get_interface()
     pif->main_proxy = &plugin::rec::Recorder::main_proxy;
     pif->getSelf = &plugin::rec::Recorder::getSelf;
     pif->copy = &plugin::rec::Recorder::copy;
+    pif->none = nullptr;
     pif->nextPlugin = nullptr;
 
     return plugin::rec::Recorder::Instance().getSelf();
