@@ -1,5 +1,14 @@
 #include "plugin-iface.h"
 #include <stdio.h>
+#include <stdint.h>
+
+struct udp_data_t
+{
+    uint32_t    counter;
+    uint8_t     null_bytes[32];
+    int16_t    data[32][16];
+};
+
 
 static struct interface_t s_iface;
 
@@ -10,9 +19,13 @@ static void init()
 
 static int put_ndata(void *data, int len)
 {
-    printf("NULL: Dummy put data! Pass it to next...\n");
+    printf("NULL: put data to ");
+    udp_data_t* udp = (udp_data_t*) data;
     if (s_iface.nextPlugin != NULL) {
-        s_iface.put_ndata(data, len);
+        puts("next plugin.");
+        s_iface.nextPlugin->put_ndata((udp_data_t*)udp, len);
+    } else {
+        puts(" no one.");
     }
     // remove it.. why returning...
     return 0;
@@ -21,9 +34,13 @@ static int put_ndata(void *data, int len)
 
 static int put_data(void *data)
 {
-    printf("NULL: Dummy put data! Pass it to next...\n");
+    udp_data_t* udp = (udp_data_t*) data;
+    printf("NULL: put data to ");
     if (s_iface.nextPlugin != NULL) {
-        s_iface.put_data(data);
+        puts("next plugin.");
+        s_iface.nextPlugin->put_data((udp_data_t*)udp);
+    } else {
+        puts("no one.");
     }
 }
 
@@ -69,6 +86,7 @@ const struct interface_t *get_interface()
     s_iface.main_proxy = &main_proxy;
     s_iface.copy = &copy;
     s_iface.getSelf = &getSelf;
+    s_iface.nextPlugin = nullptr;
 
     return &s_iface;
 }
