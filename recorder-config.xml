@@ -33,6 +33,7 @@
      />
 
 <!-- must not insert leading slashes / -->
+
 <Paths
     records="records"
     logs="logs"
