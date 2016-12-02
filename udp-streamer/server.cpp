@@ -223,20 +223,24 @@ void Server::copy(const void *src, void *dst, int len)
 
 int Server::put_data(void *data)
 {
+    printf("Server: put data to ");
     if (iface.nextPlugin != NULL) {
+        puts("next plugin.");
         iface.nextPlugin->put_data(data);
+    } else {
+        puts("no one.");
     }
     return 0;
 }
 
 int Server::put_ndata(void *data, int len)
 {
-    printf("Putting a data to ...");
+    printf("Server: put data to ");
     if (iface.nextPlugin != NULL) {
-        printf("Next loaded plugin!\n");
+        puts("next plugin.");
         iface.nextPlugin->put_ndata(data, len);
     } else {
-        printf("No one...\n");
+        puts("no one.");
     }
     return 0;
 }
