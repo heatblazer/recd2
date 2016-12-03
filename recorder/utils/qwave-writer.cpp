@@ -1,5 +1,8 @@
 #include "qwave-writer.h"
 
+// qt stuff //
+#include <QQueue>
+
 static const char* THIS_FILE = "qwave-writer.cpp";
 
 namespace plugin {
@@ -187,18 +190,40 @@ bool QWav::open(unsigned slot)
 
 }
 
-QWav::QWav(const QString &fname)
-    : m_name(fname),
+QWav::QWav(const QString &fname, QThread *parent)
+    : QThread(parent),
+      m_name(fname),
       m_slot(-1),
       m_setup(false),
-      m_size(0)
+      m_size(0),
+      m_isRunning(false)
 {
-
 }
 
 QWav::~QWav()
 {
 
+}
+
+/// TODO: test
+/// threaded writing to wav files
+/// \brief QWav::run
+///
+void QWav::run()
+{
+    QQueue<short> dblbuff;
+    do {
+       msleep(100);
+       m_lock.lock();
+       while (!m_buffer.isEmpty()) {
+           dblbuff.enqueue(m_buffer.dequeue());
+       }
+       m_lock.unlock();
+       while (!dblbuff.isEmpty()) {
+           m_wav.write((char*)dblbuff.dequeue());
+       }
+
+    } while (m_isRunning);
 }
 
 const char *QWav::getFileName()
@@ -223,5 +248,27 @@ void QWav::renameFile(const char *oldname, const char *newname)
     m_wav.rename(QString(newname));
 }
 
+void QWav::enqueueData(short *data, int len)
+{
+    m_lock.lock();
+    for(int i=0; i < len; ++i) {
+        m_buffer.append(data[i]);
+    }
+    m_lock.unlock();
+}
+
+void QWav::startWriter()
+{
+    m_isRunning = true;
+    QThread::start();
+}
+
+void QWav::stopWriter()
+{
+    m_isRunning = false;
+    QThread::wait(1000);
+}
+
 } // rec
 } // plugin
+

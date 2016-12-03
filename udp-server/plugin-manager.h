@@ -21,6 +21,7 @@ public:
     static const RecIface* getInterface(const QString& iface);
     static void unloadLibrary(const QString& lib);
     static const QList<RecIface>& listPlugins();
+    static const InterfaceList& getPluginList();
 
 private:
     RecPluginMngr();

@@ -104,9 +104,22 @@ void RecPluginMngr::unloadLibrary(const QString &lib)
     }
 }
 
+/// old concept
+/// \brief RecPluginMngr::listPlugins
+/// \return
+///
 const QList<RecIface> &RecPluginMngr::listPlugins()
 {
     return m_listPlugins;
+}
+
+/// new concept to deprecate the above
+/// \brief RecPluginMngr::getPluginList
+/// \return
+///
+const InterfaceList &RecPluginMngr::getPluginList()
+{
+    return m_pluginLinks;
 }
 
 /// nothing by default

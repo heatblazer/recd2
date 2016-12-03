@@ -3,6 +3,9 @@
 
 // qt stuff //
 #include <QFile>
+#include <QThread>
+#include <QMutex>
+#include <QQueue>
 
 #include "types.h"
 #include "wav-writer-iface.h"
@@ -12,7 +15,7 @@ namespace rec {
 /// newer concept for wave writer using QT
 /// \brief The QWave class
 ///
-class QWav : public WavIface
+class QWav : public QThread, public WavIface
 {
 public:
     enum OpenMode {
@@ -25,8 +28,11 @@ public:
         Text = 0x0010,
         Unbuffered = 0x0020
     };
-    explicit QWav(const QString& fname);
+    explicit QWav(const QString& fname, QThread* parent=nullptr);
     virtual ~QWav();
+
+    void run() Q_DECL_OVERRIDE;
+
     virtual bool open(unsigned slot);
     virtual void close();
     virtual int write(short int data[], int len);
@@ -40,6 +46,10 @@ public:
     virtual int getSlot() const;
     virtual void renameFile(const char* oldname, const char* newname);
 
+    // not interface methods
+    void enqueueData(short* data, int len);
+    void startWriter();
+    void stopWriter();
 private:
     QString m_name;
     QFile m_wav;
@@ -47,6 +57,9 @@ private:
     bool  m_setup;
     size_t m_size;
     wav_hdr_t m_header;
+    bool m_isRunning;
+    QMutex  m_lock;
+    QQueue<short> m_buffer;
 
 };
 
