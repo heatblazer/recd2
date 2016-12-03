@@ -19,8 +19,8 @@
     />
 
 <HotSwap
-    timeBased="enabled"
-    maxSize="300MB"
+    timeBased="disabled"
+    maxSize="10MB"
     interval="1" /> <!-- minutes only!-->
 
 <!-- done: setups wav headers from here -->

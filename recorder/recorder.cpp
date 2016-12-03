@@ -218,6 +218,7 @@ void Recorder::deinit()
             r->m_wavs[i] = nullptr;
         }
     }
+    r->wait(1000);
 }
 
 void Recorder::copy(const void *src, void *dst, int len)
