@@ -53,6 +53,7 @@ Recorder::Recorder(QThread *parent)
     for(int i=0; i < 128; ++i) {
         m_wavs[i] = nullptr;
     }
+    m_thread.running = false;
 }
 
 // handle with care the opened files
@@ -198,7 +199,7 @@ void Recorder::init()
     }
 
     Instance().setObjectName("recorder-thread");
-    Instance().start();
+    Instance().startRecorder();
 }
 
 void Recorder::deinit()
@@ -218,7 +219,7 @@ void Recorder::deinit()
             r->m_wavs[i] = nullptr;
         }
     }
-    r->wait(1000);
+    r->stopRecoder();
 }
 
 void Recorder::copy(const void *src, void *dst, int len)
@@ -286,7 +287,34 @@ WavIface *Recorder::getWavByName(const QString &fname)
 
 void Recorder::run()
 {
-    exec();
+    //exec();
+    QQueue<udp_data_t> dblBuff;
+    do {
+        usleep(100);
+        m_thread.mutex.lock();
+        while (!m_thread.buffer.isEmpty()) {
+            dblBuff.enqueue(m_thread.buffer.dequeue());
+        }
+        m_thread.mutex.unlock();
+
+        while (!dblBuff.isEmpty()) {
+            udp_data_t d = dblBuff.dequeue();
+            record(d);
+        }
+    } while (m_thread.running);
+
+}
+
+void Recorder::startRecorder()
+{
+    m_thread.running = true;
+    QThread::start();
+}
+
+void Recorder::stopRecoder()
+{
+    m_thread.running = false;
+    wait(1000);
 }
 
 /// setup all wav files for writing
@@ -512,3 +540,6 @@ const struct interface_t* get_interface()
 
     return plugin::rec::Recorder::Instance().getSelf();
 }
+
+
+///////////////////////////////////////////////////////////////////////////////////

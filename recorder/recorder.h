@@ -6,6 +6,8 @@
 #include <QObject>
 #include <QTimer> // hotswap interval
 #include <QThread>
+#include <QMutex>
+#include <QQueue>
 
 //  local hdrs //
 #include "utils/recorder-config.h"
@@ -42,7 +44,11 @@ public:
 
     WavIface *getWavByName(const QString& fname);
 
+    // threads stuff
     void run() Q_DECL_OVERRIDE;
+    void startRecorder();
+    void stopRecoder();
+
 private:
     explicit Recorder(QThread *parent=nullptr);
     virtual ~Recorder(); // we may inherit it too
@@ -91,6 +97,13 @@ private:
 
     static struct interface_t iface;
     static Recorder* s_inst;
+
+    // concurent stuff
+    struct {
+        QMutex mutex;
+        QQueue<udp_data_t> buffer;
+        bool running;
+    } m_thread;
 };
 
 } // rec
