@@ -220,7 +220,8 @@ void QWav::run()
        }
        m_lock.unlock();
        while (!dblbuff.isEmpty()) {
-           m_wav.write((char*)dblbuff.dequeue());
+           short d = dblbuff.dequeue();
+           m_wav.write((char*)&d);
        }
 
     } while (m_isRunning);
