@@ -5,6 +5,7 @@
 #include <QFileSystemWatcher> // monitor wav files for size for the hotswap
 #include <QObject>
 #include <QTimer> // hotswap interval
+#include <QThread>
 
 //  local hdrs //
 #include "utils/recorder-config.h"
@@ -21,8 +22,10 @@ struct udp_data_t
 };
 
 class WavIface;
-
-class Recorder : public QObject
+/// threadable
+/// \brief The Recorder class
+///
+class Recorder : public QThread
 {
     Q_OBJECT // this class may be emiter
 public:
@@ -39,8 +42,9 @@ public:
 
     WavIface *getWavByName(const QString& fname);
 
+    void run() Q_DECL_OVERRIDE;
 private:
-    explicit Recorder(QObject* parent=nullptr);
+    explicit Recorder(QThread *parent=nullptr);
     virtual ~Recorder(); // we may inherit it too
     bool setupWavFiles();
 

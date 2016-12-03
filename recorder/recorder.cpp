@@ -45,8 +45,8 @@ struct interface_t Recorder::iface = {0,0,0,
                                       0,0,0};
 //////////////////////////////////////////////////////////////////////////////////
 
-Recorder::Recorder(QObject *parent)
-    : QObject(parent),
+Recorder::Recorder(QThread *parent)
+    : QThread(parent),
       m_maxChans(0),
       m_maxFileSize(0)
 {
@@ -197,6 +197,8 @@ void Recorder::init()
                 &Instance(), SLOT(performHotSwap(QString)));
     }
 
+    Instance().setObjectName("recorder-thread");
+    Instance().start();
 }
 
 void Recorder::deinit()
@@ -279,6 +281,11 @@ WavIface *Recorder::getWavByName(const QString &fname)
         }
     }
     return nullptr;
+}
+
+void Recorder::run()
+{
+    exec();
 }
 
 /// setup all wav files for writing
