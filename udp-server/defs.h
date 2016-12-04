@@ -26,7 +26,11 @@ struct interface_t
     interface_t* nextPlugin;
 };
 
-
+/// originaly made to be a template,
+/// but I don`t need it to be so...
+/// kiss rule :)
+/// \brief The InterfaceList class
+///
 class InterfaceList
 {
 public:
