@@ -11,6 +11,7 @@ SUBDIRS += \
     DFT \          # discrete fourier transform
     udp-streamer \ # udp treamer plugin
     NULL \         # dummy test plugin
-    recorder       # recorder plugin
+    recorder \       # recorder plugin
+    alsa-rec
 
 
