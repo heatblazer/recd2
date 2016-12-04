@@ -19,7 +19,7 @@ struct interface_t
     struct interface_t* nextPlugin;
 };
 
-const struct interface_t* get_interface();
+struct interface_t* get_interface();
 #ifdef __cplusplus
 }
 #endif

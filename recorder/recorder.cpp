@@ -535,7 +535,7 @@ void Recorder::performHotSwap(const QString &file)
 } // rec
 } // plugin
 
-const struct interface_t* get_interface()
+interface_t *get_interface()
 {
     interface_t* pif = plugin::rec::Recorder::Instance().getSelf();
     pif->init = &plugin::rec::Recorder::init;

@@ -7,7 +7,8 @@ LIBS += -lasound
 LIBS += -lpthread
 
 SOURCES += main.cpp \
-    thread.cpp
+    thread.cpp \
+    alsarec.cpp
 
 HEADERS += \
     plugin-iface.h \
