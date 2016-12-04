@@ -279,6 +279,7 @@ const interface_t *get_interface()
     piface->get_data = &plugin::udp::Server::get_data;
     piface->main_proxy = &plugin::udp::Server::p_main;
     piface->getSelf   = &plugin::udp::Server::getSelf;
+    piface->this_interface = nullptr;
     piface->nextPlugin = nullptr;
 
     return plugin::udp::Server::Instance().getSelf();

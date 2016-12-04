@@ -69,6 +69,7 @@ A wav recorder over udp streams.
     8. GUI must perform Goertzl algorithm for DTM and filtering the sample data.
     9. Meta info file.
     10. Improve the log system`s messages.
+    11. Add a binding/glue/shell like script support (qscript) to make things simple.
 
 ## BUGS
     [Bug1]Strange bug as for 16.11.2016, when the program gives 100% cpu load on my other Fedora computer.
