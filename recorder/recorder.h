@@ -60,6 +60,13 @@ signals:
 public slots:
     void record(QQueue<udp_data_t> &packets);
     void record(const udp_data_t& data);
+    void record(short data[], int len);
+    // unused - pointer decay prevention
+    /**
+    template <typename T, size_t N> record(T (&data[N]))
+    {
+    }
+    */
 
 private slots:
     // hot swap - time based

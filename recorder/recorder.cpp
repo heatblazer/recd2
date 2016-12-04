@@ -437,6 +437,15 @@ void Recorder::record(const udp_data_t &data)
     }
 }
 
+void Recorder::record(short data[], int len)
+{
+    for(int i=0; i < m_maxChans; ++i) {
+        if (m_wavs[i] != nullptr && m_wavs[i]->isOpened()) {
+            m_wavs[i]->write(data, len);
+        }
+    }
+}
+
 /// Timer based hotswap, if time elapses
 /// we swap files
 /// \brief Recorder::hotSwapFiles
