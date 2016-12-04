@@ -26,11 +26,17 @@ AlsaRec &AlsaRec::Instance()
     return *s_inst;
 }
 
+/// perform alsa setup here
+/// \brief AlsaRec::init
+///
 void AlsaRec::init()
 {
 
 }
 
+/// deinit alsa
+/// \brief AlsaRec::deinit
+///
 void AlsaRec::deinit()
 {
 
