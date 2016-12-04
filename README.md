@@ -3,11 +3,6 @@ Recorder
 
 A wav recorder over udp streams.
 
-Player
-======
-
-A wav playback with waveform for listening the records.
-
 
 ## Build
    Added the dummy project for the gui interface of the recorder.
@@ -41,16 +36,16 @@ A wav playback with waveform for listening the records.
         #endif
         struct interface_t
         {
-            void    (*init)();
-            void    (*copy)(const void* src, void* dst, int len);
-            int     (*put_ndata)(void* data, int len);
-            int     (*put_data)(void* data);
-            void*   (*get_data)(void);
-            void    (*deinit)();
-            int     (*main_proxy)(int, char**);
-            struct interface_t* getSelf();
-            void* this_plugin;
-            struct interface_t* nextPlugin;
+            void    (*init)(); // init the lib
+            void    (*copy)(const void* src, void* dst, int len); // copy data
+            int     (*put_ndata)(void* data, int len); // put N long data
+            int     (*put_data)(void* data);           // put raw data
+            void*   (*get_data)(void);                 // get worked data
+            void    (*deinit)();                       // deinit lib
+            int     (*main_proxy)(int, char**);        // pass caller args to lib
+            struct interface_t* getSelf();             // get this interface
+            void* this_plugin;                         // unused
+            struct interface_t* nextPlugin;            // next loaded plugin
         };
 
         const struct interface_t* get_interface();
@@ -134,6 +129,7 @@ A wav playback with waveform for listening the records.
     27.11.2016: Tested flippin 32x16 sample data to 16x32... working ax expected.
     30.11.2016: Started to implement a firstclass plugin architecture.
     01.12.2016: Changed the plugin api to successfully chain multiple plugins.
+    03.12.2016: Now program is plugin based. Recorder and server are separate.
 
 ## KISS FFT
     KISS FFT - A mixed-radix Fast Fourier Transform based up on the principle,
