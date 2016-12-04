@@ -287,7 +287,7 @@ static int p_main(int argc, char** argv) {
 
 static struct interface_t s_iface;
 
-const struct interface_t *get_interface()
+const interface_t *get_interface()
 {
     s_iface.init = &init;
     s_iface.deinit = &deinit;
