@@ -265,6 +265,8 @@ int Recorder::main_proxy(int argc, char **argv)
 {
     (void) argc;
     (void) argv;
+    printf("Recorder is IMPORTANT to take arguments!!!!\n"
+           "Fix it!!!\n");
     return 0;
 }
 

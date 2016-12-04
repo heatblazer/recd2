@@ -117,7 +117,7 @@ const QList<RecIface> &RecPluginMngr::listPlugins()
 /// \brief RecPluginMngr::getPluginList
 /// \return
 ///
-const InterfaceList &RecPluginMngr::getPluginList()
+InterfaceList &RecPluginMngr::getPluginList()
 {
     return m_pluginLinks;
 }

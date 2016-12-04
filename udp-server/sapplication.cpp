@@ -93,12 +93,11 @@ SApplication::SApplication(int &argc, char **argv)
     // the main proxies
     // for now nothing...
     Logger::Instance().logMessage(THIS_FILE, "Loading pluggins...\n");
-    loadPlugins();
 
-    // call all plugins main proxies if needed
-    for(int i=0; i < m_plugins.count(); ++i) {
-        m_plugins.at(i).main_proxy(argc, argv);
-    }
+    // plugin setups
+    loadPlugins();
+    proxyMainAll(argc, argv);
+
 
     // old version:
     // daemon registration of this app to be used in the
@@ -165,6 +164,8 @@ int SApplication::init()
         } else {
             udp = false;
         }
+
+        // non plugin version
 #if 0
         // they need not to depend each other
         if (!m_recorder.init()) {
@@ -172,11 +173,14 @@ int SApplication::init()
             return -1;
         }
 #endif
+
 #ifdef HEARTATTACK
         bool attack = true;
 #else
         bool attack = false;
 #endif
+
+        // non plugin version
 #if 0
         // this is for test purpose only! Remove later!!!
         m_server.init(udp, port, attack);
@@ -198,13 +202,13 @@ int SApplication::init()
 
     Logger::Instance().logMessage(THIS_FILE, "Initialization of application completed!\n");
 
-
     // register user server
     m_user_server.setObjectName("user server");
     m_user_server.moveToThread(&m_user_server);
     m_user_server.start();
 
     return 0;
+
 }
 
 /// stop all stuff
@@ -221,6 +225,12 @@ void SApplication::deinit()
     // finally deinit plugins, since somebody may still
     // depend on them... better make sure your plugin
     // has finished it`s job to prevent artifacts
+    interface_t* it = RecPluginMngr::getPluginList().getFront();
+    while (it != nullptr) {
+        it->deinit();
+        it = it->nextPlugin;
+    }
+
 #if 0
     for(int i=0; i < m_plugins.count(); ++i) {
         // deinit in priority order
@@ -278,8 +288,19 @@ void SApplication::loadPlugins()
 ///
 void SApplication::initAllPlugins()
 {
-    for(int i=0; i < m_plugins.count(); ++i) {
-        m_plugins.at(i).init();
+    interface_t* it = RecPluginMngr::getPluginList().getFront();
+    while (it != nullptr) {
+        it->init();
+        it = it->nextPlugin;
+    }
+}
+
+void SApplication::proxyMainAll(int argc, char **argv)
+{
+    interface_t* it = RecPluginMngr::getPluginList().getFront();
+    while (it != nullptr) {
+        it->main_proxy(argc, argv);
+        it = it->nextPlugin;
     }
 }
 

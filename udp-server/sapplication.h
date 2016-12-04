@@ -40,6 +40,7 @@ public:
 private:
     void loadPlugins();
     void initAllPlugins();
+    void proxyMainAll(int argc, char** argv);
 
 private:
     Server              m_server;

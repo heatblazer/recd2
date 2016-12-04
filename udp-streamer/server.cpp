@@ -252,7 +252,9 @@ void *Server::get_data()
 
 int Server::p_main(int argc, char **argv)
 {
-    (void) argc; (void)argv;
+    (void) argc;
+    (void) argv;
+    printf("No args main in server!\n");
     return 0;
 }
 
