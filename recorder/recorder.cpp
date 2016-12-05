@@ -204,6 +204,7 @@ void Recorder::init()
 
 void Recorder::deinit()
 {
+
     Recorder* r = &Instance();
 
     Logger::Instance().logMessage(THIS_FILE, "Deinitializing recorder...\n");
@@ -252,8 +253,7 @@ int Recorder::put_ndata(void *data, int len)
     } else {
         puts(" no one.");
     }
-    udp_data_t* udp = (udp_data_t*) data;
-    Instance().record(*udp);
+    Instance().record((short*)data, len);
 }
 
 void *Recorder::get_data()

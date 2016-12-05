@@ -46,6 +46,7 @@ void PThread::join()
 {
     pthread_join(m_thread, NULL);
     m_running = false;
+    pthread_yield();
 }
 
 void PThread::setName(const char *name)
@@ -70,6 +71,11 @@ void PThread::sleep(unsigned long msec)
 pthread_t PThread::currentThread()
 {
     return pthread_self();
+}
+
+void PThread::setRunning(bool tf)
+{
+    m_running = tf;
 }
 
 bool PThread::isRunning() const

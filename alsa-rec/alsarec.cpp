@@ -13,7 +13,7 @@ interface_t AlsaRec::s_iface;
 AlsaRec* AlsaRec::s_inst = nullptr;
 
 AlsaRec::AlsaRec()
-    : m_frames(128),
+    : m_frames(16),
       m_rate(8000),
       m_isOk(false),
       m_alsa{nullptr, nullptr, SND_PCM_FORMAT_S16_LE},
@@ -37,9 +37,11 @@ AlsaRec &AlsaRec::Instance()
 void *AlsaRec::worker(void *pArgs)
 {
     AlsaRec* arec = (AlsaRec*) pArgs;
-
+    if (!arec->m_isOk) {
+        return NULL;
+    }
     static char* buffer = NULL;
-    buffer = (char*) malloc(128 * snd_pcm_format_width(arec->m_alsa.format) / 8 *2);
+    buffer = (char*) malloc(arec->m_frames * snd_pcm_format_width(arec->m_alsa.format) / 8 *2);
     if (!buffer) {
         return NULL;
     }
@@ -47,13 +49,16 @@ void *AlsaRec::worker(void *pArgs)
 
     do {
         if ((err = snd_pcm_readi(arec->m_alsa.cap_handle,
-                                 buffer, 128)) != 128) {
+                                 buffer, arec->m_frames)) != arec->m_frames) {
             fprintf(stderr, "failed to read from device: (%s)\n",
                     snd_strerror(err));
         } else {
-            put_ndata(buffer, 128);
+            snd_pcm_prepare(arec->m_alsa.cap_handle);
+            put_ndata(buffer, arec->m_frames);
         }
     } while (arec->m_athread->isRunning());
+
+    free(buffer);
 }
 
 /// perform alsa setup here
@@ -112,8 +117,6 @@ void AlsaRec::init()
     fprintf(stdout, "hw formats set ok!\n");
 
 
-    fprintf(stdout, "hw params channels setted\n");
-
     if ((err = snd_pcm_hw_params_set_rate_near(
              aref->m_alsa.cap_handle,
              aref->m_alsa.hw_params, &aref->m_rate, 0)) < 0) {
@@ -130,7 +133,7 @@ void AlsaRec::init()
         aref->m_isOk = false;
     }
 
-
+    fprintf(stdout, "hw params channels setted\n");
 
     if ((err = snd_pcm_hw_params(
              aref->m_alsa.cap_handle,
@@ -164,8 +167,13 @@ void AlsaRec::init()
 ///
 void AlsaRec::deinit()
 {
+    fprintf(stdout, "Sound device closed...\n");
     AlsaRec* aref = &Instance();
+    aref->m_athread->setRunning(false);
     aref->m_athread->join();
+
+    snd_pcm_close(aref->m_alsa.cap_handle);
+
 }
 
 void AlsaRec::copy(const void *src, void *dest, int len)

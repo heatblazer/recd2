@@ -20,6 +20,7 @@ public:
     void setName(const char* name);
     void sleep(unsigned long msec);
     static pthread_t currentThread();
+    void setRunning(bool tf);
     bool isRunning() const;
 
 private:
