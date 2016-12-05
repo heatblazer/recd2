@@ -1,8 +1,14 @@
 #ifndef ALSAREC_H
 #define ALSAREC_H
 
+#include <alsa/asoundlib.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "plugin-iface.h"
 #include "thread.h"
+
 
 namespace plugin {
 namespace alsarec {
@@ -31,7 +37,16 @@ private:
     AlsaRec();
     ~AlsaRec();
 
-    PThread m_athread;
+    int             m_frames ;
+    unsigned int    m_rate;
+    bool            m_isOk;
+    struct {
+        snd_pcm_t* cap_handle;
+        snd_pcm_hw_params_t* hw_params;
+        snd_pcm_format_t format;
+    } m_alsa;
+
+    PThread* m_athread;
     static interface_t s_iface;
     static AlsaRec* s_inst;
 };

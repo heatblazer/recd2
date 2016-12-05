@@ -72,6 +72,11 @@ pthread_t PThread::currentThread()
     return pthread_self();
 }
 
+bool PThread::isRunning() const
+{
+    return m_running;
+}
+
 PMutex::PMutex()
 {
 

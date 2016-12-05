@@ -71,6 +71,15 @@
      path: absolute path or the one in LD_PATH
 -->
 
+<!-- alsarecorder -->
+<!--
+<Plugin
+    name="alsarec"
+    order="1"
+    enabled="true"
+    path="/home/ilian/github/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/alsa-rec/libalsa-rec.so"
+    />
+-->
 
 <Plugin
     name="udpstreamer"

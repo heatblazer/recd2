@@ -1,9 +1,12 @@
-#include <iostream>
-
-using namespace std;
+#include "alsarec.h"
+#include "plugin-iface.h"
 
 int main(int argc, char *argv[])
 {
-    cout << "Hello World!" << endl;
+
+    const interface_t* iface = get_interface();
+
+    iface->main_proxy(argc, argv);
+    iface->init();
     return 0;
 }

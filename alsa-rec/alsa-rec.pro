@@ -1,10 +1,11 @@
-TEMPLATE = app
+TEMPLATE = lib
 CONFIG += console c++11
 CONFIG -= app_bundle
 CONFIG -= qt
 
-LIBS += -lasound
 LIBS += -lpthread
+LIBS += -lasound
+
 
 SOURCES += main.cpp \
     thread.cpp \
