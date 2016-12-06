@@ -256,6 +256,7 @@ namespace plugin {
         } else {
             puts(" no one.");
         }
+
         Instance().record((short*)data, len);
         return 0;
     }

@@ -7,8 +7,13 @@
 // alloc //
 #include <alloca.h> // automatic freed memory
 
+// thread //
 #include "thread.h"
 
+// utils //
+#include "logger.h"
+
+static const char* THIS_FILE = "alsarec.cpp";
 namespace plugin {
     namespace alsarec {
 
@@ -57,16 +62,21 @@ namespace plugin {
             return NULL;
         }
         int err = -1;
-
+        static char err_msg[256] = {0};
         while (arec->m_athread->isRunning()) {
+
+            arec->m_mutex.lock();
             if ((err = snd_pcm_readi(arec->m_alsa.cap_handle,
                                      buffer, arec->m_frames)) != arec->m_frames) {
-                fprintf(stderr, "failed to read from device: (%s)\n",
+                snprintf(err_msg, sizeof(err_msg),
+                         "failed to read from device: (%s)\n",
                         snd_strerror(err));
+            //    utils::Logger::Instance().logMessage(THIS_FILE, err_msg);
             } else {
                 snd_pcm_prepare(arec->m_alsa.cap_handle);
                 put_ndata(buffer, arec->m_frames);
             }
+            arec->m_mutex.unlock();
         }
 
         snd_pcm_drain(arec->m_alsa.cap_handle);
@@ -79,94 +89,118 @@ namespace plugin {
     ///
     void AlsaRec::init()
     {
+        static char msg[256] = {0};
 
-        fprintf(stdout, "Initializing alsa...\n");
+        snprintf(msg, sizeof(msg), "Initializing alsarec...\n");
+      //  utils::Logger::Instance().logMessage(THIS_FILE, msg);
         int err = 0;
         AlsaRec* aref = &Instance();
+
         if ((err = snd_pcm_open(&aref->m_alsa.cap_handle, "hw:0", SND_PCM_STREAM_CAPTURE, 0) < 0)) {
-            fprintf(stderr, "can not open sound device: hw:0 (%s)\n",
+            snprintf(msg, sizeof(msg), "can not open sound device: hw:0 (%s)\n",
                     snd_strerror(err));
+        //    utils::Logger::Instance().logMessage(THIS_FILE, msg);
             return ;
         }
-        fprintf(stdout, "audio device opened!\n");
+        snprintf(msg, sizeof(msg), "audio device opened!\n");
+      //  utils::Logger::Instance().logMessage(THIS_FILE, msg);
 
         if ((err = snd_pcm_hw_params_malloc(&aref->m_alsa.hw_params)) < 0) {
-            fprintf(stderr, "cannot allocate hardware param struct: (%s)\n",
+            snprintf(msg, sizeof(msg), "cannot allocate hardware param struct: (%s)\n",
                     snd_strerror(err));
+       //     utils::Logger::Instance().logMessage(THIS_FILE, msg);
             return ;
         }
 
-        fprintf(stdout,"hardware params allocated\n");
+        snprintf(msg, sizeof(msg), "hardware params allocated\n");
+        utils::Logger::Instance().logMessage(THIS_FILE, msg);
+
         if ((err = snd_pcm_hw_params_any(aref->m_alsa.cap_handle,
                                          aref->m_alsa.hw_params)) < 0) {
-            fprintf(stderr, "failed to hardware structure: (%s)\n",
+            snprintf(msg, sizeof(msg), "failed to hardware structure: (%s)\n",
                     snd_strerror(err));
+            utils::Logger::Instance().logMessage(THIS_FILE, msg);
             return;
         }
 
 
-        fprintf(stdout, "hardware params allocated!\n");
+      //  snprintf(msg,sizeof(msg),  "hardware params allocated!\n");
+        utils::Logger::Instance().logMessage(THIS_FILE, msg);
+
         if ((err = snd_pcm_hw_params_set_access(aref->m_alsa.cap_handle,
                                                 aref->m_alsa.hw_params,
                                                 SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
-            fprintf(stderr, "cannot set access type (%s) \n",
+            snprintf(msg, sizeof(msg), "cannot set access type (%s) \n",
                     snd_strerror(err));
+        //    utils::Logger::Instance().logMessage(THIS_FILE, msg);
             return;
         }
 
-        fprintf(stdout, "hw params access setted\n");
+        snprintf(msg, sizeof(msg), "hw params access setted\n");
+      //  utils::Logger::Instance().logMessage(THIS_FILE, msg);
 
         if ((err = snd_pcm_hw_params_set_format(
                  aref->m_alsa.cap_handle,
                  aref->m_alsa.hw_params,
                  aref->m_alsa.format)) < 0) {
-            fprintf(stderr, "cannot set sample format: (%s)\n",
+            snprintf(msg, sizeof(msg), "cannot set sample format: (%s)\n",
                     snd_strerror(err));
+        //    utils::Logger::Instance().logMessage(THIS_FILE, msg);
             return;
         }
 
-        fprintf(stdout, "hw formats set ok!\n");
-
+        snprintf(msg, sizeof(msg), "hw formats set ok!\n");
+        utils::Logger::Instance().logMessage(THIS_FILE, msg);
 
         if ((err = snd_pcm_hw_params_set_rate_near(
                  aref->m_alsa.cap_handle,
                  aref->m_alsa.hw_params, &aref->m_rate, 0)) < 0) {
-            fprintf(stderr, "cannot set sample rate: (%s)\n",
+            snprintf(msg, sizeof(msg), "cannot set sample rate: (%s)\n",
                     snd_strerror(err));
+        //    utils::Logger::Instance().logMessage(THIS_FILE, msg);
             return;
         }
 
         if ((err = snd_pcm_hw_params_set_channels(
                  aref->m_alsa.cap_handle,
                  aref->m_alsa.hw_params, 2)) < 0) {
-            fprintf(stderr, "cannot set channel count (%s)\n",
+            snprintf(msg, sizeof(msg), "cannot set channel count (%s)\n",
                     snd_strerror(err));
+        //    utils::Logger::Instance().logMessage(THIS_FILE, msg);
             return;
         }
 
-        fprintf(stdout, "hw params channels setted\n");
-
+        snprintf(msg, sizeof(msg), "hw params channels setted\n");
+       // utils::Logger::Instance().logMessage(THIS_FILE, msg);
         if ((err = snd_pcm_hw_params(
                  aref->m_alsa.cap_handle,
                  aref->m_alsa.hw_params)) < 0) {
-            fprintf(stderr, "cannot set params: (%s)\n",
+            snprintf(msg, sizeof(msg), "cannot set params: (%s)\n",
                     snd_strerror(err));
+       //     utils::Logger::Instance().logMessage(THIS_FILE, msg);
             return;
         }
 
-        fprintf(stdout, "hardware params set ok\n");
+        snprintf(msg, sizeof(msg), "hardware params set ok\n");
+       // utils::Logger::Instance().logMessage(THIS_FILE, msg);
+
         snd_pcm_hw_params_free(aref->m_alsa.hw_params);
-        fprintf(stdout, "hardware params freed\n");
+
+        snprintf(msg, sizeof(msg), "hardware params freed\n");
+      //  utils::Logger::Instance().logMessage(THIS_FILE, msg);
 
         if ((err = snd_pcm_prepare(aref->m_alsa.cap_handle)) < 0) {
-            fprintf(stderr, "cannot prepare audio interface: (%s)\n",
+            snprintf(msg, sizeof(msg), "cannot prepare audio interface: (%s)\n",
                     snd_strerror(err));
+      //      utils::Logger::Instance().logMessage(THIS_FILE, msg);
             return;
         }
 
-        fprintf(stdout, "audio interface prepared... starting up...\n");
+        snprintf(msg, sizeof(msg), "audio interface prepared... starting up...\n");
+      //  utils::Logger::Instance().logMessage(THIS_FILE, msg);
         aref->m_isOk = true;
 
+        aref->m_mutex.init();
         aref->m_athread = new PThread;
         aref->m_athread->create(128 * 1024, aref, AlsaRec::worker, 20);
         aref->m_athread->setName("alsa-thread");
@@ -178,12 +212,18 @@ namespace plugin {
     ///
     void AlsaRec::deinit()
     {
-        fprintf(stdout, "Sound device closed...\n");
+        static char msg[64] = {0};
+        snprintf(msg, sizeof(msg), "Sound device closed...\n");
         AlsaRec* aref = &Instance();
         aref->m_athread->setRunning(false);
         aref->m_athread->join();
         aref->m_athread->yield();
         snd_pcm_close(aref->m_alsa.cap_handle);
+        if (aref->m_athread != nullptr) {
+            delete aref->m_athread;
+        }
+
+        aref->m_mutex.destroy();
 
     }
 

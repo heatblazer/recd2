@@ -23,4 +23,6 @@ HEADERS += \
     recorder-config.h \
     wav-writer-iface.h \
     wav-writer.h \
-    writer.h
+    writer.h \
+    utils.h \
+    types.h

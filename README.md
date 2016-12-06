@@ -133,6 +133,7 @@ A wav recorder over udp streams.
     30.11.2016: Started to implement a firstclass plugin architecture.
     01.12.2016: Changed the plugin api to successfully chain multiple plugins.
     03.12.2016: Now program is plugin based. Recorder and server are separate.
+    06.12.2016: Granulated project to smaller and added another to mailing list.
 
 ## KISS FFT
     KISS FFT - A mixed-radix Fast Fourier Transform based up on the principle,

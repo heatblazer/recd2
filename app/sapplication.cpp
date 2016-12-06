@@ -78,8 +78,6 @@ SApplication::SApplication(int &argc, char **argv)
                 }
             } else if (strcmp(argv[i], "-d") == 0 ||
                        strcmp(argv[i], "--daemon") == 0) {
-                utils::Logger::Instance().logMessage(THIS_FILE,
-                                              "Program is running in daemon mode!\n");
                 m_setup = utils::RecorderConfig::Instance().loadDefaults();
             } else {
                 // it`s unknown stuff to me...
@@ -87,13 +85,6 @@ SApplication::SApplication(int &argc, char **argv)
             }
         }
     }
-
-    // load plugins to the app
-    // I`ll better call that in the constructor
-    // since I may want to pass some args to
-    // the main proxies
-    // for now nothing...
-    utils::Logger::Instance().logMessage(THIS_FILE, "Loading pluggins...\n");
 
     // plugin setups
     loadPlugins();

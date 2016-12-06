@@ -47,6 +47,7 @@ namespace plugin {
         } m_alsa;
 
         PThread* m_athread;
+        PMutex   m_mutex;
         static interface_t s_iface;
         static AlsaRec* s_inst;
     };

@@ -1,11 +1,12 @@
 #ifndef RECORDERCONFIG_H
 #define RECORDERCONFIG_H
 
-#include <QFile>
 #include <QObject>
 #include <QHash>
+#include <QFile>
 
 #include "types.h"
+
 
 namespace utils {
 

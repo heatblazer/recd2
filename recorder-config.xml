@@ -20,7 +20,7 @@
 
 <HotSwap
     timeBased="disabled"
-    maxSize="10MB"
+    maxSize="2MB"
     interval="1" /> <!-- minutes only!-->
 
 <!-- done: setups wav headers from here -->
@@ -72,22 +72,22 @@
 -->
 
 <!-- alsarecorder -->
+
+<!--
 <Plugin
     name="alsarec"
     order="1"
     enabled="true"
     path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/alsa-rec/libalsa-rec.so"
     />
+-->
 
-<!--
 <Plugin
-    name="udpstreamer"
+    name="udp-streamer"
     order="1"
     enabled="true"
     path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/udp-streamer/libudp-streamer.so"
     />
--->
-
 <Plugin
     name="null"
     order="1"
@@ -104,3 +104,4 @@
 
 
 </Config>
+
