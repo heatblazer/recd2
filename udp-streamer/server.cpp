@@ -93,11 +93,6 @@ namespace plugin {
     ///
     void Server::readyReadUdp()
     {
-        // write error udp to prevent wav size
-        // fragmenation, if missed an udp,
-        // I`ll write a 16 samples with max valuse
-        printf("Ready read udp data!\n");
-
         if (udp->hasPendingDatagrams()) {
             m_monitorData.append('.');
 
@@ -217,6 +212,7 @@ namespace plugin {
     ///
     void Server::deinit(void)
     {
+        printf("Server: deinit\n");
     }
 
     void Server::copy(const void *src, void *dst, int len)
@@ -226,24 +222,16 @@ namespace plugin {
 
     int Server::put_data(void *data)
     {
-        printf("Server: put data to ");
         if (iface.nextPlugin != NULL) {
-            puts("next plugin.");
             iface.nextPlugin->put_data(data);
-        } else {
-            puts("no one.");
         }
         return 0;
     }
 
     int Server::put_ndata(void *data, int len)
     {
-        printf("Server: put data to ");
         if (iface.nextPlugin != NULL) {
-            puts("next plugin.");
             iface.nextPlugin->put_ndata(data, len);
-        } else {
-            puts("no one.");
         }
         return 0;
     }

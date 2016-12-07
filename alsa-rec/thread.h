@@ -48,6 +48,23 @@ namespace plugin {
     };
 
 
+    template <typename T> class LockGuard
+    {
+    public:
+        explicit LockGuard(const T& ref)
+            : m_mutex(ref)
+        {
+            m_mutex.lock();
+        }
+        ~LockGuard()
+        {
+            m_mutex.unlock();
+        }
+
+    private:
+        T& m_mutex;
+    };
+
     } // alsarec
 } // plugin
 

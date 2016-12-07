@@ -202,6 +202,7 @@ namespace plugin {
 
     void Recorder::deinit()
     {
+        printf("Recorder: deinit\n");
 
         Recorder* r = &Instance();
 
@@ -408,39 +409,6 @@ namespace plugin {
         }
     }
 
-    void Recorder::handleFileChange(const int slot)
-    {
-
-        if (m_wavs[slot] != nullptr && m_wavs[slot]->isOpened()) {
-            if (m_wavs[slot]->getFileSize() > m_maxFileSize) {
-                s_UID++;
-                char buff[256] = {0};
-                if (m_directory != "") {
-                    snprintf(buff, sizeof(buff), "%s/%d-%d-%s.wav",
-                            m_directory.toStdString().data(),
-                            slot, s_UID, DateTime::getTimeString());
-                } else {
-                    snprintf(buff, sizeof(buff), "%d-%d-%s.wav",
-                                slot,
-                                s_UID, DateTime::getTimeString());
-                }
-
-                m_wavs[slot]->close();
-                delete m_wavs[slot];
-                m_wavs[slot] = nullptr;
-
-                m_wavs[slot] = new QWav(buff);
-                m_wavs[slot]->setupWave(m_wavParams.samples_per_sec,
-                                        m_wavParams.bits_per_sec,
-                                        m_wavParams.riff_len,
-                                        m_wavParams.fmt_len,
-                                        m_wavParams.audio_fmt,
-                                        m_wavParams.chann_cnt);
-                m_wavs[slot]->open(slot);
-            }
-        }
-    }
-
     /// Timer based hotswap, if time elapses
     /// we swap files
     /// \brief Recorder::hotSwapFiles
@@ -522,43 +490,6 @@ namespace plugin {
                                          m_wavParams.chann_cnt);
                     m_wavs[i]->open(i);
                 }
-            }
-        }
-    }
-
-    /// \brief Recorder::performHotSwap
-    /// \param file - name of file
-    ///
-    void Recorder::performHotSwap(const QString &file)
-    {
-        Wav* w = (Wav*)getWavByName(file);
-        if (w != nullptr && w->isOpened()) {
-            if (w->getFileSize() > m_maxFileSize) {
-                m_filewatcher.removePath(w->getFileName());
-                s_UID++;
-                int slot = w->getSlot();
-                m_wavs[slot]->close();
-                delete m_wavs[slot];
-                m_wavs[slot] = nullptr;
-                static char buff[256] = {0};
-                if (m_directory != "") {
-                    snprintf(buff, sizeof(buff), "%s/%d-%d-%s.wav",
-                            m_directory.toStdString().data(),
-                            slot, s_UID, DateTime::getTimeString());
-                } else {
-                    snprintf(buff, sizeof(buff), "%d-%d-%s.wav",
-                                slot,
-                                s_UID, DateTime::getTimeString());
-                }
-                m_wavs[slot] = new QWav(buff);
-                m_wavs[slot]->setupWave(m_wavParams.samples_per_sec,
-                                        m_wavParams.bits_per_sec,
-                                        m_wavParams.riff_len,
-                                        m_wavParams.fmt_len,
-                                        m_wavParams.audio_fmt,
-                                        m_wavParams.chann_cnt);
-                m_wavs[slot]->open(slot);
-                m_filewatcher.addPath(m_wavs[slot]->getFileName());
             }
         }
     }

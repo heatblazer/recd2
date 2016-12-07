@@ -3,7 +3,6 @@
 #include "utils.h"
 
 // qt - paretn //
-#include <QFileSystemWatcher> // monitor wav files for size for the hotswap
 #include <QObject>
 #include <QTimer> // hotswap interval
 #include <QThread>
@@ -82,10 +81,6 @@ namespace plugin {
 
         // try swap on size based
         void pollHotSwap();
-        void handleFileChange(const int slot);
-
-        // hot spaw filesystem watcher
-        void performHotSwap(const QString& file);
 
     private:
         // 128  chans max - I can use Wav** m_wavs but
@@ -93,12 +88,11 @@ namespace plugin {
         // not allowed...
 
         // abstracted!!!
-        utils::QWav* m_wavs[128];
+        utils::WavIface* m_wavs[128];
         int m_maxChans;
         // hotswap
         QTimer m_hotswap; // timer based
         bool m_sizeBased;
-        QFileSystemWatcher m_filewatcher; // size based
 
         uint32_t    m_maxFileSize;
 
