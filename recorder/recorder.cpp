@@ -53,6 +53,7 @@ namespace plugin {
           m_maxChans(0),
           m_maxFileSize(0)
     {
+        m_sizeBased = false;
         for(int i=0; i < 128; ++i) {
             m_wavs[i] = nullptr;
         }
@@ -124,16 +125,13 @@ namespace plugin {
                         DateTime::getTimeString());
                 r->m_directory.clear();
             }
-            r->m_wavs[i] = new Wav(buff);
+            r->m_wavs[i] = new QWav(buff);
         }
         // open files when everything is ok and setup
         res &= r->setupWavFiles();
 
         for(int i=0; i < r->m_maxChans; ++i) {
             res &= r->m_wavs[i]->open(i);
-            if (res) {
-                r->m_filewatcher.addPath(r->m_wavs[i]->getFileName());
-            }
         }
 
         const MPair<QString, QString>& hot_swap = RecorderConfig::Instance()
@@ -190,15 +188,12 @@ namespace plugin {
                 snprintf(init_msg, sizeof(init_msg),
                          "File size limit is: (%d) bytes\n", r->m_maxFileSize);
                 Logger::Instance().logMessage(THIS_FILE, init_msg);
-
-                connect(&r->m_filewatcher, SIGNAL(fileChanged(QString)),
-                        &Instance(), SLOT(performHotSwap(QString)));
+                r->m_sizeBased = true;
             }
         } else {
             // setup the default logic
             // swap by size
-            connect(&r->m_filewatcher, SIGNAL(fileChanged(QString)),
-                    &Instance(), SLOT(performHotSwap(QString)));
+
         }
 
         Instance().setObjectName("recorder-thread");
@@ -235,12 +230,9 @@ namespace plugin {
 
     int Recorder::put_data(void *data)
     {
-        printf("Recorder: put data ");
         if (iface.nextPlugin != NULL) {
-            puts("next loaded plugin.");
             iface.nextPlugin->put_data(data);
         } else {
-            puts("no one.");
         }
         udp_data_t* udp = (udp_data_t*) data;
         Instance().record(*udp);
@@ -249,12 +241,9 @@ namespace plugin {
 
     int Recorder::put_ndata(void *data, int len)
     {
-        printf("Recorder: put data to ");
         if (iface.nextPlugin != NULL) {
-            puts("next loaded plugin.");
             iface.nextPlugin->put_ndata(data, len);
         } else {
-            puts(" no one.");
         }
 
         Instance().record((short*)data, len);
@@ -447,8 +436,44 @@ namespace plugin {
     void Recorder::record(short data[], int len)
     {
         for(int i=0; i < m_maxChans; ++i) {
+            if (m_sizeBased) {
+                pollHotSwap();
+            }
             if (m_wavs[i] != nullptr && m_wavs[i]->isOpened()) {
                 m_wavs[i]->write(data, len);
+            }
+        }
+    }
+
+    void Recorder::handleFileChange(const int slot)
+    {
+
+        if (m_wavs[slot] != nullptr && m_wavs[slot]->isOpened()) {
+            if (m_wavs[slot]->getFileSize() > m_maxFileSize) {
+                s_UID++;
+                char buff[256] = {0};
+                if (m_directory != "") {
+                    snprintf(buff, sizeof(buff), "%s/%d-%d-%s.wav",
+                            m_directory.toStdString().data(),
+                            slot, s_UID, DateTime::getTimeString());
+                } else {
+                    snprintf(buff, sizeof(buff), "%d-%d-%s.wav",
+                                slot,
+                                s_UID, DateTime::getTimeString());
+                }
+
+                m_wavs[slot]->close();
+                delete m_wavs[slot];
+                m_wavs[slot] = nullptr;
+
+                m_wavs[slot] = new QWav(buff);
+                m_wavs[slot]->setupWave(m_wavParams.samples_per_sec,
+                                        m_wavParams.bits_per_sec,
+                                        m_wavParams.riff_len,
+                                        m_wavParams.fmt_len,
+                                        m_wavParams.audio_fmt,
+                                        m_wavParams.chann_cnt);
+                m_wavs[slot]->open(slot);
             }
         }
     }
@@ -465,8 +490,7 @@ namespace plugin {
                 // кой писал писал
                 if (1) {
                     s_UID++;
-                    m_filewatcher.removePath(m_wavs[i]->getFileName());
-                    static char buff[256] = {0};
+                    char buff[256] = {0};
                     if (m_directory != "") {
                         snprintf(buff, sizeof(buff), "%s/%d-%d-%s.wav",
                                 m_directory.toStdString().data(),
@@ -486,7 +510,7 @@ namespace plugin {
                     m_wavs[i] = nullptr;
 
                     // open a new file in the same slot
-                    m_wavs[i] = new Wav(buff);
+                    m_wavs[i] = new QWav(buff);
                     m_wavs[i]->setupWave(m_wavParams.samples_per_sec,
                                          m_wavParams.bits_per_sec,
                                          m_wavParams.riff_len,
@@ -494,7 +518,46 @@ namespace plugin {
                                          m_wavParams.audio_fmt,
                                          m_wavParams.chann_cnt);
                     m_wavs[i]->open(i);
-                    m_filewatcher.addPath(m_wavs[i]->getFileName());
+                }
+            }
+        }
+    }
+
+    void Recorder::pollHotSwap()
+    {
+        for(int i=0; i < m_maxChans; ++i) {
+            if (m_wavs[i] != nullptr && m_wavs[i]->isOpened()) {
+                // кой писал писал
+                if (m_wavs[i]->getFileSize() > m_maxFileSize) {
+                    s_UID++;
+                    char buff[256] = {0};
+                    if (m_directory != "") {
+                        snprintf(buff, sizeof(buff), "%s/%d-%d-%s.wav",
+                                m_directory.toStdString().data(),
+                                i, s_UID, DateTime::getTimeString());
+
+                    } else {
+                        snprintf(buff, sizeof(buff), "%d-%d-%s.wav",
+                                    i,
+                                    s_UID, DateTime::getTimeString());
+
+                    }
+                    m_wavs[i]->close();
+                    // TODO: rename after a name pattern is set
+                    //m_wavs[i]->renameFile(m_wavs[i]->getFileName(), buff);
+
+                    delete m_wavs[i];
+                    m_wavs[i] = nullptr;
+
+                    // open a new file in the same slot
+                    m_wavs[i] = new QWav(buff);
+                    m_wavs[i]->setupWave(m_wavParams.samples_per_sec,
+                                         m_wavParams.bits_per_sec,
+                                         m_wavParams.riff_len,
+                                         m_wavParams.fmt_len,
+                                         m_wavParams.audio_fmt,
+                                         m_wavParams.chann_cnt);
+                    m_wavs[i]->open(i);
                 }
             }
         }
@@ -524,7 +587,7 @@ namespace plugin {
                                 slot,
                                 s_UID, DateTime::getTimeString());
                 }
-                m_wavs[slot] = new Wav(buff);
+                m_wavs[slot] = new QWav(buff);
                 m_wavs[slot]->setupWave(m_wavParams.samples_per_sec,
                                         m_wavParams.bits_per_sec,
                                         m_wavParams.riff_len,

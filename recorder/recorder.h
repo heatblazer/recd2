@@ -11,8 +11,10 @@
 #include <QQueue>
 
 //  local hdrs //
+#include "utils.h"
 #include "plugin-iface.h"
 #include "wav-writer-iface.h"
+#include "qwave-writer.h"
 
 namespace plugin {
     namespace rec {
@@ -61,6 +63,7 @@ namespace plugin {
         void record(QQueue<udp_data_t> &packets);
         void record(const udp_data_t& data);
         void record(short data[], int len);
+        // special handle for QWav files
         // unused - pointer decay prevention
         /**
         template <typename T, size_t N> record(T (&data[N]))
@@ -71,6 +74,8 @@ namespace plugin {
     private slots:
         // hot swap - time based
         void hotSwapFiles();
+        void pollHotSwap();
+        void handleFileChange(const int slot);
 
         // hot spaw filesystem watcher
         void performHotSwap(const QString& file);
@@ -81,11 +86,11 @@ namespace plugin {
         // not allowed...
 
         // abstracted!!!
-        utils::WavIface* m_wavs[128];
+        utils::QWav* m_wavs[128];
         int m_maxChans;
         // hotswap
         QTimer m_hotswap; // timer based
-
+        bool m_sizeBased;
         QFileSystemWatcher m_filewatcher; // size based
 
         uint32_t    m_maxFileSize;

@@ -15,8 +15,10 @@ namespace utils {
 /// newer concept for wave writer using QT
 /// \brief The QWave class
 ///
-class QWav : public QThread, public WavIface
+class QWav : public QObject, public WavIface
 {
+    // this class is emiter
+    Q_OBJECT
 public:
     enum OpenMode {
         NotOpen = 0x0000,
@@ -28,10 +30,8 @@ public:
         Text = 0x0010,
         Unbuffered = 0x0020
     };
-    explicit QWav(const QString& fname, QThread* parent=nullptr);
+    explicit QWav(const QString& fname, QObject* parent=nullptr);
     virtual ~QWav();
-
-    void run() Q_DECL_OVERRIDE;
 
     virtual bool open(unsigned slot);
     virtual void close();
@@ -46,20 +46,18 @@ public:
     virtual int getSlot() const;
     virtual void renameFile(const char* oldname, const char* newname);
 
-    // not interface methods
-    void enqueueData(short* data, int len);
-    void startWriter();
-    void stopWriter();
+signals:
+    void fileSizeChanged(utils::QWav* this_file);
+    void fileSizeChanged(const int slot);
+
 private:
     QString m_name;
     QFile m_wav;
     int   m_slot;
     bool  m_setup;
+    bool m_isOpened;
     size_t m_size;
     wav_hdr_t m_header;
-    bool m_isRunning;
-    QMutex  m_lock;
-    QQueue<short> m_buffer;
 
 };
 

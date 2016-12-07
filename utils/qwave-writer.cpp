@@ -71,7 +71,7 @@ static inline int16_t flip16(int16_t input)
 
 bool QWav::isOpened() const
 {
-    return m_wav.isOpen();
+    return m_isOpened;
 }
 
 /// unimplemented
@@ -137,12 +137,14 @@ int QWav::write(short data[], int len)
 {
     // hope that write returns ok data
     m_size += m_wav.write((char*) data, len);
+    emit fileSizeChanged(m_slot);
+
     return m_size;
 }
 
 void QWav::close()
 {
-    if (m_wav.isOpen()) {
+    if (m_isOpened) {
 
         qint64 file_len = m_wav.size();
         // get the len from the offset
@@ -157,6 +159,7 @@ void QWav::close()
         m_wav.seek(4);
         m_wav.write((char*)&riff_len);
         m_wav.close();
+        m_isOpened = false;
     }
 }
 
@@ -170,6 +173,8 @@ bool QWav::open(unsigned slot)
     if (m_wav.exists()) {
         return false;
     }
+    m_slot = slot;
+
     m_wav.setFileName(m_name);
     if (!m_wav.isOpen()) {
         m_wav.open(QIODevice::WriteOnly);
@@ -182,46 +187,26 @@ bool QWav::open(unsigned slot)
     m_wav.write((char*)&m_header, sizeof(m_header));
     m_wav.flush();
     m_size += 44;
-    m_slot = slot;
-    return m_wav.isOpen();
+    m_isOpened = true;
+    return m_isOpened;
 
 }
 
-QWav::QWav(const QString &fname, QThread *parent)
-    : QThread(parent),
+QWav::QWav(const QString &fname, QObject *parent)
+    : QObject(parent),
       m_name(fname),
       m_slot(-1),
       m_setup(false),
-      m_size(0),
-      m_isRunning(false)
+      m_isOpened(false),
+      m_size(0)
 {
 }
 
 QWav::~QWav()
 {
-
-}
-
-/// TODO: test
-/// threaded writing to wav files
-/// \brief QWav::run
-///
-void QWav::run()
-{
-    QQueue<short> dblbuff;
-    do {
-       msleep(100);
-       m_lock.lock();
-       while (!m_buffer.isEmpty()) {
-           dblbuff.enqueue(m_buffer.dequeue());
-       }
-       m_lock.unlock();
-       while (!dblbuff.isEmpty()) {
-           short d = dblbuff.dequeue();
-           m_wav.write((char*)&d);
-       }
-
-    } while (m_isRunning);
+    m_slot = -1;
+    m_setup = false;
+    m_size = 0;
 }
 
 const char *QWav::getFileName()
@@ -246,25 +231,5 @@ void QWav::renameFile(const char *oldname, const char *newname)
     m_wav.rename(QString(newname));
 }
 
-void QWav::enqueueData(short *data, int len)
-{
-    m_lock.lock();
-    for(int i=0; i < len; ++i) {
-        m_buffer.append(data[i]);
-    }
-    m_lock.unlock();
-}
-
-void QWav::startWriter()
-{
-    m_isRunning = true;
-    QThread::start();
-}
-
-void QWav::stopWriter()
-{
-    m_isRunning = false;
-    QThread::wait(1000);
-}
 
 } // utils

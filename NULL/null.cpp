@@ -19,13 +19,10 @@ static void init()
 
 static int put_ndata(void *data, int len)
 {
-    printf("NULL: put data to ");
     udp_data_t* udp = (udp_data_t*) data;
     if (s_iface.nextPlugin != NULL) {
-        puts("next plugin.");
         s_iface.nextPlugin->put_ndata((udp_data_t*)udp, len);
     } else {
-        puts(" no one.");
     }
     // remove it.. why returning...
     return 0;
@@ -35,12 +32,9 @@ static int put_ndata(void *data, int len)
 static int put_data(void *data)
 {
     udp_data_t* udp = (udp_data_t*) data;
-    printf("NULL: put data to ");
     if (s_iface.nextPlugin != NULL) {
-        puts("next plugin.");
         s_iface.nextPlugin->put_data((udp_data_t*)udp);
     } else {
-        puts("no one.");
     }
     return 0;
 }

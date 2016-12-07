@@ -74,8 +74,15 @@ A wav recorder over udp streams.
     13. Fix all warnings in all subprojects, please.
 
 ## BUGS
-    [Bug1]Strange bug as for 16.11.2016, when the program gives 100% cpu load on my other Fedora computer.
+    [Bug1] Strange bug as for 16.11.2016, when the program gives 100% cpu load on my other Fedora computer.
     [Fix Bug1] I've forgot a timer into server that has 10ms tick.
+    [Bug2] Alsarec crashesh recorder when hotswap needs to happen. Possible problem is
+    the unstoppable stream from the sounddevice, a buffering must be applied, probably.
+    [Partial fix Bug2] The bug is from the size based hotswap. Timebased hotswap works fine.
+    [Partial fix Bug2] I`ve fixed the nasty bug, and replaced fswatcher by a observer logic in QT api,
+    by emmiting filechanged everytime QWav writes something. However the hotswap size based
+    is still broken as f***!
+
 
 ## NOTES
     31.10.2016: now correctly records the samples from the incomming device.

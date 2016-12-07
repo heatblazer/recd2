@@ -56,7 +56,7 @@ namespace plugin {
         char* buffer = NULL;
 
         // will be freed at the end of worker(...)
-        buffer = (char*) alloca(arec->m_frames * snd_pcm_format_width(arec->m_alsa.format) / 8 *2);
+        buffer = (char*) malloc(arec->m_frames * snd_pcm_format_width(arec->m_alsa.format) / 8 *2);
 
         if (!buffer) {
             return NULL;
@@ -65,7 +65,6 @@ namespace plugin {
         static char err_msg[256] = {0};
         while (arec->m_athread->isRunning()) {
 
-            arec->m_mutex.lock();
             if ((err = snd_pcm_readi(arec->m_alsa.cap_handle,
                                      buffer, arec->m_frames)) != arec->m_frames) {
                 snprintf(err_msg, sizeof(err_msg),
@@ -76,7 +75,6 @@ namespace plugin {
                 snd_pcm_prepare(arec->m_alsa.cap_handle);
                 put_ndata(buffer, arec->m_frames);
             }
-            arec->m_mutex.unlock();
         }
 
         snd_pcm_drain(arec->m_alsa.cap_handle);
@@ -96,7 +94,8 @@ namespace plugin {
         int err = 0;
         AlsaRec* aref = &Instance();
 
-        if ((err = snd_pcm_open(&aref->m_alsa.cap_handle, "hw:0", SND_PCM_STREAM_CAPTURE, 0) < 0)) {
+        if ((err = snd_pcm_open(&aref->m_alsa.cap_handle, "hw:0", SND_PCM_STREAM_CAPTURE,
+                                0) < 0)) {
             snprintf(msg, sizeof(msg), "can not open sound device: hw:0 (%s)\n",
                     snd_strerror(err));
         //    utils::Logger::Instance().logMessage(THIS_FILE, msg);
@@ -234,12 +233,9 @@ namespace plugin {
 
     int AlsaRec::put_ndata(void *data, int len)
     {
-        printf("AlsaRec: put data to ");
         if (s_iface.nextPlugin != nullptr) {
-            puts("next plugin.");
             s_iface.nextPlugin->put_ndata(data, len);
         } else {
-            puts("no one.");
         }
         return 0;
 
@@ -247,12 +243,9 @@ namespace plugin {
 
     int AlsaRec::put_data(void *data)
     {
-        printf("AlsaRec: put data to ");
         if (s_iface.nextPlugin != nullptr) {
-            puts("next plugin.");
             s_iface.nextPlugin->put_data(data);
         } else {
-            puts("no one.");
         }
         return 0;
     }
