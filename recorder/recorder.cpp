@@ -234,19 +234,23 @@ namespace plugin {
             iface.nextPlugin->put_data(data);
         } else {
         }
-        udp_data_t* udp = (udp_data_t*) data;
-        Instance().record(*udp);
         return 0;
     }
 
     int Recorder::put_ndata(void *data, int len)
     {
+        Recorder* r = &Instance();
         if (iface.nextPlugin != NULL) {
             iface.nextPlugin->put_ndata(data, len);
         } else {
+            sample_data_t sdata = {0, 0};
+            sdata.len = len;
+            sdata.data = (short*) data;
+            r->m_thread.mutex.lock();
+            r->m_thread.buffer.append(sdata);
+            r->m_thread.mutex.unlock();
         }
-
-        Instance().record((short*)data, len);
+        //Instance().record((short*)data, len);
         return 0;
     }
 
@@ -284,20 +288,22 @@ namespace plugin {
     void Recorder::run()
     {
         //exec();
-        QQueue<udp_data_t> dblBuff;
+        QQueue<sample_data_t> dblBuff;
+        Recorder* r = &Instance();
         do {
             usleep(100);
-            m_thread.mutex.lock();
-            while (!m_thread.buffer.isEmpty()) {
-                dblBuff.enqueue(m_thread.buffer.dequeue());
+            r->m_thread.mutex.lock();
+            while (!r->m_thread.buffer.isEmpty()) {
+                dblBuff.enqueue(r->m_thread.buffer.dequeue());
             }
-            m_thread.mutex.unlock();
+            r->m_thread.mutex.unlock();
 
-            while (!dblBuff.isEmpty()) {
-                udp_data_t d = dblBuff.dequeue();
-                record(d);
+            while (!dblBuff.empty()) {
+                sample_data_t sd = dblBuff.dequeue();
+                record(sd.data, sd.len);
             }
-        } while (m_thread.running);
+
+        } while (r->m_thread.running);
 
     }
 
@@ -389,49 +395,6 @@ namespace plugin {
         return res;
     }
 
-    /// UNUSED!!!
-    /// buffered recording for future use
-    /// and for now for use of writing error packets
-    /// \brief Recorder::record
-    /// \param buffered packets write a buffer of packets
-    ///
-    void Recorder::record(QQueue<udp_data_t> &packets)
-    {
-        while (!packets.isEmpty()) {
-            for(int j=0; j < m_maxChans; ++j) {
-                if (m_wavs[j] != nullptr && m_wavs[j]->isOpened()) {
-                    // TODO: test!
-                    // test plugin iface
-                    const udp_data_t& data = packets.dequeue();
-                    m_wavs[j]->write((short*) data.data[j], 16);
-                }
-            }
-        }
-    }
-
-    /// asume the file is opened and setup,
-    /// now we handle the signals from the server
-    /// and write the sample data to a specific slot
-    /// \brief Recorder::record
-    /// \param data - samples
-    ///
-    void Recorder::record(const udp_data_t &data)
-    {
-        // flip the data for dimo`s recorder wich comes 16 x 32
-        // unlike the other device that is 32 x 16, for me
-        // it`s more friendly to write one time 16 samples so
-        // I`ll flip  ROW x COL and COL x ROW to be fwrite friendly
-        // this is a macrodef for tests: in the final requirements
-        // this structure is still unknown but the idea will be similar.
-        for(int i=0; i < m_maxChans; ++i) {
-            if (m_wavs[i] != nullptr && m_wavs[i]->isOpened()) {
-                // TODO: test!
-                // pass the data to multiple plugins
-                // TODO: fill in later when a specific need is pending.
-                m_wavs[i]->write((short*) data.data[i], 16);
-             }
-        }
-    }
 
     void Recorder::record(short data[], int len)
     {

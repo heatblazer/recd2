@@ -26,6 +26,12 @@ namespace plugin {
         int16_t    data[32][16];
     };
 
+    struct sample_data_t
+    {
+        uint32_t len;
+        short* data;
+    };
+
     /// threadable
     /// \brief The Recorder class
     ///
@@ -60,11 +66,10 @@ namespace plugin {
         void recordedBytes(uint32_t bytes);
 
     public slots:
-        void record(QQueue<udp_data_t> &packets);
-        void record(const udp_data_t& data);
         void record(short data[], int len);
         // special handle for QWav files
         // unused - pointer decay prevention
+
         /**
         template <typename T, size_t N> record(T (&data[N]))
         {
@@ -74,6 +79,8 @@ namespace plugin {
     private slots:
         // hot swap - time based
         void hotSwapFiles();
+
+        // try swap on size based
         void pollHotSwap();
         void handleFileChange(const int slot);
 
@@ -113,7 +120,7 @@ namespace plugin {
         // concurent stuff
         struct {
             QMutex mutex;
-            QQueue<udp_data_t> buffer;
+            QQueue<sample_data_t> buffer;
             bool running;
         } m_thread;
     };

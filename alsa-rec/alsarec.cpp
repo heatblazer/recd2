@@ -56,7 +56,7 @@ namespace plugin {
         char* buffer = NULL;
 
         // will be freed at the end of worker(...)
-        buffer = (char*) malloc(arec->m_frames * snd_pcm_format_width(arec->m_alsa.format) / 8 *2);
+        buffer = (char*) alloca(arec->m_frames * snd_pcm_format_width(arec->m_alsa.format) / 8 *2);
 
         if (!buffer) {
             return NULL;
