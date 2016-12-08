@@ -15,7 +15,7 @@ struct interface_t
     void    (*deinit)();
     int     (*main_proxy)(int, char**);
     struct interface_t* (*getSelf)(void);
-    void*   this_interface; // used temporaly for connection
+    char   name[256]; // the plugin name
     struct interface_t* nextPlugin; // next put frame
 };
 

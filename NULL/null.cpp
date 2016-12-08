@@ -81,7 +81,6 @@ const struct interface_t *get_interface()
     s_iface.main_proxy = &main_proxy;
     s_iface.copy = &copy;
     s_iface.getSelf = &getSelf;
-    s_iface.none = nullptr;
     s_iface.nextPlugin = nullptr;
 
     return &s_iface;

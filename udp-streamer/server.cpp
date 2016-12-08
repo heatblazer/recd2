@@ -18,19 +18,11 @@ namespace plugin {
         int16_t    data[32][16];
     };
 
-    ///////////////////////////////////////////////////////////////////////////////////
-    QUdpSocket* Server::udp = nullptr;
-    QTimer Server::m_liveConnection;
-    QHostAddress Server::m_senderHost;
-    quint16 Server::m_senderPort = 1234;
-    struct conn_info Server::m_conn_info = {0, 0, 0, false};
-    QQueue<char> Server::m_monitorData;
     Server* Server::s_inst = nullptr;
     interface_t Server::iface = {0,0,0,
                                  0,0,0,
                                  0,0,0,
-                                0};
-
+                                 0};
     // the err udp packet
     static struct udp_data_t err_udp = {0, 0, 0};
     ///////////////////////////////////////////////////////////////////////////////////
@@ -57,6 +49,7 @@ namespace plugin {
     ///
     void Server::init()
     {
+        Server* s = &Server::Instance();
         printf("Initializing server...\n");
         // the error packet to be sent on packet lost
         for(int i=0; i < 32; ++i) {
@@ -64,28 +57,25 @@ namespace plugin {
                 err_udp.data[i][j] = 37222;
             }
         }
+        s->udp = new QUdpSocket;
+        bool bres = s->udp->bind(1234, QUdpSocket::ShareAddress);
 
-        udp = new QUdpSocket;
-        bool bres = udp->bind(1234, QUdpSocket::ShareAddress);
+        connect(s->udp, SIGNAL(readyRead()),
+                s, SLOT(readyReadUdp())/*, Qt::DirectConnection*/);
 
-        connect(udp, SIGNAL(readyRead()),
-                &Instance(), SLOT(readyReadUdp())/*, Qt::DirectConnection*/);
-
-        connect(&Instance(), SIGNAL(dataReady(udp_data_t*)),
-                &Instance(), SLOT(hDataReady(udp_data_t*)));
+        connect(s, SIGNAL(dataReady(udp_data_t*)),
+                s, SLOT(hDataReady(udp_data_t*)));
         if (bres) {
 
             printf("Bind OK!\n");
-            m_liveConnection.setInterval(1000);
-            connect(&m_liveConnection, SIGNAL(timeout()),
-                    &Instance(), SLOT(checkConnection()));
-            m_liveConnection.start();
-
+            s->m_liveConnection.setInterval(1000);
+            connect(&s->m_liveConnection, SIGNAL(timeout()),
+                    s, SLOT(checkConnection()));
+            s->m_liveConnection.start();
         } else {
             printf("Bind FAIL!\n");
             Instance().route(DISCONNECTED);
         }
-
     }
 
     /// ready read datagrams
@@ -271,7 +261,6 @@ const interface_t *get_interface()
     piface->get_data = &plugin::udp::Server::get_data;
     piface->main_proxy = &plugin::udp::Server::p_main;
     piface->getSelf   = &plugin::udp::Server::getSelf;
-    piface->this_interface = nullptr;
     piface->nextPlugin = nullptr;
 
     return plugin::udp::Server::Instance().getSelf();

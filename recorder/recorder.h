@@ -68,7 +68,6 @@ namespace plugin {
         void record(short data[], int len);
         // special handle for QWav files
         // unused - pointer decay prevention
-
         /**
         template <typename T, size_t N> record(T (&data[N]))
         {
@@ -116,6 +115,7 @@ namespace plugin {
             QMutex mutex;
             QQueue<sample_data_t> buffer;
             bool running;
+            unsigned long speed; // sleep interval
         } m_thread;
     };
 

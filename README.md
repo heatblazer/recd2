@@ -72,6 +72,8 @@ A wav recorder over udp streams.
     11. Add a binding/glue/shell like script support (qscript) to make things simple.
     12. Remove plugin`s interface pritn messages.
     13. Fix all warnings in all subprojects, please.
+    14. Most plugins depend on utils library. Organize project so everything is set and
+    ready to use.
 
 ## BUGS
     [Bug1] Strange bug as for 16.11.2016, when the program gives 100% cpu load on my other Fedora computer.
@@ -82,6 +84,9 @@ A wav recorder over udp streams.
     [Partial fix Bug2] I`ve fixed the nasty bug, and replaced fswatcher by a observer logic in QT api,
     by emmiting filechanged everytime QWav writes something. However the hotswap size based
     is still broken as f***!
+    [Fix Bug2] Fixed the bug with the hotswap. Tested 24h size based hotswap, written over
+    90Gb files over 50 000 files.
+    [Bug3] Something happened to QWav class. I`ll fix it ASAP. Will revert it soon.
 
 
 ## NOTES

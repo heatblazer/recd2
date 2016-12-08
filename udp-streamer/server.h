@@ -24,12 +24,9 @@ namespace plugin {
         bool     onetimeSynch;
     } ;
 
-
-
     class Server : public QObject
     {
         Q_OBJECT
-
     // interface implementation
     public:
         static Server& Instance();
@@ -68,12 +65,12 @@ namespace plugin {
     private:
         explicit Server(QObject* parent=nullptr);
 
-        static QUdpSocket* udp;
-        static QTimer      m_liveConnection;
-        static QHostAddress m_senderHost;
-        static quint16      m_senderPort;
-        static conn_info m_conn_info;
-        static QQueue<char> m_monitorData;
+        QUdpSocket* udp;
+        QTimer      m_liveConnection;
+        QHostAddress m_senderHost;
+        quint16      m_senderPort;
+        conn_info m_conn_info;
+        QQueue<char> m_monitorData;
         static Server* s_inst;
     };
 

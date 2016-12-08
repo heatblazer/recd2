@@ -283,8 +283,6 @@ interface_t* get_interface()
     pif->main_proxy = &plugin::alsarec::AlsaRec::main_proxy;
     pif->get_data  = &plugin::alsarec::AlsaRec::get_data;
     pif->getSelf = &plugin::alsarec::AlsaRec::getSelf;
-
-    pif->none = nullptr;
     pif->nextPlugin = nullptr;
 
     return plugin::alsarec::AlsaRec::Instance().getSelf();

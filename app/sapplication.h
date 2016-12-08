@@ -44,15 +44,9 @@ private:
 
 private:
 
-#if 0 // pending removal
-    Server              m_server;
-    Recorder            m_recorder;
-#endif
     QString             m_recConf;
     bool                m_setup;
     ServerThread        m_user_server;
-
-    static QList<RecIface>     m_plugins;
 };
 
 } // iz

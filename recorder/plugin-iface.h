@@ -15,7 +15,7 @@ struct interface_t
     void    (*deinit)();
     int     (*main_proxy)(int, char**);
     struct interface_t* (*getSelf)(void);
-    void*   none;
+    char   name[256]; // iface name
     struct interface_t* nextPlugin;
 };
 

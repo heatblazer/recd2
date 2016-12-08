@@ -19,7 +19,6 @@ int SApplication::m_fdHUP = -1;
 int SApplication::m_fdTERM = -1;
 int SApplication::s_argc = 0;
 char** SApplication::s_argv = 0;
-QList<RecIface> SApplication::m_plugins;
 
 /// TODO: write to the file desc of the app
 /// \brief SApplication::writeToSocket
@@ -159,7 +158,6 @@ int SApplication::init()
             udp = false;
         }
     }
-
     utils::Logger::Instance().logMessage(THIS_FILE, "Initialization of application completed!\n");
 
     // register user server
@@ -210,7 +208,7 @@ void SApplication::loadPlugins()
                    list.at(i).m_type2.toStdString().data());
            utils::Logger::Instance().logMessage(THIS_FILE, msg);
            // defensive programming - array out of boudns prevention!
-           const RecIface* iface = nullptr;
+           const interface_t* iface = nullptr;
 
            if (i+3 > list.count()) {
                // don`t load item since program will crash!!!
@@ -222,11 +220,7 @@ void SApplication::loadPlugins()
 
            // put in any order for now
            // store into the indexed array
-           if (iface != nullptr) {
-               snprintf(msg, sizeof(msg), "Loaded (%s) plugin.\n", list.at(i).m_type2.toStdString().data());
-               utils::Logger::Instance().logMessage(THIS_FILE, msg);
-               m_plugins.push_back(*iface);
-           } else {
+           if (iface == nullptr) {
                snprintf(msg, sizeof(msg), "\nFailed to load (%s) plugin.\n",
                        list.at(i).m_type2.toStdString().data());
                 utils::Logger::Instance().logMessage(THIS_FILE, msg);

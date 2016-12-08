@@ -22,7 +22,7 @@ struct interface_t
     void    (*deinit)(void);
     int     (*main_proxy)(int, char**);
     interface_t* (*getSelf)(void);
-    void*   this_interface;
+    char   name[256];
     interface_t* nextPlugin;
 };
 

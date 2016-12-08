@@ -18,17 +18,14 @@ class RecPluginMngr
 {
 public:
     static bool loadLibrary(const QString& src, const QString& name);
-    static const RecIface* getInterface(const QString& iface);
+    static const interface_t *getInterface(const QString& iface);
     static void unloadLibrary(const QString& lib);
-    static const QList<RecIface>& listPlugins();
     static InterfaceList &getPluginList();
 
 private:
     RecPluginMngr();
     ~RecPluginMngr();
     void resolve();
-    static QHash<QString, RecIface> m_plugins;
-    static QList<RecIface> m_listPlugins;
     static InterfaceList m_pluginLinks;
 };
 

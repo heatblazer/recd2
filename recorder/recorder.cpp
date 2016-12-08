@@ -58,6 +58,7 @@ namespace plugin {
             m_wavs[i] = nullptr;
         }
         m_thread.running = false;
+        m_thread.speed = 100;
     }
 
     // handle with care the opened files
@@ -125,7 +126,7 @@ namespace plugin {
                         DateTime::getTimeString());
                 r->m_directory.clear();
             }
-            r->m_wavs[i] = new QWav(buff);
+            r->m_wavs[i] = new Wav(buff);
         }
         // open files when everything is ok and setup
         res &= r->setupWavFiles();
@@ -288,11 +289,11 @@ namespace plugin {
 
     void Recorder::run()
     {
-        //exec();
         QQueue<sample_data_t> dblBuff;
         Recorder* r = &Instance();
         do {
-            usleep(100);
+            // setup it from outside, tweakable stuff
+            usleep(r->m_thread.speed);
             r->m_thread.mutex.lock();
             while (!r->m_thread.buffer.isEmpty()) {
                 dblBuff.enqueue(r->m_thread.buffer.dequeue());
@@ -305,7 +306,6 @@ namespace plugin {
             }
 
         } while (r->m_thread.running);
-
     }
 
     void Recorder::startRecorder()
@@ -376,9 +376,7 @@ namespace plugin {
                 // misra else - unused
             }
         }
-
         // maxfile size is set from init...
-
         // one time setup all waves at a time
         // don`t open them yet... do this later, after server
         // init and binding
@@ -395,7 +393,6 @@ namespace plugin {
 
         return res;
     }
-
 
     void Recorder::record(short data[], int len)
     {
@@ -441,7 +438,7 @@ namespace plugin {
                     m_wavs[i] = nullptr;
 
                     // open a new file in the same slot
-                    m_wavs[i] = new QWav(buff);
+                    m_wavs[i] = new Wav(buff);
                     m_wavs[i]->setupWave(m_wavParams.samples_per_sec,
                                          m_wavParams.bits_per_sec,
                                          m_wavParams.riff_len,
@@ -481,7 +478,7 @@ namespace plugin {
                     m_wavs[i] = nullptr;
 
                     // open a new file in the same slot
-                    m_wavs[i] = new QWav(buff);
+                    m_wavs[i] = new Wav(buff);
                     m_wavs[i]->setupWave(m_wavParams.samples_per_sec,
                                          m_wavParams.bits_per_sec,
                                          m_wavParams.riff_len,
@@ -497,9 +494,12 @@ namespace plugin {
     } // rec
 } // plugin
 
-
 ///////////////////////////////////////////////////////////////////////////////////
 
+/// library thing
+/// \brief get_interface
+/// \return the current interface  to be chained in the list
+///
 const interface_t *get_interface()
 {
     interface_t* pif = plugin::rec::Recorder::Instance().getSelf();
@@ -511,9 +511,7 @@ const interface_t *get_interface()
     pif->main_proxy = &plugin::rec::Recorder::main_proxy;
     pif->getSelf = &plugin::rec::Recorder::getSelf;
     pif->copy = &plugin::rec::Recorder::copy;
-    pif->none = nullptr;
     pif->nextPlugin = nullptr;
 
     return plugin::rec::Recorder::Instance().getSelf();
 }
-
