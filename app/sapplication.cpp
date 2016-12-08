@@ -87,6 +87,8 @@ SApplication::SApplication(int &argc, char **argv)
 
     // plugin setups
     loadPlugins();
+    // proxy to main, pass dependent stuff here
+    // ex. Recorder needs to know the config.xml where it was passed
     proxyMainAll(argc, argv);
 
 

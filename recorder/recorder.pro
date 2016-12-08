@@ -1,13 +1,12 @@
-QT += core
-QT -= gui
+#common settings for everyone
+include($$top_srcdir/recd2.pri)
 
-CONFIG += c++11
 
 TARGET = recorder
 CONFIG += console
 CONFIG -= app_bundle
 
-TEMPLATE = lib
+TEMPLATE = lib # it`s a plugin
 
 SOURCES += main.cpp \
     recorder.cpp
@@ -17,9 +16,5 @@ HEADERS += \
     types.h \
     plugin-iface.h
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../utils/release/ -lutils
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../utils/debug/ -lutils
-else:unix: LIBS += -L$$OUT_PWD/../utils/ -lutils
-
-INCLUDEPATH += $$PWD/../utils
-DEPENDPATH += $$PWD/../utils
+PRE_TARGETDEPS += \
+    $$top_builddir/utils/libutils.a

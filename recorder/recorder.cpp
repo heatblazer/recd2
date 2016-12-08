@@ -83,8 +83,6 @@ namespace plugin {
         bool res = true;
 
         // hardcoded for now
-        RecorderConfig::Instance().fastLoadFile("recorder-config.xml");
-
 
         utils::Logger::Instance().logMessage(THIS_FILE, "Initializing recorder...\n");
         const MPair<QString, QString>& dir =
@@ -263,10 +261,19 @@ namespace plugin {
 
     int Recorder::main_proxy(int argc, char **argv)
     {
-        (void) argc;
-        (void) argv;
-        printf("Recorder is IMPORTANT to take arguments!!!!\n"
-               "Fix it!!!\n");
+        printf("Recorder: parameters passed!\n");
+        if (argc < 2) {
+            return -1;
+        } else {
+            for(int i=0; i < argc; ++i) {
+                if ((strcmp(argv[i], "-c") == 0) ||
+                    (strcmp(argv[i], "--config"))) {
+                    if (argv[i+1] != nullptr) {
+                        RecorderConfig::Instance().fastLoadFile(argv[i+1]);
+                    }
+                }
+            }
+        }
         return 0;
     }
 

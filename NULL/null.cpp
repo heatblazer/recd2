@@ -19,10 +19,8 @@ static void init()
 
 static int put_ndata(void *data, int len)
 {
-    udp_data_t* udp = (udp_data_t*) data;
     if (s_iface.nextPlugin != NULL) {
-        s_iface.nextPlugin->put_ndata((udp_data_t*)udp, len);
-    } else {
+        s_iface.nextPlugin->put_ndata(data, len);
     }
     // remove it.. why returning...
     return 0;
@@ -31,9 +29,8 @@ static int put_ndata(void *data, int len)
 
 static int put_data(void *data)
 {
-    udp_data_t* udp = (udp_data_t*) data;
     if (s_iface.nextPlugin != NULL) {
-        s_iface.nextPlugin->put_data((udp_data_t*)udp);
+        s_iface.nextPlugin->put_data(data);
     } else {
     }
     return 0;

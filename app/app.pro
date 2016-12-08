@@ -1,7 +1,5 @@
-QT += core
-QT += xml
-QT += network
-QT -= gui
+# commnon stuff for everyone
+include($$top_srcdir/recd2.pri)
 
 CONFIG += c++11
 
@@ -77,9 +75,5 @@ DISTFILES += \
     ../resources/wav2 \
     ../recd2.pri
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../utils/release/ -lutils
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../utils/debug/ -lutils
-else:unix: LIBS += -L$$OUT_PWD/../utils/ -lutils
-
-INCLUDEPATH += $$PWD/../utils
-DEPENDPATH += $$PWD/../utils
+PRE_TARGETDEPS += \
+    $$top_builddir/utils/libutils.a

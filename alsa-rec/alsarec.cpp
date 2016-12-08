@@ -14,6 +14,7 @@
 #include "logger.h"
 
 static const char* THIS_FILE = "alsarec.cpp";
+
 namespace plugin {
     namespace alsarec {
 
@@ -259,7 +260,7 @@ namespace plugin {
     {
         (void) argc;
         (void) argv;
-        printf("alsarec main: \n");
+        printf("alsarec main: nothing\n");
         return 0;
     }
 

@@ -1,3 +1,8 @@
+# shared stuff for all projects
+include($$top_srcdir/recd2.pri)
+
+TEMPLATE = lib # it`s a static library!!!
+
 QT += core
 QT -= gui
 
@@ -5,9 +10,8 @@ CONFIG += c++11
 
 TARGET = utils
 CONFIG += console
+CONFIG += staticlib
 CONFIG -= app_bundle
-
-TEMPLATE = lib
 
 SOURCES += main.cpp \
     logger.cpp \

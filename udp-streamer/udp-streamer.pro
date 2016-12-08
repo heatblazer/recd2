@@ -1,8 +1,7 @@
-TEMPLATE = lib
+# common stuff for all projects
+include($$top_srcdir/recd2.pri)
 
-QT += core
-QT -= gui
-QT += network
+TEMPLATE = lib
 
 CONFIG += c++11
 
@@ -18,9 +17,5 @@ HEADERS += \
     plugin-interface.h \
     server.h
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../utils/release/ -lutils
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../utils/debug/ -lutils
-else:unix: LIBS += -L$$OUT_PWD/../utils/ -lutils
-
-INCLUDEPATH += $$PWD/../utils
-DEPENDPATH += $$PWD/../utils
+PRE_TARGETDEPS += \
+    $$top_builddir/utils/libutils.a

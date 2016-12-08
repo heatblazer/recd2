@@ -148,7 +148,7 @@ namespace plugin {
     void Server::hDataReady(udp_data_t *data)
     {
         for(int i=0; i < 32; ++i) {
-            put_ndata((short*)&data[i], 16);
+            put_ndata((short*)&data->data[i], 16);
         }
     }
 

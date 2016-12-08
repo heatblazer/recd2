@@ -15,3 +15,7 @@ SUBDIRS += \
     alsa-rec \
     utils
 
+app.depends = utils
+udp-streamer.depends = utils
+recorder.depends = utils
+alsa-rec.depends = utils

@@ -1,6 +1,8 @@
 .*
 
 !.gitignore
+!.qmake.conf 
+
 *.pro.user
 *.autosave
 
