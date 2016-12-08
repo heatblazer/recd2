@@ -17,6 +17,28 @@
 
 namespace iz {
 
+/// used for the logging system
+/// all plugins and outside stuff will send
+/// messages here, I don`t want to block it
+/// so it`s udp
+/// \brief The MsgServer class
+///
+class MsgServer : public QObject
+{
+    Q_OBJECT // this class emits
+public:
+    explicit MsgServer(QObject* parent=nullptr);
+    virtual ~MsgServer();
+    void init();
+    void deinit();
+
+public slots:
+    void readyRead();
+
+private:
+    QUdpSocket* p_server;
+};
+
 class UserServer : public QTcpServer
 {
     Q_OBJECT
@@ -43,6 +65,7 @@ class ServerThread : public QThread
 private slots:
 
 private:
+    MsgServer* p_msg;
     UserServer* p_usr;
     friend class SApplication;
 };

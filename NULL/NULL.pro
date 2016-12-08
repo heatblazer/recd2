@@ -4,7 +4,8 @@ include($$top_srcdir/recd2.pri)
 TEMPLATE = lib
 CONFIG += console c++11
 CONFIG -= app_bundle
-CONFIG -= qt
+
+QT += core
 
 SOURCES += \
     null.cpp

@@ -1,12 +1,15 @@
+#include "server.h"
+
 // std //
 #include <iostream> // for test purpose only!
 
-#include "server.h"
+static const char* THIS_FILE = "server.cpp";
 
 namespace iz {
 
 ServerThread::ServerThread(QThread *parent)
     : QThread(parent),
+      p_msg(nullptr),
       p_usr(nullptr)
 {
 }
@@ -16,12 +19,21 @@ ServerThread::~ServerThread()
     if (p_usr != nullptr) {
         p_usr->deleteLater(); // maybe call this one...
     }
+
+    if (p_msg != nullptr) {
+        p_msg->deinit();
+        p_msg->deleteLater();
+    }
 }
 
 void ServerThread::run()
 {
+    p_msg = new MsgServer;
+    p_msg->init();
+
     p_usr = new UserServer;
     p_usr->startServer();
+
     // make it an event loop
     exec();
 }
@@ -108,6 +120,59 @@ void UserServer::incomingConnection(qintptr socketDescriptor)
                 this, SLOT(hConnection()), Qt::DirectConnection);
         connect(p_conn, SIGNAL(disconnected()),
                 this, SLOT(disconnected()));
+    }
+}
+
+MsgServer::MsgServer(QObject *parent)
+    : QObject(parent)
+{
+
+}
+
+MsgServer::~MsgServer()
+{
+
+}
+
+void MsgServer::init()
+{
+    std::cout << "Starting message server..." << std::endl;
+    p_server = new QUdpSocket(this);
+    const bool res = p_server->bind(6666, QUdpSocket::ShareAddress);
+
+    connect(p_server, SIGNAL(readyRead()),
+            this, SLOT(readyRead()));
+
+    if (!res) {
+        // handle later
+        utils::Logger::Instance().logMessage(THIS_FILE, "Message server failed!!!\n");
+        utils::Logger::Instance().logMessage(THIS_FILE, "It`s a critical error!!!\n");
+        std::cout << "Message server failed!\n";
+    } else {
+        std::cout << "Message server started. Listeing to 6666 :) \n";
+        utils::Logger::Instance().logMessage(THIS_FILE, "Bind message server: OK!\n");
+    }
+
+}
+
+void MsgServer::deinit()
+{
+ // nothing for now... maybe message later
+}
+
+void MsgServer::readyRead()
+{
+    if (p_server->hasPendingDatagrams()) {
+        while (p_server->hasPendingDatagrams()) {
+            QByteArray msg;
+            msg.resize(p_server->pendingDatagramSize());
+            quint64 read = p_server->readDatagram(msg.data(), msg.size());
+            if (read > 0) {
+                utils::Logger::Instance().logMessage(THIS_FILE, msg);
+            } else {
+                // write err msg!
+            }
+        }
     }
 }
 

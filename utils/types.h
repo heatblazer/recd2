@@ -67,5 +67,12 @@ template <typename T1, typename T2> struct MPair
     T2 m_type2;
 };
 
+// IPC stuff
+struct msg_t
+{
+    long val; // this is needed
+    char buff[512]; // no more than 512 bytes messages plase
+};
+
 } // utils
 #endif // TYPES_H

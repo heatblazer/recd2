@@ -18,7 +18,8 @@ SOURCES += main.cpp \
     qwave-writer.cpp \
     recorder-config.cpp \
     wav-writer.cpp \
-    writer.cpp
+    writer.cpp \
+    ipc-msg.cpp
 
 HEADERS += \
     date-time.h \
@@ -29,4 +30,7 @@ HEADERS += \
     wav-writer.h \
     writer.h \
     utils.h \
-    types.h
+    types.h \
+    ipc-msg.h
+
+#QMAKE_CXXFLAGS += -fPIC

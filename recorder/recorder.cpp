@@ -8,7 +8,7 @@
 
 // utils //
 #include "date-time.h"
-#include "logger.h"
+#include "ipc-msg.h"
 #include "wav-writer.h"
 
 using namespace utils;
@@ -84,7 +84,7 @@ namespace plugin {
 
         // hardcoded for now
 
-        utils::Logger::Instance().logMessage(THIS_FILE, "Initializing recorder...\n");
+        utils::IPC::Instance().sendMessage("Initializing recorder...\n");
         const MPair<QString, QString>& dir =
                 RecorderConfig::Instance()
                 .getAttribPairFromTag("Paths", "records");
@@ -140,12 +140,11 @@ namespace plugin {
         const MPair<QString, QString>& interval = RecorderConfig::Instance()
                 .getAttribPairFromTag("HotSwap", "interval");
 
-
         if (hot_swap.m_type1 != "") {
             if (hot_swap.m_type2 == "enabled" ||
                     hot_swap.m_type2 == "true") {
                 // setup timer based
-                Logger::Instance().logMessage(THIS_FILE, "HotSwap is set to time based!\n");
+                IPC::Instance().sendMessage("HotSwap is set to time based!\n");
                 ulong time = 60000; // 1 min minumum
                 ulong time_modifier = 1;
                 if (interval.m_type1 != "") {
@@ -157,7 +156,7 @@ namespace plugin {
                     }
                     time = time * time_modifier;
                     snprintf(init_msg, sizeof(init_msg),"Time interval is: (%ld)\n", time);
-                    Logger::Instance().logMessage(THIS_FILE, init_msg);
+                    IPC::Instance().sendMessage(init_msg);
                 }
                 // set the timer
                 r->m_hotswap.setInterval(time);
@@ -165,7 +164,7 @@ namespace plugin {
                 r->m_hotswap.start();
             } else {
                 // setup filesize change
-                Logger::Instance().logMessage(THIS_FILE, "HotSwap is set to file size changed!\n");
+                IPC::Instance().sendMessage("HotSwap is set to file size changed!\n");
                 if (max_size.m_type1 != "") {
                     bool res = false;
                     ulong max_size_modifier = 1;
@@ -186,7 +185,7 @@ namespace plugin {
                 }
                 snprintf(init_msg, sizeof(init_msg),
                          "File size limit is: (%d) bytes\n", r->m_maxFileSize);
-                Logger::Instance().logMessage(THIS_FILE, init_msg);
+                IPC::Instance().sendMessage(init_msg);
                 r->m_sizeBased = true;
             }
         } else {
@@ -201,18 +200,17 @@ namespace plugin {
 
     void Recorder::deinit()
     {
-        printf("Recorder: deinit\n");
-
         Recorder* r = &Instance();
 
-        Logger::Instance().logMessage(THIS_FILE, "Deinitializing recorder...\n");
-        Logger::Instance().logMessage(THIS_FILE, "Closing all opened records...\n");
+        IPC::Instance().sendMessage("Deinitializing recorder...\n");
+        IPC::Instance().sendMessage("Closing all opened records...\n");
+
         for(int i=0; i < r->m_maxChans; ++i) {
             if (r->m_wavs[i] != nullptr && r->m_wavs[i]->isOpened()) {
                 static char msg[256] = {0};
                 snprintf(msg, sizeof(msg), "Closing file: (%s)\n",
                          r->m_wavs[i]->getFileName());
-                Logger::Instance().logMessage(THIS_FILE, msg);
+                IPC::Instance().sendMessage(msg);
                 r->m_wavs[i]->close();
                 delete r->m_wavs[i];
                 r->m_wavs[i] = nullptr;
@@ -250,7 +248,6 @@ namespace plugin {
             r->m_thread.buffer.append(sdata);
             r->m_thread.mutex.unlock();
         }
-        //Instance().record((short*)data, len);
         return 0;
     }
 
@@ -261,7 +258,6 @@ namespace plugin {
 
     int Recorder::main_proxy(int argc, char **argv)
     {
-        printf("Recorder: parameters passed!\n");
         if (argc < 2) {
             return -1;
         } else {

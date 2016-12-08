@@ -11,7 +11,8 @@
 #include "thread.h"
 
 // utils //
-#include "logger.h"
+#include "recorder-config.h"
+#include "ipc-msg.h"
 
 static const char* THIS_FILE = "alsarec.cpp";
 
@@ -71,7 +72,7 @@ namespace plugin {
                 snprintf(err_msg, sizeof(err_msg),
                          "failed to read from device: (%s)\n",
                         snd_strerror(err));
-            //    utils::Logger::Instance().logMessage(THIS_FILE, err_msg);
+                utils::IPC::Instance().sendMessage(err_msg);
             } else {
                 snd_pcm_prepare(arec->m_alsa.cap_handle);
                 put_ndata(buffer, arec->m_frames);
@@ -91,7 +92,7 @@ namespace plugin {
         static char msg[256] = {0};
 
         snprintf(msg, sizeof(msg), "Initializing alsarec...\n");
-      //  utils::Logger::Instance().logMessage(THIS_FILE, msg);
+        utils::IPC::Instance().sendMessage(msg);
         int err = 0;
         AlsaRec* aref = &Instance();
 
@@ -99,45 +100,44 @@ namespace plugin {
                                 0) < 0)) {
             snprintf(msg, sizeof(msg), "can not open sound device: hw:0 (%s)\n",
                     snd_strerror(err));
-        //    utils::Logger::Instance().logMessage(THIS_FILE, msg);
+            utils::IPC::Instance().sendMessage(msg);
             return ;
         }
         snprintf(msg, sizeof(msg), "audio device opened!\n");
-      //  utils::Logger::Instance().logMessage(THIS_FILE, msg);
+        utils::IPC::Instance().sendMessage(msg);
 
         if ((err = snd_pcm_hw_params_malloc(&aref->m_alsa.hw_params)) < 0) {
             snprintf(msg, sizeof(msg), "cannot allocate hardware param struct: (%s)\n",
                     snd_strerror(err));
-       //     utils::Logger::Instance().logMessage(THIS_FILE, msg);
+            utils::IPC::Instance().sendMessage(msg);
             return ;
         }
 
         snprintf(msg, sizeof(msg), "hardware params allocated\n");
-        utils::Logger::Instance().logMessage(THIS_FILE, msg);
+        utils::IPC::Instance().sendMessage(msg);
 
         if ((err = snd_pcm_hw_params_any(aref->m_alsa.cap_handle,
                                          aref->m_alsa.hw_params)) < 0) {
             snprintf(msg, sizeof(msg), "failed to hardware structure: (%s)\n",
                     snd_strerror(err));
-            utils::Logger::Instance().logMessage(THIS_FILE, msg);
+            utils::IPC::Instance().sendMessage(msg);
             return;
         }
 
-
-      //  snprintf(msg,sizeof(msg),  "hardware params allocated!\n");
-        utils::Logger::Instance().logMessage(THIS_FILE, msg);
+        snprintf(msg,sizeof(msg),  "hardware params allocated!\n");
+        utils::IPC::Instance().sendMessage(msg);
 
         if ((err = snd_pcm_hw_params_set_access(aref->m_alsa.cap_handle,
                                                 aref->m_alsa.hw_params,
                                                 SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
             snprintf(msg, sizeof(msg), "cannot set access type (%s) \n",
                     snd_strerror(err));
-        //    utils::Logger::Instance().logMessage(THIS_FILE, msg);
+            utils::IPC::Instance().sendMessage(msg);
             return;
         }
 
         snprintf(msg, sizeof(msg), "hw params access setted\n");
-      //  utils::Logger::Instance().logMessage(THIS_FILE, msg);
+        utils::IPC::Instance().sendMessage(msg);
 
         if ((err = snd_pcm_hw_params_set_format(
                  aref->m_alsa.cap_handle,
@@ -145,19 +145,19 @@ namespace plugin {
                  aref->m_alsa.format)) < 0) {
             snprintf(msg, sizeof(msg), "cannot set sample format: (%s)\n",
                     snd_strerror(err));
-        //    utils::Logger::Instance().logMessage(THIS_FILE, msg);
+            utils::IPC::Instance().sendMessage(msg);
             return;
         }
 
         snprintf(msg, sizeof(msg), "hw formats set ok!\n");
-        utils::Logger::Instance().logMessage(THIS_FILE, msg);
+        utils::IPC::Instance().sendMessage(msg);
 
         if ((err = snd_pcm_hw_params_set_rate_near(
                  aref->m_alsa.cap_handle,
                  aref->m_alsa.hw_params, &aref->m_rate, 0)) < 0) {
             snprintf(msg, sizeof(msg), "cannot set sample rate: (%s)\n",
                     snd_strerror(err));
-        //    utils::Logger::Instance().logMessage(THIS_FILE, msg);
+            utils::IPC::Instance().sendMessage(msg);
             return;
         }
 
@@ -166,45 +166,43 @@ namespace plugin {
                  aref->m_alsa.hw_params, 2)) < 0) {
             snprintf(msg, sizeof(msg), "cannot set channel count (%s)\n",
                     snd_strerror(err));
-        //    utils::Logger::Instance().logMessage(THIS_FILE, msg);
+            utils::IPC::Instance().sendMessage(msg);
             return;
         }
 
         snprintf(msg, sizeof(msg), "hw params channels setted\n");
-       // utils::Logger::Instance().logMessage(THIS_FILE, msg);
+        utils::IPC::Instance().sendMessage(msg);
         if ((err = snd_pcm_hw_params(
                  aref->m_alsa.cap_handle,
                  aref->m_alsa.hw_params)) < 0) {
             snprintf(msg, sizeof(msg), "cannot set params: (%s)\n",
                     snd_strerror(err));
-       //     utils::Logger::Instance().logMessage(THIS_FILE, msg);
+            utils::IPC::Instance().sendMessage(msg);
             return;
         }
 
         snprintf(msg, sizeof(msg), "hardware params set ok\n");
-       // utils::Logger::Instance().logMessage(THIS_FILE, msg);
+        utils::IPC::Instance().sendMessage(msg);
 
         snd_pcm_hw_params_free(aref->m_alsa.hw_params);
-
         snprintf(msg, sizeof(msg), "hardware params freed\n");
-      //  utils::Logger::Instance().logMessage(THIS_FILE, msg);
+        utils::IPC::Instance().sendMessage(msg);
 
         if ((err = snd_pcm_prepare(aref->m_alsa.cap_handle)) < 0) {
             snprintf(msg, sizeof(msg), "cannot prepare audio interface: (%s)\n",
                     snd_strerror(err));
-      //      utils::Logger::Instance().logMessage(THIS_FILE, msg);
+            utils::IPC::Instance().sendMessage(msg);
             return;
         }
 
         snprintf(msg, sizeof(msg), "audio interface prepared... starting up...\n");
-      //  utils::Logger::Instance().logMessage(THIS_FILE, msg);
+        utils::IPC::Instance().sendMessage(msg);
         aref->m_isOk = true;
 
         aref->m_mutex.init();
         aref->m_athread = new PThread;
         aref->m_athread->create(128 * 1024, aref, AlsaRec::worker, 20);
         aref->m_athread->setName("alsa-thread");
-
     }
 
     /// deinit alsa
@@ -214,6 +212,7 @@ namespace plugin {
     {
         static char msg[64] = {0};
         snprintf(msg, sizeof(msg), "Sound device closed...\n");
+        utils::IPC::Instance().sendMessage(msg);
         AlsaRec* aref = &Instance();
         aref->m_athread->setRunning(false);
         aref->m_athread->join();
@@ -222,9 +221,7 @@ namespace plugin {
         if (aref->m_athread != nullptr) {
             delete aref->m_athread;
         }
-
         aref->m_mutex.destroy();
-
     }
 
     void AlsaRec::copy(const void *src, void *dest, int len)
@@ -236,17 +233,14 @@ namespace plugin {
     {
         if (s_iface.nextPlugin != nullptr) {
             s_iface.nextPlugin->put_ndata(data, len);
-        } else {
         }
         return 0;
-
     }
 
     int AlsaRec::put_data(void *data)
     {
         if (s_iface.nextPlugin != nullptr) {
             s_iface.nextPlugin->put_data(data);
-        } else {
         }
         return 0;
     }
@@ -258,9 +252,18 @@ namespace plugin {
 
     int AlsaRec::main_proxy(int argc, char **argv)
     {
-        (void) argc;
-        (void) argv;
-        printf("alsarec main: nothing\n");
+        if (argc < 2) {
+            return -1;
+        } else {
+            for(int i=0; i < argc; ++i) {
+                if ((strcmp(argv[i], "-c") == 0) ||
+                    (strcmp(argv[i], "--config"))) {
+                    if (argv[i+1] != nullptr) {
+                        utils::RecorderConfig::Instance().fastLoadFile(argv[i+1]);
+                    }
+                }
+            }
+        }
         return 0;
     }
 

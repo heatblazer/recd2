@@ -85,6 +85,11 @@ SApplication::SApplication(int &argc, char **argv)
         }
     }
 
+    // register user server
+    m_user_server.setObjectName("user server");
+    m_user_server.moveToThread(&m_user_server);
+    m_user_server.start();
+
     // plugin setups
     loadPlugins();
     // proxy to main, pass dependent stuff here
@@ -162,11 +167,6 @@ int SApplication::init()
     }
     utils::Logger::Instance().logMessage(THIS_FILE, "Initialization of application completed!\n");
 
-    // register user server
-    m_user_server.setObjectName("user server");
-    m_user_server.moveToThread(&m_user_server);
-    m_user_server.start();
-
     return 0;
 
 }
@@ -190,7 +190,7 @@ void SApplication::deinit()
         it->deinit();
         it = it->nextPlugin;
     }
-
+    utils::Logger::Instance().deinit();
     m_user_server.wait(1000);
 }
 
@@ -209,25 +209,24 @@ void SApplication::loadPlugins()
            snprintf(msg, sizeof(msg), "Loading (%s) plugin...\n",
                    list.at(i).m_type2.toStdString().data());
            utils::Logger::Instance().logMessage(THIS_FILE, msg);
-           // defensive programming - array out of boudns prevention!
-           const interface_t* iface = nullptr;
-
            if (i+3 > list.count()) {
                // don`t load item since program will crash!!!
            } else {
                ASSERT_MACRO(list.at(i+3).m_type2.toStdString().data() != NULL);
-               RecPluginMngr::loadLibrary(list.at(i+3).m_type2, list.at(i).m_type2);
-               iface = RecPluginMngr::getInterface(list.at(i).m_type2);
-           }
-
-           // put in any order for now
-           // store into the indexed array
-           if (iface == nullptr) {
-               snprintf(msg, sizeof(msg), "\nFailed to load (%s) plugin.\n",
-                       list.at(i).m_type2.toStdString().data());
-                utils::Logger::Instance().logMessage(THIS_FILE, msg);
-           }
-        }
+               bool res = false;
+               res = RecPluginMngr::loadLibrary(list.at(i+3).m_type2, list.at(i).m_type2);
+               const char* plugin = list.at(i).m_type2.toStdString().data();
+               if (!res) {
+                   snprintf(msg, sizeof(msg), "Failed to load: (%s) plugin.\n",
+                            plugin);
+                   utils::Logger::Instance().logMessage(THIS_FILE, msg);
+               } else {
+                   snprintf(msg, sizeof(msg), "Loaded: (%s) plugin.\n",
+                            plugin);
+                   utils::Logger::Instance().logMessage(THIS_FILE, msg);
+               }
+          }
+       }
     }
 }
 
@@ -238,10 +237,14 @@ void SApplication::loadPlugins()
 void SApplication::initAllPlugins()
 {
     interface_t* it = RecPluginMngr::getPluginList().getFront();
+    if (it == nullptr) {
+        return;
+    }
     while (it != nullptr) {
         it->init();
         it = it->nextPlugin;
     }
+    m_setup = true;
 }
 
 void SApplication::proxyMainAll(int argc, char **argv)

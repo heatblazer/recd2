@@ -2,6 +2,13 @@
 #include <stdio.h>
 #include <stdint.h>
 
+// ipc //
+#include "ipc-msg.h"
+
+// config //
+#include "recorder-config.h"
+
+
 struct udp_data_t
 {
     uint32_t    counter;
@@ -14,7 +21,7 @@ static struct interface_t s_iface;
 
 static void init()
 {
-    printf("Init NULL plugin\n");
+    utils::IPC::Instance().sendMessage("Init null plugin\n");
 }
 
 static int put_ndata(void *data, int len)
@@ -26,12 +33,10 @@ static int put_ndata(void *data, int len)
     return 0;
 }
 
-
 static int put_data(void *data)
 {
     if (s_iface.nextPlugin != NULL) {
         s_iface.nextPlugin->put_data(data);
-    } else {
     }
     return 0;
 }
@@ -44,14 +49,23 @@ static void *get_data()
 
 static void deinit()
 {
-    printf("NULL: dummy deinit!\n");
+    utils::IPC::Instance().sendMessage("Deinit null plugin\n");
 }
 
 static int main_proxy(int argc, char** argv)
 {
-    (void) argc;
-    (void) argv;
-    printf("NULL: No args main...\n");
+    if (argc < 2) {
+        return -1;
+    } else {
+        for(int i=0; i < argc; ++i) {
+            if ((strcmp(argv[i], "-c") == 0) ||
+                (strcmp(argv[i], "--config"))) {
+                if (argv[i+1] != nullptr) {
+                    utils::RecorderConfig::Instance().fastLoadFile(argv[i+1]);
+                }
+            }
+        }
+    }
     return 0;
 }
 
@@ -60,7 +74,6 @@ static void copy(const void* src, void* dest, int len)
     (void)src;
     (void) dest;
     (void) len;
-    printf("NULL: Dummy copy...\n");
 }
 
 static struct interface_t* getSelf(void)

@@ -12,12 +12,13 @@ public:
     bool init();
     void deinit();
     void logMessage(const char *module, const QByteArray& msg);
-
+    void setWriterName(const QString& name);
 private:
     explicit Logger();
     virtual ~Logger();
 
     Writer m_writer;
+    bool m_onetime;
     static Logger* s_inst;
 };
 
