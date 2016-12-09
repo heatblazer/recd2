@@ -85,7 +85,9 @@ SApplication::SApplication(int &argc, char **argv)
         }
     }
 
-    // register user server
+    // register user server and message server
+    // make sure it is registered so all messages from
+    // plugins start flowing trough it.
     m_user_server.setObjectName("user server");
     m_user_server.moveToThread(&m_user_server);
     m_user_server.start();

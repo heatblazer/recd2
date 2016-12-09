@@ -9,14 +9,6 @@
 #include "recorder-config.h"
 
 
-struct udp_data_t
-{
-    uint32_t    counter;
-    uint8_t     null_bytes[32];
-    int16_t    data[32][16];
-};
-
-
 static struct interface_t s_iface;
 
 static void init()

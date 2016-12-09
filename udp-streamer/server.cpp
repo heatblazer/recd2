@@ -3,7 +3,8 @@
 #include <QCoreApplication>
 
 // lib //
-#include "utils.h"
+#include "ipc-msg.h"
+#include "date-time.h"
 
 namespace plugin {
     namespace udp {
@@ -83,6 +84,8 @@ namespace plugin {
     ///
     void Server::readyReadUdp()
     {
+        static char msg[512] = {0};
+
         if (udp->hasPendingDatagrams()) {
             m_monitorData.append('.');
 
@@ -100,7 +103,8 @@ namespace plugin {
                     // one frame lost for synching with my counter
 
                     if (udp->counter != ++m_conn_info.paketCounter) {
-                        printf("Last synch packet:(%d)\t at: [%s]\n"
+                        snprintf(msg, sizeof(msg),
+                                 "Last synch packet:(%d)\t at: [%s]\n"
                                  "Total desynch:(%d)\n"
                                  "Server counter: (%d)\n"
                                  "Lost: (%d)\n"
@@ -111,7 +115,7 @@ namespace plugin {
                                  m_conn_info.paketCounter,      // server counter
                                  (udp->counter - m_conn_info.paketCounter),  // lost
                                  m_conn_info.totalLost);               // total lost
-
+                        utils::IPC::Instance().sendMessage(msg);
                         m_conn_info.desynchCounter++;
                         int errs = udp->counter - m_conn_info.paketCounter;
                         m_conn_info.totalLost += errs;
@@ -121,25 +125,22 @@ namespace plugin {
                         if(!m_conn_info.onetimeSynch) {
                             m_conn_info.onetimeSynch = true;
                             emit Instance().dataReady(&err_udp);
-
                         } else {
                             for(int i=0; i < errs; ++i) {
                                 emit Instance().dataReady(&err_udp);
                             }
                         }
-
                     } else {
                     // will use a new logic emit the udp struct
                     // to the recorder, so now we don`t need
                     // to depend each other
                         emit Instance().dataReady(udp);
                     }
-
                  } else {
-                    printf("Missed an UDP!\n");
+                    snprintf(msg, sizeof(msg), "Missed an UDP\n");
+                    utils::IPC::Instance().sendMessage(msg);
                 }
             }
-
         } else {
             Instance().disconnected();
         }
@@ -154,13 +155,25 @@ namespace plugin {
 
     void Server::checkConnection()
     {
+        static char msg[512] = {0};
         if (m_monitorData.isEmpty()) {
             // not ok!
             Instance().disconnected();
+            utils::IPC::Instance().sendMessage("Lost connection!\n");
         } else {
             // make sure you purge the list
             m_monitorData.clear();
         }
+
+        snprintf(msg, sizeof(msg),
+                 "Report: \n"
+                 "Desynch counter: (%d)\n"
+                 "Packet counter: (%d)\n"
+                 "Total lost: (%d)\n",
+                 Instance().m_conn_info.desynchCounter,
+                 Instance().m_conn_info.paketCounter,
+                 Instance().m_conn_info.totalLost);
+        utils::IPC::Instance().sendMessage(msg);
     }
 
     /// dummy router for future uses of the states
@@ -194,7 +207,6 @@ namespace plugin {
         m_conn_info.onetimeSynch = false;
     }
 
-
     /// deinitialze the server, maybe some unfinished
     /// task to be finalized here, or to be registered in
     /// the daemon, will left it a TODO
@@ -202,7 +214,7 @@ namespace plugin {
     ///
     void Server::deinit(void)
     {
-        printf("Server: deinit\n");
+        utils::IPC::Instance().sendMessage("UDP Server: deinit\n");
     }
 
     void Server::copy(const void *src, void *dst, int len)
@@ -244,7 +256,6 @@ namespace plugin {
         return &iface;
     }
 
-
     } // udp
 } // plugin
 
@@ -265,3 +276,4 @@ const interface_t *get_interface()
 
     return plugin::udp::Server::Instance().getSelf();
 }
+
