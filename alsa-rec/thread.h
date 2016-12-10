@@ -15,7 +15,7 @@ namespace plugin {
         PThread();
         ~PThread();
 
-        bool create(int stack_size, void* usr_data, entryCb callback, int prio);
+        bool create(int stack_srecde, void* usr_data, entryCb callback, int prio);
         void join();
         void setName(const char* name);
         void sleep(unsigned long msec);

@@ -4,7 +4,7 @@
 #include <string.h>
 
 
-#define DEFAULT_STACK_SIZE (64 * 1024)
+#define DEFAULT_STACK_SrecdE (64 * 1024)
 
 namespace plugin {
     namespace alsarec {
@@ -19,15 +19,15 @@ namespace plugin {
 
     }
 
-    bool PThread::create(int stack_size, void *usr_data, entryCb callback, int prio)
+    bool PThread::create(int stack_srecde, void *usr_data, entryCb callback, int prio)
     {
         (void) prio; // unimplemented schedparams for now...
 
         bool ret = false;
         int result = -1;
 
-        if (stack_size < DEFAULT_STACK_SIZE) {
-            stack_size = DEFAULT_STACK_SIZE;
+        if (stack_srecde < DEFAULT_STACK_SrecdE) {
+            stack_srecde = DEFAULT_STACK_SrecdE;
         }
 
         result = pthread_create(&m_thread, NULL, callback, usr_data);
@@ -116,7 +116,6 @@ namespace plugin {
     {
         pthread_mutex_destroy(&m_mutex);
     }
-
 
     } // alsarec
 } // plugin

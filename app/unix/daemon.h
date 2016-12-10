@@ -4,7 +4,7 @@
 // Daemon signals //
 #include <signal.h>
 
-namespace iz {
+namespace recd {
 
 // need a forward decl to pass to the register app foo()
 class SApplication;
@@ -14,7 +14,7 @@ typedef void (*sigHndl)(int, siginfo_t *,void*);
 class Daemon {
 
 public:
-    static void daemonize();
+    static void daemonrecde();
     static void attachSignalHandler(sigHndl hnd, int slot);
     // old concept, but will save it for any case
     static void registerAppData(void* data);
@@ -30,6 +30,6 @@ private:
 
 
 };
-} // iz
+} // recd
 
 #endif // DAEMON_H

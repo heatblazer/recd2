@@ -1,13 +1,11 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-// qt //
 #include <QObject>
 #include <QTimer>
 #include <QUdpSocket>
 #include <QQueue>
 
-// ansi ints //
 #include <stdint.h>
 
 #include "plugin-interface.h"

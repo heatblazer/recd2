@@ -1,15 +1,12 @@
 #include "plugin-manager.h"
 #include "defs.h"
 
-// ansi C //
 #include <stdio.h>
-
-// lib //
 #include "utils.h"
 
 static const char* THIS_FILE = "plugin-manager.cpp";
 
-namespace iz {
+namespace recd {
 
 typedef struct interface_t* (*get_interface)();
 InterfaceList RecPluginMngr::m_pluginLinks;
@@ -130,4 +127,4 @@ RecPluginMngr::~RecPluginMngr()
 {
 }
 
-} // iz
+} // recd

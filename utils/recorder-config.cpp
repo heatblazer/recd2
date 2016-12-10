@@ -168,7 +168,7 @@ bool RecorderConfig::loadDefaults()
     // hotswap defaults - time based each 30 minutes
     m_tags["HotSwap"].append(MPair<QString, QString>(QString("timeBased"),
                              QString("enabled")));
-    m_tags["HotSwap"].append(MPair<QString, QString>(QString("maxSize"),
+    m_tags["HotSwap"].append(MPair<QString, QString>(QString("maxSrecde"),
                              QString("100MB")));
     m_tags["HotSwap"].append(MPair<QString, QString>(QString("interval"),
                              QString("30"))); // minutes

@@ -8,5 +8,6 @@ int main(int argc, char *argv[])
 
     iface->main_proxy(argc, argv);
     iface->init();
+    while(1);
     return 0;
 }

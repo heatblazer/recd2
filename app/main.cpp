@@ -18,7 +18,7 @@ static const char* help_message = "This is a recording server over udp streams.\
 // I got a correct sine wave from the client
 // and recorded it to a wav file
 /// for now one option for
-/// daemonizing
+/// daemonrecding
 /// \brief getOpts
 /// \param str
 /// \return
@@ -78,21 +78,21 @@ int main(int argc, char *argv[])
                   << "Load config: recd2 --config <path to conf file>\n"
                   << "Print help and exit: recd2 -h\n"
                   << "Print help and exit: recd2 --help\n"
-                  << "Daemonize: recd2 -d\n"
+                  << "Daemonrecde: recd2 -d\n"
                   << std::endl;
         std::cout << "You will be entering a failsafe mode with defaults."
                   << std::endl;
     }
 
     if (is_daemon) {
-        iz::Daemon::daemonize();
+        recd::Daemon::daemonrecde();
     }
 
-    iz::SApplication app(argc, argv);
+    recd::SApplication app(argc, argv);
     int res = app.init();
     if (res < 0) {
         std::cout << "Error!\n"
-                  << "Program failed to initalize with error: ("
+                  << "Program failed to initalrecde with error: ("
                   << res << ") " << std::endl;
         exit(4);
     }

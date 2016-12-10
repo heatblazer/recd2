@@ -10,7 +10,7 @@
 #define ASSERT_MACRO(EXPR)
 #endif
 
-namespace  iz {
+namespace  recd {
 
 struct interface_t
 {
@@ -46,5 +46,5 @@ private:
 };
 
 
-} // iz
+} // recd
 #endif // DEFS_H

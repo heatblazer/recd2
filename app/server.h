@@ -1,6 +1,6 @@
 #ifndef SERVER_H
 #define SERVER_H
-// qt //
+
 #include <QFile>
 #include <QObject>
 #include <QTimer>
@@ -9,13 +9,10 @@
 #include <QTcpServer> // usr server
 #include <QUdpSocket>
 
-// lib //
 #include "utils.h"
-
-// custom //
 #include "types.h"
 
-namespace iz {
+namespace recd {
 
 /// used for the logging system
 /// all plugins and outside stuff will send
@@ -71,6 +68,6 @@ private:
 };
 
 
-} // namespace iz
+} // namespace recd
 
 #endif // SERVER_H

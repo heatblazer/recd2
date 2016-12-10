@@ -2,14 +2,12 @@
 #define RECORDER_H
 #include "utils.h"
 
-// qt - paretn //
 #include <QObject>
 #include <QTimer> // hotswap interval
 #include <QThread>
 #include <QMutex>
 #include <QQueue>
 
-//  local hdrs //
 #include "utils.h"
 #include "plugin-iface.h"
 #include "wav-writer-iface.h"
@@ -69,7 +67,7 @@ namespace plugin {
         // special handle for QWav files
         // unused - pointer decay prevention
         /**
-        template <typename T, size_t N> record(T (&data[N]))
+        template <typename T, srecde_t N> record(T (&data[N]))
         {
         }
         */
@@ -78,7 +76,7 @@ namespace plugin {
         // hot swap - time based
         void hotSwapFiles();
 
-        // try swap on size based
+        // try swap on srecde based
         void pollHotSwap();
 
     private:
@@ -91,9 +89,9 @@ namespace plugin {
         int m_maxChans;
         // hotswap
         QTimer m_hotswap; // timer based
-        bool m_sizeBased;
+        bool m_srecdeBased;
 
-        uint32_t    m_maxFileSize;
+        uint32_t    m_maxFileSrecde;
 
         static uint32_t s_UID;
         struct {

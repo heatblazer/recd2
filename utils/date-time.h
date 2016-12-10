@@ -1,7 +1,6 @@
 #ifndef DATETIME_H
 #define DATETIME_H
 
-// ansi C //
 #include <stdio.h>
 #include <time.h>
 

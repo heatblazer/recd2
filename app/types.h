@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-namespace iz {
+namespace recd {
 
 // opacity
 struct udp_data_t;
@@ -69,6 +69,6 @@ template <typename T1, typename T2> struct MPair
     T2 m_type2;
 };
 
-} // iz
+} // recd
 
 #endif // TYPES_H

@@ -1,7 +1,6 @@
 #ifndef QWAVEWRITER_H
 #define QWAVEWRITER_H
 
-// qt stuff //
 #include <QFile>
 #include <QThread>
 #include <QMutex>
@@ -42,13 +41,13 @@ public:
     virtual bool isOpened() const;
 
     const char*  getFileName();
-    size_t  getFileSize() const;
+    size_t  getFileSrecde() const;
     virtual int getSlot() const;
     virtual void renameFile(const char* oldname, const char* newname);
 
 signals:
-    void fileSizeChanged(utils::QWav* this_file);
-    void fileSizeChanged(const int slot);
+    void fileSrecdeChanged(utils::QWav* this_file);
+    void fileSrecdeChanged(const int slot);
 
 private:
     QString m_name;
@@ -56,7 +55,7 @@ private:
     int   m_slot;
     bool  m_setup;
     bool m_isOpened;
-    size_t m_size;
+    size_t m_srecde;
     wav_hdr_t m_header;
 
 };

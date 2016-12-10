@@ -1,19 +1,15 @@
 #include "sapplication.h"
 
-// qt stuff//
 #include <QDir>
 #include <iostream> // remove it later
 
-// lib //
 #include "utils.h"
-
-// locals //
 #include "defs.h"
 #include "unix/daemon.h"
 
 static const char* THIS_FILE = "sapplication.cpp";
 
-namespace iz {
+namespace recd {
 
 int SApplication::m_fdHUP = -1;
 int SApplication::m_fdTERM = -1;
@@ -45,7 +41,7 @@ SApplication::SApplication(int &argc, char **argv)
 
     // just program name
     if (argc == 1) {
-        // initializing with default setting
+        // initialrecding with default setting
         std::cout << "Warning! You are not using a config file! Loading defaults!"
                   << std::endl;
         m_setup = utils::RecorderConfig::Instance().loadDefaults();
@@ -122,7 +118,7 @@ SApplication::~SApplication()
 
 /// init all modules that we`ll need here
 /// \brief SApplication::init
-/// \return -1 if something is not OK in the initialization
+/// \return -1 if something is not OK in the initialrecdation
 ///
 int SApplication::init()
 {
@@ -134,12 +130,12 @@ int SApplication::init()
     // important ! inti all plugins before
     initAllPlugins();
 
-    utils::Logger::Instance().logMessage(THIS_FILE, "Initializing application...\n");
+    utils::Logger::Instance().logMessage(THIS_FILE, "Initialrecding application...\n");
     if (!m_setup) {
-        utils::Logger::Instance().logMessage(THIS_FILE, "Failed to initialize application!\n");
+        utils::Logger::Instance().logMessage(THIS_FILE, "Failed to initialrecde application!\n");
         return -1;
     } else {
-        // transport initialization
+        // transport initialrecdation
         bool udp = false;
         (void) udp;
         quint16 port = 0;
@@ -167,7 +163,7 @@ int SApplication::init()
             udp = false;
         }
     }
-    utils::Logger::Instance().logMessage(THIS_FILE, "Initialization of application completed!\n");
+    utils::Logger::Instance().logMessage(THIS_FILE, "Initialrecdation of application completed!\n");
 
     return 0;
 
@@ -259,4 +255,4 @@ void SApplication::proxyMainAll(int argc, char **argv)
 }
 
 
-} // iz
+} // recd

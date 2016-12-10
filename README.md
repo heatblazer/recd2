@@ -68,12 +68,13 @@ A wav recorder over udp streams.
     7. Daemon logging must support sys/log functionality. Not done yet.
     8. GUI must perform Goertzl algorithm for DTM and filtering the sample data.
     9. Meta info file.
-    10. Improve the log system`s messages.
+    10. [DONE] Improve the log system`s messages.
     11. Add a binding/glue/shell like script support (qscript) to make things simple.
-    12. Remove plugin`s interface pritn messages.
-    13. Fix all warnings in all subprojects, please.
-    14. Most plugins depend on utils library. Organize project so everything is set and
+    12. [DONE] Remove plugin`s interface pritn messages.
+    13. [DONE] Fix all warnings in all subprojects, please.
+    14. [DONE] Most plugins depend on utils library. Organize project so everything is set and
     ready to use.
+    15. Working on the ALSA lib.
 
 ## BUGS
     [Bug1] Strange bug as for 16.11.2016, when the program gives 100% cpu load on my other Fedora computer.
@@ -146,6 +147,7 @@ A wav recorder over udp streams.
     01.12.2016: Changed the plugin api to successfully chain multiple plugins.
     03.12.2016: Now program is plugin based. Recorder and server are separate.
     06.12.2016: Granulated project to smaller and added another to mailing list.
+    09.12.2016: Now using IPC for messaging between plugins. Fast and simple.
 
 ## KISS FFT
     KISS FFT - A mixed-radix Fast Fourier Transform based up on the principle,

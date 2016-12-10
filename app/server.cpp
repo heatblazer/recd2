@@ -1,11 +1,10 @@
 #include "server.h"
 
-// std //
 #include <iostream> // for test purpose only!
 
 static const char* THIS_FILE = "server.cpp";
 
-namespace iz {
+namespace recd {
 
 ServerThread::ServerThread(QThread *parent)
     : QThread(parent),
@@ -176,5 +175,5 @@ void MsgServer::readyRead()
     }
 }
 
-} // namespce iz
+} // namespce recd
 

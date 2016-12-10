@@ -7,5 +7,6 @@
 #include "types.h"
 #include "recorder-config.h"
 #include "logger.h"
+#include "ipc-msg.h"
 
 #endif // UTILS_H

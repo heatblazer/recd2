@@ -1,7 +1,6 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-// component //
 #include "writer.h"
 
 namespace utils {

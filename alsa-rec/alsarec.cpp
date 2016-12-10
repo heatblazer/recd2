@@ -1,20 +1,17 @@
 #include "alsarec.h"
 
-// ansi c //
 #include <stdio.h>
 #include <stdlib.h>
 
 // alloc //
 #include <alloca.h> // automatic freed memory
 
-// thread //
 #include "thread.h"
-
-// utils //
 #include "recorder-config.h"
 #include "ipc-msg.h"
 
-static const char* THIS_FILE = "alsarec.cpp";
+//static const char* THIS_FILE = "alsarec.cpp";
+
 
 namespace plugin {
     namespace alsarec {
@@ -23,7 +20,7 @@ namespace plugin {
     AlsaRec* AlsaRec::s_inst = nullptr;
 
     AlsaRec::AlsaRec()
-        : m_frames(16),
+        : m_frames(1024),
           m_rate(8000),
           m_isOk(false),
           m_alsa{nullptr, nullptr, SND_PCM_FORMAT_S16_LE},
@@ -53,30 +50,35 @@ namespace plugin {
     {
         AlsaRec* arec = (AlsaRec*) pArgs;
         if (!arec->m_isOk) {
-            return NULL;
+            return nullptr;
         }
-        char* buffer = NULL;
+        char* buffer = nullptr;
 
         // will be freed at the end of worker(...)
-        buffer = (char*) alloca(arec->m_frames * snd_pcm_format_width(arec->m_alsa.format) / 8 *2);
+        buffer = (char*) alloca(arec->m_frames * (16 / 8) * 2);
 
         if (!buffer) {
-            return NULL;
+            return nullptr;
         }
+
         int err = -1;
         static char err_msg[256] = {0};
         while (arec->m_athread->isRunning()) {
 
-            if ((err = snd_pcm_readi(arec->m_alsa.cap_handle,
-                                     buffer, arec->m_frames)) != arec->m_frames) {
-                snprintf(err_msg, sizeof(err_msg),
-                         "failed to read from device: (%s)\n",
-                        snd_strerror(err));
-                utils::IPC::Instance().sendMessage(err_msg);
-            } else {
+            err = snd_pcm_readi(arec->m_alsa.cap_handle,
+                                     buffer, arec->m_frames);
+            if (err == -EPIPE) {
                 snd_pcm_prepare(arec->m_alsa.cap_handle);
-                put_ndata(buffer, arec->m_frames);
+            } else if (err < 0) {
+                snprintf(err_msg, sizeof(err_msg),
+                             "failed to read from device: (%s)\n",
+                            snd_strerror(err));
+                utils::IPC::Instance().sendMessage(err_msg);
+
+            } else {
+
             }
+            put_ndata((short*)buffer, err);
         }
 
         snd_pcm_drain(arec->m_alsa.cap_handle);
@@ -91,7 +93,7 @@ namespace plugin {
     {
         static char msg[256] = {0};
 
-        snprintf(msg, sizeof(msg), "Initializing alsarec...\n");
+        snprintf(msg, sizeof(msg), "Initialrecding alsarec...\n");
         utils::IPC::Instance().sendMessage(msg);
         int err = 0;
         AlsaRec* aref = &Instance();
@@ -103,8 +105,6 @@ namespace plugin {
             utils::IPC::Instance().sendMessage(msg);
             return ;
         }
-        snprintf(msg, sizeof(msg), "audio device opened!\n");
-        utils::IPC::Instance().sendMessage(msg);
 
         if ((err = snd_pcm_hw_params_malloc(&aref->m_alsa.hw_params)) < 0) {
             snprintf(msg, sizeof(msg), "cannot allocate hardware param struct: (%s)\n",
@@ -113,9 +113,6 @@ namespace plugin {
             return ;
         }
 
-        snprintf(msg, sizeof(msg), "hardware params allocated\n");
-        utils::IPC::Instance().sendMessage(msg);
-
         if ((err = snd_pcm_hw_params_any(aref->m_alsa.cap_handle,
                                          aref->m_alsa.hw_params)) < 0) {
             snprintf(msg, sizeof(msg), "failed to hardware structure: (%s)\n",
@@ -123,9 +120,6 @@ namespace plugin {
             utils::IPC::Instance().sendMessage(msg);
             return;
         }
-
-        snprintf(msg,sizeof(msg),  "hardware params allocated!\n");
-        utils::IPC::Instance().sendMessage(msg);
 
         if ((err = snd_pcm_hw_params_set_access(aref->m_alsa.cap_handle,
                                                 aref->m_alsa.hw_params,
@@ -136,26 +130,11 @@ namespace plugin {
             return;
         }
 
-        snprintf(msg, sizeof(msg), "hw params access setted\n");
-        utils::IPC::Instance().sendMessage(msg);
-
         if ((err = snd_pcm_hw_params_set_format(
                  aref->m_alsa.cap_handle,
                  aref->m_alsa.hw_params,
                  aref->m_alsa.format)) < 0) {
             snprintf(msg, sizeof(msg), "cannot set sample format: (%s)\n",
-                    snd_strerror(err));
-            utils::IPC::Instance().sendMessage(msg);
-            return;
-        }
-
-        snprintf(msg, sizeof(msg), "hw formats set ok!\n");
-        utils::IPC::Instance().sendMessage(msg);
-
-        if ((err = snd_pcm_hw_params_set_rate_near(
-                 aref->m_alsa.cap_handle,
-                 aref->m_alsa.hw_params, &aref->m_rate, 0)) < 0) {
-            snprintf(msg, sizeof(msg), "cannot set sample rate: (%s)\n",
                     snd_strerror(err));
             utils::IPC::Instance().sendMessage(msg);
             return;
@@ -170,8 +149,30 @@ namespace plugin {
             return;
         }
 
-        snprintf(msg, sizeof(msg), "hw params channels setted\n");
-        utils::IPC::Instance().sendMessage(msg);
+        if ((err = snd_pcm_hw_params_set_rate_near(
+                 aref->m_alsa.cap_handle,
+                 aref->m_alsa.hw_params,
+                 &aref->m_rate, 0)) < 0) {
+            snprintf(msg, sizeof(msg), "cannot set sample rate: (%s)\n",
+                    snd_strerror(err));
+            utils::IPC::Instance().sendMessage(msg);
+            return;
+        }
+
+        int dir = 1024;
+        if ((err = snd_pcm_hw_params_set_periods_near(
+                 aref->m_alsa.cap_handle,
+                 aref->m_alsa.hw_params,
+                 (unsigned*)&aref->m_frames,
+                 &dir)) < 0) {
+        }
+
+        aref->m_frames = 16 * 1024 * 2;
+        snd_pcm_hw_params_set_buffer_size_near(aref->m_alsa.cap_handle,
+                                               aref->m_alsa.hw_params,
+                                               &aref->m_frames);
+
+
         if ((err = snd_pcm_hw_params(
                  aref->m_alsa.cap_handle,
                  aref->m_alsa.hw_params)) < 0) {
@@ -181,12 +182,7 @@ namespace plugin {
             return;
         }
 
-        snprintf(msg, sizeof(msg), "hardware params set ok\n");
-        utils::IPC::Instance().sendMessage(msg);
-
         snd_pcm_hw_params_free(aref->m_alsa.hw_params);
-        snprintf(msg, sizeof(msg), "hardware params freed\n");
-        utils::IPC::Instance().sendMessage(msg);
 
         if ((err = snd_pcm_prepare(aref->m_alsa.cap_handle)) < 0) {
             snprintf(msg, sizeof(msg), "cannot prepare audio interface: (%s)\n",
@@ -198,7 +194,6 @@ namespace plugin {
         snprintf(msg, sizeof(msg), "audio interface prepared... starting up...\n");
         utils::IPC::Instance().sendMessage(msg);
         aref->m_isOk = true;
-
         aref->m_mutex.init();
         aref->m_athread = new PThread;
         aref->m_athread->create(128 * 1024, aref, AlsaRec::worker, 20);

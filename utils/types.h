@@ -2,6 +2,7 @@
 #define TYPES_H
 
 #include <stdint.h>
+
 namespace utils {
 // opacity
 struct udp_data_t;

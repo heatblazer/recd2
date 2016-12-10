@@ -1,7 +1,6 @@
 #include "client.h"
 #include <iostream>
 
-// ansi C //
 #include <math.h>
 #include <time.h>
 
@@ -56,7 +55,7 @@ short* gen_const_tone(int len)
     return buff;
 }
 
-namespace iz {
+namespace recd {
 
 Client::Client(QObject *parent)
     : QObject(parent),
@@ -107,4 +106,4 @@ void Client::transmit()
 }
 
 
-} // iz
+} // recd

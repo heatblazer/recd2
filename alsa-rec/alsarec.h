@@ -37,9 +37,10 @@ namespace plugin {
         AlsaRec();
         ~AlsaRec();
 
-        int             m_frames ;
-        unsigned int    m_rate;
-        bool            m_isOk;
+        snd_pcm_uframes_t   m_frames ;
+        unsigned int        m_rate;
+        bool                m_isOk;
+        int                 m_dir;
         struct {
             snd_pcm_t* cap_handle;
             snd_pcm_hw_params_t* hw_params;

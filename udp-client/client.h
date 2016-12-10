@@ -7,8 +7,8 @@
 #include <QUdpSocket>
 
 #include <stdint.h>
-#define PACK_SIZE 32 * 4
-namespace iz {
+#define PACK_SrecdE 32 * 4
+namespace recd {
 struct udp_data_t
 {
     uint32_t    counter;

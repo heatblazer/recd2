@@ -1,9 +1,7 @@
 #include "logger.h"
 
-// qt //
 #include <QDir>
 
-// local stuff //
 #include "recorder-config.h"
 #include "date-time.h"
 
