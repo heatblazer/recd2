@@ -56,6 +56,10 @@
     speed="1000"
 />
 
+<LogServer
+    port="6666"
+    />
+
 <!-- if we want to report to a host a hearbeat -->
 <Heartbeat
     timeout="2000"

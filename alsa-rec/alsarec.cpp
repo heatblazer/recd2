@@ -103,7 +103,7 @@ namespace plugin {
         int err = 0;
         AlsaRec* aref = &Instance();
 
-        if ((err = snd_pcm_open(&aref->m_alsa.cap_handle, "hw:0,0", SND_PCM_STREAM_CAPTURE,
+        if ((err = snd_pcm_open(&aref->m_alsa.cap_handle, "plughw:0,0", SND_PCM_STREAM_CAPTURE,
                                 0) < 0)) {
             snprintf(msg, sizeof(msg), "can not open sound device: hw:0 (%s)\n",
                     snd_strerror(err));
