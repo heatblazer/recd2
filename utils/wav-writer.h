@@ -16,10 +16,8 @@ class Wav : public WavIface
 {
 
 public:
-    Wav(const char* fname);
+    explicit Wav(const char* fname);
     virtual ~Wav();
-    // in case we migrate to other file api we made these virtual
-    // but provide some defailt implementation
     virtual bool open(unsigned slot);
     virtual void close();
     virtual bool isOpened() const ;
@@ -34,6 +32,11 @@ public:
     virtual void renameFile(const char* oldname, const char* newname);
 
 private:
+    /// gets filesize, use it instead
+    /// of the cheap version!
+    /// \brief get_size
+    /// \return current filesize
+    ///
     size_t get_size();
 
 protected:

@@ -53,7 +53,6 @@ namespace plugin {
             return nullptr;
         }
         char* buffer = nullptr;
-        char* dblbuff = nullptr;
         // will be freed at the end of worker(...)
         buffer = (char*) alloca(arec->m_frames * (16 / 8) * 2);
         if (!buffer) {
@@ -62,8 +61,8 @@ namespace plugin {
 
         int err = -1;
         static char err_msg[256] = {0};
+
         while (arec->m_athread->isRunning()) {
-            char* dblbuff = nullptr;
             arec->m_mutex.lock();
             err = snd_pcm_readi(arec->m_alsa.cap_handle,
                                      buffer, arec->m_frames);
@@ -77,14 +76,14 @@ namespace plugin {
                 utils::IPC::Instance().sendMessage(err_msg);
 
             } else {
+                char* dblbuff = nullptr;
                 dblbuff = (char*) alloca(err);
                 memset(dblbuff, 0, err);
+                arec->m_mutex.lock();
+                memcpy(dblbuff, buffer, err);
+                arec->m_mutex.unlock();
+                put_ndata((short*)dblbuff, err);
             }
-            arec->m_mutex.lock();
-            memcpy(dblbuff, buffer, err);
-            arec->m_mutex.unlock();
-
-            put_ndata((short*)dblbuff, err);
         }
 
         snd_pcm_drain(arec->m_alsa.cap_handle);
@@ -104,7 +103,7 @@ namespace plugin {
         int err = 0;
         AlsaRec* aref = &Instance();
 
-        if ((err = snd_pcm_open(&aref->m_alsa.cap_handle, "hw:0", SND_PCM_STREAM_CAPTURE,
+        if ((err = snd_pcm_open(&aref->m_alsa.cap_handle, "hw:0,0", SND_PCM_STREAM_CAPTURE,
                                 0) < 0)) {
             snprintf(msg, sizeof(msg), "can not open sound device: hw:0 (%s)\n",
                     snd_strerror(err));
