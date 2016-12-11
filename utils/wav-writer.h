@@ -34,6 +34,7 @@ public:
     virtual void renameFile(const char* oldname, const char* newname);
 
 private:
+    size_t get_size();
 
 protected:
     FILE*   m_file;

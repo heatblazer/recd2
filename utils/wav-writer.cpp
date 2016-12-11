@@ -124,6 +124,14 @@ void Wav::renameFile(const char *oldname, const char *newname)
     rename(oldname, newname);
 }
 
+size_t Wav::get_size()
+{
+    fseek(m_file, 0L, SEEK_END);
+    const size_t size = ftell(m_file);
+    rewind(m_file);
+    return size;
+}
+
 
 /// close the file and write
 /// needed info to the header

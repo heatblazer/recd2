@@ -70,7 +70,7 @@ static inline int16_t flip16(int16_t input)
 
 bool QWav::isOpened() const
 {
-    return m_isOpened;
+    return m_wav.isOpen();
 }
 
 /// unimplemented
@@ -141,8 +141,7 @@ int QWav::write(short data[], int len)
 
 void QWav::close()
 {
-    if (m_isOpened) {
-
+    if (m_wav.isOpen()) {
         qint64 file_len = m_wav.size();
         // get the len from the offset
         int data_len = file_len - sizeof(struct wav_hdr_t);
@@ -156,7 +155,6 @@ void QWav::close()
         m_wav.seek(4);
         m_wav.write((char*)&riff_len);
         m_wav.close();
-        m_isOpened = false;
     }
 }
 
@@ -184,8 +182,7 @@ bool QWav::open(unsigned slot)
     m_wav.write((char*)&m_header, sizeof(m_header));
     m_wav.flush();
     m_size += 44;
-    m_isOpened = true;
-    return m_isOpened;
+    return m_wav.isOpen();
 
 }
 
@@ -194,7 +191,6 @@ QWav::QWav(const QString &fname, QObject *parent)
       m_name(fname),
       m_slot(-1),
       m_setup(false),
-      m_isOpened(false),
       m_size(0)
 {
 }

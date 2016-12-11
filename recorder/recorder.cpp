@@ -48,14 +48,15 @@ namespace plugin {
     Recorder::Recorder(QThread *parent)
         : QThread(parent),
           m_maxChans(0),
+          m_sizeBased(false),
           m_maxFileSize(0)
     {
-        m_sizeBased = false;
+        m_thread.running = false;
+        m_thread.speed = 100;
+
         for(int i=0; i < 128; ++i) {
             m_wavs[i] = nullptr;
         }
-        m_thread.running = false;
-        m_thread.speed = 100;
     }
 
     // handle with care the opened files
@@ -188,7 +189,6 @@ namespace plugin {
         } else {
             // setup the default logic
             // swap by size
-
         }
 
         Instance().setObjectName("recorder-thread");
@@ -225,32 +225,32 @@ namespace plugin {
 
     int Recorder::put_data(void *data)
     {
-        if (iface.nextPlugin != NULL) {
+        if (iface.nextPlugin != nullptr) {
             iface.nextPlugin->put_data(data);
-        } else {
         }
+
         return 0;
     }
 
     int Recorder::put_ndata(void *data, int len)
     {
         Recorder* r = &Instance();
-        if (iface.nextPlugin != NULL) {
+        if (iface.nextPlugin != nullptr) {
             iface.nextPlugin->put_ndata(data, len);
-        } else {
-            sample_data_t sdata = {0, 0};
-            sdata.len = len;
-            sdata.data = (short*) data;
-            r->m_thread.mutex.lock();
-            r->m_thread.buffer.append(sdata);
-            r->m_thread.mutex.unlock();
         }
+        sample_data_t sdata = {0, 0};
+        sdata.len = len;
+        sdata.data = (short*) data;
+        r->m_thread.mutex.lock();
+        r->m_thread.buffer.append(sdata);
+        r->m_thread.mutex.unlock();
+
         return 0;
     }
 
     void *Recorder::get_data()
     {
-        return NULL;
+        return nullptr;
     }
 
     int Recorder::main_proxy(int argc, char **argv)

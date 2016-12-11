@@ -54,7 +54,6 @@ private:
     QFile m_wav;
     int   m_slot;
     bool  m_setup;
-    bool m_isOpened;
     size_t m_size;
     wav_hdr_t m_header;
 
