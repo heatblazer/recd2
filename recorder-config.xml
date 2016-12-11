@@ -15,12 +15,12 @@
 <!-- now using this tag to specify max channels -->
 <!-- by default recorder support up to 128 -->
 <Channels
-    count="32"
+    count="1"
     />
 
 <HotSwap
     timeBased="disabled"
-    maxSize="2MB"
+    maxSize="5MB"
     interval="1" /> <!-- minutes only!-->
 
 <!-- done: setups wav headers from here -->
@@ -74,32 +74,36 @@
 <!-- alsarecorder -->
 
 <!-- This is an alsa sample capture device, not a recorder, it captures from
-mic, then passes down to the chain.
+mic, then passes down to the chain. -->
+
 <Plugin
     name="alsarec"
     order="1"
     enabled="true"
-    path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/alsa-rec/libalsa-rec.so"
+    path="/home/ilian/github/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/alsa-rec/libalsa-rec.so"
     />
--->
 
 <!-- this plugin is based on the udp server written for the device -->
+<!--
+
 <Plugin
     name="udp-streamer"
     order="1"
     enabled="true"
     path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/udp-streamer/libudp-streamer.so"
     />
+    -->
 
 <!-- this plugin does nothig, it`s mainly used for
 test purposes, it can put 0 samples in a rapid succession
 to be used for debugging other plugins below it. Also it can
 be used to track the chaingin of the plugins -->
+
 <Plugin
     name="null"
     order="1"
     enabled="true"
-    path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/NULL/libNULL.so"
+    path="/home/ilian/github/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/NULL/libNULL.so"
     />
 
 <!-- this is the typical recorder of wav files, it has nothing special here,
@@ -108,7 +112,7 @@ collect samples and record them to wavs -->
     name="rec"
     order="1"
     enabled="true"
-    path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/recorder/librecorder.so"
+    path="/home/ilian/github/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/recorder/librecorder.so"
     />
 
 
