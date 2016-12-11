@@ -67,7 +67,7 @@ namespace plugin {
         // special handle for QWav files
         // unused - pointer decay prevention
         /**
-        template <typename T, srecde_t N> record(T (&data[N]))
+        template <typename T, size_t N> record(T (&data[N]))
         {
         }
         */
@@ -76,7 +76,7 @@ namespace plugin {
         // hot swap - time based
         void hotSwapFiles();
 
-        // try swap on srecde based
+        // try swap on size based
         void pollHotSwap();
 
     private:
@@ -89,9 +89,9 @@ namespace plugin {
         int m_maxChans;
         // hotswap
         QTimer m_hotswap; // timer based
-        bool m_srecdeBased;
+        bool m_sizeBased;
 
-        uint32_t    m_maxFileSrecde;
+        uint32_t    m_maxFileSize;
 
         static uint32_t s_UID;
         struct {

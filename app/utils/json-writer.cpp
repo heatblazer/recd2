@@ -2,7 +2,7 @@
 
 //static const char* THIS_FILE = "json-writer.cpp";
 
-namespace recd {
+namespace iz {
 
 JsonWriter::JsonWriter(QObject *parent)
     : QObject(parent)
@@ -17,7 +17,7 @@ void JsonWriter::init()
 {
     // configure outside json filena for now use default
     static const char* fname = "metainfo.json";
-                      // filename, initial buffsrecde, log speed //
+                      // filename, initial buffsize, log speed //
     if (m_writer.setup(QString(fname), 1000, 500)) {
         m_writer.setObjectName("json writer");
         m_writer.startWriter();
@@ -45,4 +45,4 @@ JsonWriter &JsonWriter::add(const QString &tag)
 }
 
 
-} // namespace recd
+} // namespace iz

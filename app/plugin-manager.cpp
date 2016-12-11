@@ -6,7 +6,7 @@
 
 static const char* THIS_FILE = "plugin-manager.cpp";
 
-namespace recd {
+namespace iz {
 
 typedef struct interface_t* (*get_interface)();
 InterfaceList RecPluginMngr::m_pluginLinks;
@@ -127,4 +127,4 @@ RecPluginMngr::~RecPluginMngr()
 {
 }
 
-} // recd
+} // iz

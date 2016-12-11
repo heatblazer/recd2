@@ -93,7 +93,7 @@ namespace plugin {
     {
         static char msg[256] = {0};
 
-        snprintf(msg, sizeof(msg), "Initialrecding alsarec...\n");
+        snprintf(msg, sizeof(msg), "Initializing alsarec...\n");
         utils::IPC::Instance().sendMessage(msg);
         int err = 0;
         AlsaRec* aref = &Instance();

@@ -46,7 +46,7 @@ static void log_message(const char* msg)
     fclose(s_log);
 }
 
-namespace recd {
+namespace iz {
 
 static SApplication* g_application = nullptr;
 
@@ -95,7 +95,7 @@ Daemon::~Daemon()
 
 }
 
-void Daemon::daemonrecde()
+void Daemon::daemonize()
 {
 
     umask(0);
@@ -233,7 +233,7 @@ void Daemon::log(const char *msg)
     log_message(msg);
 }
 
-} // recd
+} // iz
 
 // hinting
 #if 0
@@ -264,10 +264,10 @@ void Daemon::log(const char *msg)
 #define	SIGTTOU		22	/* Background write to tty (POSIX).  */
 #define	SIGURG		23	/* Urgent condition on socket (4.2 BSD).  */
 #define	SIGXCPU		24	/* CPU limit exceeded (4.2 BSD).  */
-#define	SIGXFSZ		25	/* File srecde limit exceeded (4.2 BSD).  */
+#define	SIGXFSZ		25	/* File size limit exceeded (4.2 BSD).  */
 #define	SIGVTALRM	26	/* Virtual alarm clock (4.2 BSD).  */
 #define	SIGPROF		27	/* Profiling alarm clock (4.2 BSD).  */
-#define	SIGWINCH	28	/* Window srecde change (4.3 BSD, Sun).  */
+#define	SIGWINCH	28	/* Window size change (4.3 BSD, Sun).  */
 #define	SIGPOLL		SIGIO	/* Pollable event occurred (System V).  */
 #define	SIGIO		29	/* I/O now possible (4.2 BSD).  */
 #define	SIGPWR		30	/* Power failure restart (System V).  */

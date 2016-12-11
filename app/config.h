@@ -4,7 +4,7 @@
 // qt stuff //
 #include <QFile>
 
-namespace recd {
+namespace iz {
 
 // simple cfg file reader for now
 // no xml walkers and complex stuff,
@@ -19,7 +19,7 @@ public:
         RIFF_LEN,
         AUD_FORMAT,
         CHANNELS,
-        SrecdE
+        SizE
     };
 
     explicit WavConfig(const QString& fname);
@@ -31,10 +31,10 @@ private:
         QString name;
         QFile   file;
     } m_file;
-    int m_attribs[Params::SrecdE];
+    int m_attribs[Params::SizE];
 };
 
-}  // recd
+}  // iz
 
 
 #endif // CONFIG_H

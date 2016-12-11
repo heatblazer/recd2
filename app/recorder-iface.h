@@ -3,12 +3,12 @@
 
 #include "defs.h"
 
-namespace recd {
+namespace iz {
 
 /// plugin reflection
 /// \brief The RecIface struct
 ///
 
-} // recd
+} // iz
 
 #endif // RECORDERIFACE_H

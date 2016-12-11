@@ -23,10 +23,10 @@ Writer::~Writer()
 {
 }
 
-bool Writer::setup(const QString& fname, int initial_buffsrecde, ulong log_speed)
+bool Writer::setup(const QString& fname, int initial_buffsize, ulong log_speed)
 {
     bool res = true;
-    m_buffer.reserve(initial_buffsrecde);
+    m_buffer.reserve(initial_buffsize);
     m_speed = log_speed;
     if (!m_file.isOpen()) {
         m_file.setFileName(fname);

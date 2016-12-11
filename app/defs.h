@@ -4,13 +4,13 @@
 // C assert //
 #include <assert.h>
 
-#ifdef RECD_DEBUG
+#ifdef iz_DEBUG
 #define ASSERT_MACRO(EXPR) assert(EXPR)
 #else
 #define ASSERT_MACRO(EXPR)
 #endif
 
-namespace  recd {
+namespace  iz {
 
 struct interface_t
 {
@@ -46,5 +46,5 @@ private:
 };
 
 
-} // recd
+} // iz
 #endif // DEFS_H

@@ -10,7 +10,7 @@
 // lib //
 #include "utils.h"
 
-namespace recd {
+namespace iz {
 
 class JsonWriter : public QObject
 {
@@ -28,6 +28,6 @@ private:
     QByteArray      m_json;
 
 };
-} // recd
+} // iz
 
 #endif // JSONWRITER_H

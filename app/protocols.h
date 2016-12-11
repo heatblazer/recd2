@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-namespace recd
+namespace iz
 {
 /// what a rtp header should be
 /// \brief The rtp_hdr_t struct
@@ -23,11 +23,11 @@ struct rtp_hdr_t
         int32_t i;
     } u;
     int32_t time_stamp; // timestampe, init value should be random!
-    int32_t SSRC;       // syncrhonrecdation identifier, should be random
+    int32_t SSRC;       // syncrhonization identifier, should be random
     int32_t CSRC[1];    // 0 - 15 items contrib sources
 };
 
-}  // recd
+}  // iz
 
 
 #endif // PROTOCOLS_H

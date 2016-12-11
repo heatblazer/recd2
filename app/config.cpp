@@ -4,7 +4,7 @@
 #include <QTextStream>
 
 
-namespace recd {
+namespace iz {
 
 /// wav file config: old concept
 /// generate a config file if not present
@@ -96,10 +96,10 @@ WavConfig::~WavConfig()
 ///
 int WavConfig::getAttribute(WavConfig::Params atrib)
 {
-    if (atrib < 0 || atrib > Params::SrecdE) {
+    if (atrib < 0 || atrib > Params::SizE) {
         return -1;
     }
     return m_attribs[atrib];
 }
 
-} // recd
+} // iz

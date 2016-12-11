@@ -123,20 +123,20 @@ void QWav::setupWave(int samples_per_sec,
 
 }
 
-/// each write appends bytes to the srecde var
-/// so when I need to check srecde I won`t call
-/// ftell or QFile::srecde() and that way I am
+/// each write appends bytes to the size var
+/// so when I need to check size I won`t call
+/// ftell or QFile::size() and that way I am
 /// faster, since I don`t perform file seeks
 /// \brief QWav::write
 /// \param data
 /// \param len
-/// \return current file srecde
+/// \return current file size
 ///
 int QWav::write(short data[], int len)
 {
     // hope that write returns ok data
-    m_srecde += m_wav.write((char*) data, len);
-    return m_srecde;
+    m_size += m_wav.write((char*) data, len);
+    return m_size;
 }
 
 void QWav::close()
@@ -183,7 +183,7 @@ bool QWav::open(unsigned slot)
     }
     m_wav.write((char*)&m_header, sizeof(m_header));
     m_wav.flush();
-    m_srecde += 44;
+    m_size += 44;
     m_isOpened = true;
     return m_isOpened;
 
@@ -195,7 +195,7 @@ QWav::QWav(const QString &fname, QObject *parent)
       m_slot(-1),
       m_setup(false),
       m_isOpened(false),
-      m_srecde(0)
+      m_size(0)
 {
 }
 
@@ -203,7 +203,7 @@ QWav::~QWav()
 {
     m_slot = -1;
     m_setup = false;
-    m_srecde = 0;
+    m_size = 0;
 }
 
 const char *QWav::getFileName()
@@ -211,9 +211,9 @@ const char *QWav::getFileName()
     return m_name.toStdString().data();
 }
 
-size_t QWav::getFileSrecde() const
+size_t QWav::getFileSize() const
 {
-    return m_srecde;
+    return m_size;
 }
 
 

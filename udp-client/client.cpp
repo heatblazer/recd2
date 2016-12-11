@@ -55,7 +55,7 @@ short* gen_const_tone(int len)
     return buff;
 }
 
-namespace recd {
+namespace iz {
 
 Client::Client(QObject *parent)
     : QObject(parent),
@@ -106,4 +106,4 @@ void Client::transmit()
 }
 
 
-} // recd
+} // iz

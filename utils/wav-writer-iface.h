@@ -62,11 +62,11 @@ public:
     ///
     virtual  const char* getFileName() = 0;
 
-    /// get filesrecde in bytes
-    /// \brief getFileSrecde
-    /// \return filesrecdew
+    /// get filesize in bytes
+    /// \brief getFileSize
+    /// \return filesizew
     ///
-    virtual size_t getFileSrecde() const = 0;
+    virtual size_t getFileSize() const = 0;
 
     /// get channel slot associated with this file
     /// \brief getSlot

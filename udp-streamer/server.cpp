@@ -50,7 +50,7 @@ namespace plugin {
     void Server::init()
     {
         Server* s = &Server::Instance();
-        printf("Initialrecding server...\n");
+        printf("Initializing server...\n");
         // the error packet to be sent on packet lost
         static const int16_t max = 37222;
         for(int i=0; i < 32; ++i) {
@@ -208,7 +208,7 @@ namespace plugin {
     }
 
     /// deinitialze the server, maybe some unfinished
-    /// task to be finalrecded here, or to be registered in
+    /// task to be finalized here, or to be registered in
     /// the daemon, will left it a TODO
     /// \brief Server::deinit
     ///

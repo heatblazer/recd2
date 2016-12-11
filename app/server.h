@@ -12,7 +12,7 @@
 #include "utils.h"
 #include "types.h"
 
-namespace recd {
+namespace iz {
 
 /// used for the logging system
 /// all plugins and outside stuff will send
@@ -68,6 +68,6 @@ private:
 };
 
 
-} // namespace recd
+} // namespace iz
 
 #endif // SERVER_H

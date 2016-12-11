@@ -73,10 +73,10 @@ Wav::Wav(const char *fname)
       m_isSetup(false),
       m_isOpened(false),
       m_requiresFlip(false),
-      m_maxSrecde(0),
+      m_maxSize(0),
       m_slot(-1)
 {
-    m_requiresFlip = isBigEndian();
+   // m_requiresFlip = isBigEndian();
     strcpy(m_filename, fname);
 }
 
@@ -108,7 +108,7 @@ bool Wav::open(unsigned slot)
     fwrite(&m_header, sizeof(m_header), 1, m_file);
     fflush(m_file);
     // include header even though it`s agruably
-    m_maxSrecde += 44;
+    m_maxSize += 44;
     m_isOpened = true;
     return m_isOpened;
 
@@ -160,19 +160,19 @@ bool Wav::isOpened() const
 /// write data to wav file
 /// \brief Wav::write
 /// \param data - samples
-/// \param len - srecde
+/// \param len - size
 /// \return  bytes writen if needed
 ///
 int Wav::write(short data[], int len)
 {
     fwrite(data, sizeof(short), len, m_file);
 
-    // this will avoid checking the file srecde each time in
+    // this will avoid checking the file size each time in
     // the system watcher, losing a bit of precision in bytes tho
     // in the final I`ll make sure ftell is called periodicly
 
-    m_maxSrecde += (len * sizeof(short));
-    return m_maxSrecde;
+    m_maxSize += (len * sizeof(short));
+    return m_maxSize;
 }
 
 /// unimplemented since not needed
@@ -282,9 +282,9 @@ const char *Wav::getFileName()
     return m_filename;
 }
 
-size_t Wav::getFileSrecde() const
+size_t Wav::getFileSize() const
 {
-    return m_maxSrecde;
+    return m_maxSize;
 }
 
 } // utils

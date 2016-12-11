@@ -41,13 +41,13 @@ public:
     virtual bool isOpened() const;
 
     const char*  getFileName();
-    size_t  getFileSrecde() const;
+    size_t  getFileSize() const;
     virtual int getSlot() const;
     virtual void renameFile(const char* oldname, const char* newname);
 
 signals:
-    void fileSrecdeChanged(utils::QWav* this_file);
-    void fileSrecdeChanged(const int slot);
+    void fileSizeChanged(utils::QWav* this_file);
+    void fileSizeChanged(const int slot);
 
 private:
     QString m_name;
@@ -55,7 +55,7 @@ private:
     int   m_slot;
     bool  m_setup;
     bool m_isOpened;
-    size_t m_srecde;
+    size_t m_size;
     wav_hdr_t m_header;
 
 };

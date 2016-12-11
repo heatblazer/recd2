@@ -22,10 +22,10 @@ using namespace utils;
 static inline const char* is_digit(const char* str) {
 #define DIGIT(c) ((c >= '0') && (c <= '9'))
     static char digit[10] = {0};
-    int srecde = 0;
-    while (DIGIT(*str) && srecde < 10) {
-        digit[srecde] = *str;
-        srecde++;
+    int size = 0;
+    while (DIGIT(*str) && size < 10) {
+        digit[size] = *str;
+        size++;
         str++;
     }
 #undef DIGIT
@@ -48,9 +48,9 @@ namespace plugin {
     Recorder::Recorder(QThread *parent)
         : QThread(parent),
           m_maxChans(0),
-          m_maxFileSrecde(0)
+          m_maxFileSize(0)
     {
-        m_srecdeBased = false;
+        m_sizeBased = false;
         for(int i=0; i < 128; ++i) {
             m_wavs[i] = nullptr;
         }
@@ -81,7 +81,7 @@ namespace plugin {
 
         // hardcoded for now
 
-        utils::IPC::Instance().sendMessage("Initialrecding recorder...\n");
+        utils::IPC::Instance().sendMessage("Initializing recorder...\n");
         const MPair<QString, QString>& dir =
                 RecorderConfig::Instance()
                 .getAttribPairFromTag("Paths", "records");
@@ -132,8 +132,8 @@ namespace plugin {
 
         const MPair<QString, QString>& hot_swap = RecorderConfig::Instance()
                 .getAttribPairFromTag("HotSwap", "timeBased");
-        const MPair<QString, QString>& max_srecde = RecorderConfig::Instance()
-                .getAttribPairFromTag("HotSwap", "maxSrecde");
+        const MPair<QString, QString>& max_size = RecorderConfig::Instance()
+                .getAttribPairFromTag("HotSwap", "maxSize");
         const MPair<QString, QString>& interval = RecorderConfig::Instance()
                 .getAttribPairFromTag("HotSwap", "interval");
 
@@ -160,34 +160,34 @@ namespace plugin {
                 connect(&r->m_hotswap, SIGNAL(timeout()), &Instance(), SLOT(hotSwapFiles()));
                 r->m_hotswap.start();
             } else {
-                // setup filesrecde change
-                IPC::Instance().sendMessage("HotSwap is set to file srecde changed!\n");
-                if (max_srecde.m_type1 != "") {
+                // setup filesize change
+                IPC::Instance().sendMessage("HotSwap is set to file size changed!\n");
+                if (max_size.m_type1 != "") {
                     bool res = false;
-                    ulong max_srecde_modifier = 1;
-                    if (max_srecde.m_type2.contains("MB", Qt::CaseInsensitive) ||
-                            max_srecde.m_type2.contains("M", Qt::CaseInsensitive)) {
-                        max_srecde_modifier = 1000000;
-                    } else if (max_srecde.m_type2.contains("GB", Qt::CaseInsensitive) ||
-                               max_srecde.m_type2.contains("G", Qt::CaseInsensitive)) {
-                        max_srecde_modifier = 1000000000;
+                    ulong max_size_modifier = 1;
+                    if (max_size.m_type2.contains("MB", Qt::CaseInsensitive) ||
+                            max_size.m_type2.contains("M", Qt::CaseInsensitive)) {
+                        max_size_modifier = 1000000;
+                    } else if (max_size.m_type2.contains("GB", Qt::CaseInsensitive) ||
+                               max_size.m_type2.contains("G", Qt::CaseInsensitive)) {
+                        max_size_modifier = 1000000000;
                     }
-                    const char* srecde = is_digit(max_srecde.m_type2.toStdString().data());
-                    ulong mfs = QString(srecde).toLong(&res);
-                    r->m_maxFileSrecde = mfs * max_srecde_modifier;
+                    const char* size = is_digit(max_size.m_type2.toStdString().data());
+                    ulong mfs = QString(size).toLong(&res);
+                    r->m_maxFileSize = mfs * max_size_modifier;
 
                     if(!res) {
-                        r->m_maxFileSrecde = 30000000; // 30Mb
+                        r->m_maxFileSize = 30000000; // 30Mb
                     }
                 }
                 snprintf(init_msg, sizeof(init_msg),
-                         "File srecde limit is: (%d) bytes\n", r->m_maxFileSrecde);
+                         "File size limit is: (%d) bytes\n", r->m_maxFileSize);
                 IPC::Instance().sendMessage(init_msg);
-                r->m_srecdeBased = true;
+                r->m_sizeBased = true;
             }
         } else {
             // setup the default logic
-            // swap by srecde
+            // swap by size
 
         }
 
@@ -199,7 +199,7 @@ namespace plugin {
     {
         Recorder* r = &Instance();
 
-        IPC::Instance().sendMessage("Deinitialrecding recorder...\n");
+        IPC::Instance().sendMessage("Deinitializing recorder...\n");
         IPC::Instance().sendMessage("Closing all opened records...\n");
 
         for(int i=0; i < r->m_maxChans; ++i) {
@@ -376,7 +376,7 @@ namespace plugin {
                 // misra else - unused
             }
         }
-        // maxfile srecde is set from init...
+        // maxfile size is set from init...
         // one time setup all waves at a time
         // don`t open them yet... do this later, after server
         // init and binding
@@ -397,7 +397,7 @@ namespace plugin {
     void Recorder::record(short data[], int len)
     {
         for(int i=0; i < m_maxChans; ++i) {
-            if (m_srecdeBased) {
+            if (m_sizeBased) {
                 pollHotSwap();
             }
             if (m_wavs[i] != nullptr && m_wavs[i]->isOpened()) {
@@ -456,7 +456,7 @@ namespace plugin {
         for(int i=0; i < m_maxChans; ++i) {
             if (m_wavs[i] != nullptr && m_wavs[i]->isOpened()) {
                 // кой писал писал
-                if (m_wavs[i]->getFileSrecde() > m_maxFileSrecde) {
+                if (m_wavs[i]->getFileSize() > m_maxFileSize) {
                     s_UID++;
                     char buff[256] = {0};
                     if (m_directory != "") {
@@ -512,7 +512,6 @@ const interface_t *get_interface()
     pif->getSelf = &plugin::rec::Recorder::getSelf;
     pif->copy = &plugin::rec::Recorder::copy;
     pif->nextPlugin = nullptr;
-
     return plugin::rec::Recorder::Instance().getSelf();
 }
 

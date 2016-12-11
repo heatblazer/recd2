@@ -9,7 +9,7 @@
 
 static const char* THIS_FILE = "sapplication.cpp";
 
-namespace recd {
+namespace iz {
 
 int SApplication::m_fdHUP = -1;
 int SApplication::m_fdTERM = -1;
@@ -41,7 +41,7 @@ SApplication::SApplication(int &argc, char **argv)
 
     // just program name
     if (argc == 1) {
-        // initialrecding with default setting
+        // initializing with default setting
         std::cout << "Warning! You are not using a config file! Loading defaults!"
                   << std::endl;
         m_setup = utils::RecorderConfig::Instance().loadDefaults();
@@ -118,7 +118,7 @@ SApplication::~SApplication()
 
 /// init all modules that we`ll need here
 /// \brief SApplication::init
-/// \return -1 if something is not OK in the initialrecdation
+/// \return -1 if something is not OK in the initialization
 ///
 int SApplication::init()
 {
@@ -130,12 +130,12 @@ int SApplication::init()
     // important ! inti all plugins before
     initAllPlugins();
 
-    utils::Logger::Instance().logMessage(THIS_FILE, "Initialrecding application...\n");
+    utils::Logger::Instance().logMessage(THIS_FILE, "Initializing application...\n");
     if (!m_setup) {
-        utils::Logger::Instance().logMessage(THIS_FILE, "Failed to initialrecde application!\n");
+        utils::Logger::Instance().logMessage(THIS_FILE, "Failed to initialize application!\n");
         return -1;
     } else {
-        // transport initialrecdation
+        // transport initialization
         bool udp = false;
         (void) udp;
         quint16 port = 0;
@@ -163,7 +163,7 @@ int SApplication::init()
             udp = false;
         }
     }
-    utils::Logger::Instance().logMessage(THIS_FILE, "Initialrecdation of application completed!\n");
+    utils::Logger::Instance().logMessage(THIS_FILE, "Initialization of application completed!\n");
 
     return 0;
 
@@ -255,4 +255,4 @@ void SApplication::proxyMainAll(int argc, char **argv)
 }
 
 
-} // recd
+} // iz
