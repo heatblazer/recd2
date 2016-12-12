@@ -5,6 +5,7 @@ TEMPLATE = lib
 
 LIBS += -lpthread
 LIBS += -lasound
+LIBS += -lopenal
 
 SOURCES += main.cpp \
     thread.cpp \

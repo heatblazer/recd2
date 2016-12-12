@@ -1,10 +1,9 @@
 #include "alsarec.h"
 
+#include <QList>
+
 #include <stdio.h>
 #include <stdlib.h>
-
-// alloc //
-#include <alloca.h> // automatic freed memory
 
 #include "thread.h"
 #include "recorder-config.h"
@@ -16,233 +15,16 @@
 namespace plugin {
     namespace alsarec {
 
-    interface_t AlsaRec::s_iface;
-    AlsaRec* AlsaRec::s_inst = nullptr;
-
-    AlsaRec::AlsaRec()
-        : m_frames(1024),
-          m_rate(8000),
-          m_isOk(false),
-          m_alsa{nullptr, nullptr, SND_PCM_FORMAT_S16_LE},
-          m_athread(nullptr)
+    struct sample_data_t
     {
-    }
+        short* samples;
+        uint32_t size;
+    };
 
-    AlsaRec::~AlsaRec()
-    {
-    }
+    AlRec* AlRec::s_inst = nullptr;
+    interface_t AlRec::s_iface;
 
-    AlsaRec &AlsaRec::Instance()
-    {
-        if (s_inst == nullptr) {
-            s_inst = new AlsaRec;
-        }
-
-        return *s_inst;
-    }
-
-    /// alsa worker
-    /// \brief AlsaRec::worker
-    /// \param pArgs - this AlsaRec
-    /// \return NULL on fails
-    ///
-    void *AlsaRec::worker(void *pArgs)
-    {
-        AlsaRec* arec = (AlsaRec*) pArgs;
-        if (!arec->m_isOk) {
-            return nullptr;
-        }
-        char* buffer = nullptr;
-        // will be freed at the end of worker(...)
-        buffer = (char*) alloca(arec->m_frames * (16 / 8) * 2);
-        if (!buffer) {
-            return nullptr;
-        }
-
-        int err = -1;
-        static char err_msg[256] = {0};
-
-        while (arec->m_athread->isRunning()) {
-            err = snd_pcm_readi(arec->m_alsa.cap_handle,
-                                     buffer, arec->m_frames);
-            if (err == -EPIPE) {
-                snd_pcm_prepare(arec->m_alsa.cap_handle);
-            } else if (err < 0) {
-                snprintf(err_msg, sizeof(err_msg),
-                             "failed to read from device: (%s)\n",
-                            snd_strerror(err));
-                utils::IPC::Instance().sendMessage(err_msg);
-
-            } else {
-                put_ndata((short*)buffer, err);
-            }
-        }
-
-        snd_pcm_drain(arec->m_alsa.cap_handle);
-
-        return NULL;
-    }
-
-    /// perform alsa setup here
-    /// \brief AlsaRec::init
-    ///
-    void AlsaRec::init()
-    {
-        static char msg[256] = {0};
-
-        snprintf(msg, sizeof(msg), "Initializing alsarec...\n");
-        utils::IPC::Instance().sendMessage(msg);
-        int err = 0;
-        AlsaRec* aref = &Instance();
-
-        if ((err = snd_pcm_open(&aref->m_alsa.cap_handle, "hw:0,0", SND_PCM_STREAM_CAPTURE,
-                                0) < 0)) {
-            snprintf(msg, sizeof(msg), "can not open sound device: hw:0 (%s)\n",
-                    snd_strerror(err));
-            utils::IPC::Instance().sendMessage(msg);
-            return ;
-        }
-
-        if ((err = snd_pcm_hw_params_malloc(&aref->m_alsa.hw_params)) < 0) {
-            snprintf(msg, sizeof(msg), "cannot allocate hardware param struct: (%s)\n",
-                    snd_strerror(err));
-            utils::IPC::Instance().sendMessage(msg);
-            return ;
-        }
-
-        if ((err = snd_pcm_hw_params_any(aref->m_alsa.cap_handle,
-                                         aref->m_alsa.hw_params)) < 0) {
-            snprintf(msg, sizeof(msg), "failed to hardware structure: (%s)\n",
-                    snd_strerror(err));
-            utils::IPC::Instance().sendMessage(msg);
-            return;
-        }
-
-        if ((err = snd_pcm_hw_params_set_access(aref->m_alsa.cap_handle,
-                                                aref->m_alsa.hw_params,
-                                                SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
-            snprintf(msg, sizeof(msg), "cannot set access type (%s) \n",
-                    snd_strerror(err));
-            utils::IPC::Instance().sendMessage(msg);
-            return;
-        }
-
-        if ((err = snd_pcm_hw_params_set_format(
-                 aref->m_alsa.cap_handle,
-                 aref->m_alsa.hw_params,
-                 aref->m_alsa.format)) < 0) {
-            snprintf(msg, sizeof(msg), "cannot set sample format: (%s)\n",
-                    snd_strerror(err));
-            utils::IPC::Instance().sendMessage(msg);
-            return;
-        }
-
-        if ((err = snd_pcm_hw_params_set_channels(
-                 aref->m_alsa.cap_handle,
-                 aref->m_alsa.hw_params, 2)) < 0) {
-            snprintf(msg, sizeof(msg), "cannot set channel count (%s)\n",
-                    snd_strerror(err));
-            utils::IPC::Instance().sendMessage(msg);
-            return;
-        }
-
-        if ((err = snd_pcm_hw_params_set_rate_near(
-                 aref->m_alsa.cap_handle,
-                 aref->m_alsa.hw_params,
-                 &aref->m_rate, 0)) < 0) {
-            snprintf(msg, sizeof(msg), "cannot set sample rate: (%s)\n",
-                    snd_strerror(err));
-            utils::IPC::Instance().sendMessage(msg);
-            return;
-        }
-
-        int dir = 1024;
-        if ((err = snd_pcm_hw_params_set_periods_near(
-                 aref->m_alsa.cap_handle,
-                 aref->m_alsa.hw_params,
-                 (unsigned*)&aref->m_frames,
-                 &dir)) < 0) {
-        }
-
-        aref->m_frames = 16 * 1024 * 2;
-        snd_pcm_hw_params_set_buffer_size_near(aref->m_alsa.cap_handle,
-                                               aref->m_alsa.hw_params,
-                                               &aref->m_frames);
-
-
-        if ((err = snd_pcm_hw_params(
-                 aref->m_alsa.cap_handle,
-                 aref->m_alsa.hw_params)) < 0) {
-            snprintf(msg, sizeof(msg), "cannot set params: (%s)\n",
-                    snd_strerror(err));
-            utils::IPC::Instance().sendMessage(msg);
-            return;
-        }
-
-        snd_pcm_hw_params_free(aref->m_alsa.hw_params);
-
-        if ((err = snd_pcm_prepare(aref->m_alsa.cap_handle)) < 0) {
-            snprintf(msg, sizeof(msg), "cannot prepare audio interface: (%s)\n",
-                    snd_strerror(err));
-            utils::IPC::Instance().sendMessage(msg);
-            return;
-        }
-
-        snprintf(msg, sizeof(msg), "audio interface prepared... starting up...\n");
-        utils::IPC::Instance().sendMessage(msg);
-        aref->m_isOk = true;
-        aref->m_mutex.init();
-        aref->m_athread = new PThread;
-        aref->m_athread->create(128 * 1024, aref, AlsaRec::worker, 20);
-        aref->m_athread->setName("alsa-thread");
-    }
-
-    /// deinit alsa
-    /// \brief AlsaRec::deinit
-    ///
-    void AlsaRec::deinit()
-    {
-        static char msg[64] = {0};
-        snprintf(msg, sizeof(msg), "Sound device closed...\n");
-        utils::IPC::Instance().sendMessage(msg);
-        AlsaRec* aref = &Instance();
-        aref->m_athread->setRunning(false);
-        aref->m_athread->join();
-        aref->m_athread->yield();
-        snd_pcm_close(aref->m_alsa.cap_handle);
-        if (aref->m_athread != nullptr) {
-            delete aref->m_athread;
-        }
-        aref->m_mutex.destroy();
-    }
-
-    void AlsaRec::copy(const void *src, void *dest, int len)
-    {
-        (void) src; (void) dest; (void) len;
-    }
-
-    int AlsaRec::put_ndata(void *data, int len)
-    {
-        if (s_iface.nextPlugin != nullptr) {
-            s_iface.nextPlugin->put_ndata(data, len);
-        }
-        return 0;
-    }
-
-    int AlsaRec::put_data(void *data)
-    {
-        if (s_iface.nextPlugin != nullptr) {
-            s_iface.nextPlugin->put_data(data);
-        }
-        return 0;
-    }
-
-    void *AlsaRec::get_data()
-    {
-        return nullptr;
-    }
-
-    int AlsaRec::main_proxy(int argc, char **argv)
+    int AlRec::main_proxy(int argc, char **argv)
     {
         if (argc < 2) {
             return -1;
@@ -259,9 +41,99 @@ namespace plugin {
         return 0;
     }
 
-    interface_t *AlsaRec::getSelf()
+
+    void *AlRec::worker(void *pArgs)
+    {
+        AlRec* oalrec = (AlRec*) pArgs;
+        ALint sample;
+        ALbyte buffer[1024] = {0};
+
+        while (oalrec->m_thread.isRunning()) {
+            alcGetIntegerv(oalrec->p_device, ALC_CAPTURE_SAMPLES,
+                           (ALCsizei)sizeof(ALshort), &sample);
+            alcCaptureSamples(oalrec->p_device, (ALCvoid*) buffer, sample);
+            {
+                sample_data_t smpl = {0, 0};
+                smpl.samples = new short[1024];
+                smpl.size = 1024;
+
+                for(int i=0; i < 1024; ++i) {
+                    smpl.samples[i] = (short) sample;
+                }
+                QList<sample_data_t> sd;
+                sd.append(smpl);
+                put_data((QList<sample_data_t>*)&sd);
+            }
+        }
+
+        alcCaptureStop(oalrec->p_device);
+        alcCaptureCloseDevice(oalrec->p_device);
+    }
+
+    AlRec &AlRec::Instance()
+    {
+        if (s_inst == nullptr) {
+            s_inst = new AlRec;
+        }
+        return *s_inst;
+    }
+
+    void AlRec::init()
+    {
+        AlRec* arec = &Instance();
+        alGetError();
+        arec->p_device = alcCaptureOpenDevice(NULL, 8000, AL_FORMAT_MONO8, 1024);
+
+        arec->m_mutex.init();
+        arec->m_thread.create(128, arec, AlRec::worker, 20);
+        arec->m_thread.setName("sound thread");
+    }
+
+    void AlRec::deinit()
+    {
+        AlRec* arec = &Instance();
+        arec->m_thread.join();
+        arec->m_thread.yield();
+        arec->m_mutex.destroy();
+    }
+
+    void AlRec::copy(const void *src, void *dest, int len)
+    {
+        (void) src; (void) dest; (void) len;
+    }
+
+    int AlRec::put_ndata(void *data, int len)
+    {
+        if (s_iface.nextPlugin != nullptr) {
+            s_iface.nextPlugin->put_ndata(data, len);
+        }
+    }
+
+    int AlRec::put_data(void *data)
+    {
+        if (s_iface.nextPlugin != nullptr) {
+            s_iface.nextPlugin->put_data(data);
+        }
+    }
+
+    void *AlRec::get_data()
+    {
+        return nullptr;
+    }
+
+    interface_t *AlRec::getSelf()
     {
         return &s_iface;
+    }
+
+    AlRec::AlRec()
+    {
+
+    }
+
+    AlRec::~AlRec()
+    {
+
     }
 
     } // alsarec
@@ -269,17 +141,17 @@ namespace plugin {
 
 interface_t* get_interface()
 {
-    interface_t* pif = plugin::alsarec::AlsaRec::Instance().getSelf();
+    interface_t* pif = plugin::alsarec::AlRec::Instance().getSelf();
 
-    pif->init = &plugin::alsarec::AlsaRec::init;
-    pif->deinit = &plugin::alsarec::AlsaRec::deinit;
-    pif->copy = &plugin::alsarec::AlsaRec::copy;
-    pif->put_data = &plugin::alsarec::AlsaRec::put_data;
-    pif->put_ndata = &plugin::alsarec::AlsaRec::put_ndata;
-    pif->main_proxy = &plugin::alsarec::AlsaRec::main_proxy;
-    pif->get_data  = &plugin::alsarec::AlsaRec::get_data;
-    pif->getSelf = &plugin::alsarec::AlsaRec::getSelf;
+    pif->init = &plugin::alsarec::AlRec::init;
+    pif->deinit = &plugin::alsarec::AlRec::deinit;
+    pif->copy = &plugin::alsarec::AlRec::copy;
+    pif->put_data = &plugin::alsarec::AlRec::put_data;
+    pif->put_ndata = &plugin::alsarec::AlRec::put_ndata;
+    pif->main_proxy = &plugin::alsarec::AlRec::main_proxy;
+    pif->get_data  = &plugin::alsarec::AlRec::get_data;
+    pif->getSelf = &plugin::alsarec::AlRec::getSelf;
     pif->nextPlugin = nullptr;
 
-    return plugin::alsarec::AlsaRec::Instance().getSelf();
+    return plugin::alsarec::AlRec::Instance().getSelf();
 }

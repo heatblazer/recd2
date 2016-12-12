@@ -2,9 +2,13 @@
 #define ALSAREC_H
 
 #include <alsa/asoundlib.h>
-
 #include <stdio.h>
 #include <stdlib.h>
+
+// openal //
+#include <AL/al.h>
+#include <AL/alc.h>
+
 
 #include "plugin-iface.h"
 #include "thread.h"
@@ -13,16 +17,11 @@
 namespace plugin {
     namespace alsarec {
 
-    class AlsaRec
+    class AlRec
     {
     public:
-        static AlsaRec& Instance();
         static void* worker(void* pArgs);
-
-        void createPlayback(const char* dev);
-        void createCapture(const char* dev);
-        void createPlayCapture(const char* pb, const char* cap);
-
+        static AlRec& Instance();
         // interface
         static void init();
         static void deinit();
@@ -34,23 +33,13 @@ namespace plugin {
         static struct interface_t* getSelf(void);
 
     private:
-        AlsaRec();
-        ~AlsaRec();
-
-        snd_pcm_uframes_t   m_frames ;
-        unsigned int        m_rate;
-        bool                m_isOk;
-        int                 m_dir;
-        struct {
-            snd_pcm_t* cap_handle;
-            snd_pcm_hw_params_t* hw_params;
-            snd_pcm_format_t format;
-        } m_alsa;
-
-        PThread* m_athread;
-        PMutex   m_mutex;
+        explicit AlRec();
+        ~AlRec();
+        PThread m_thread;
+        PMutex m_mutex;
+        ALCdevice* p_device;
         static interface_t s_iface;
-        static AlsaRec* s_inst;
+        static AlRec* s_inst;
     };
 
     } // alsarec
