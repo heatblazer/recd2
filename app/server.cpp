@@ -4,7 +4,7 @@
 
 static const char* THIS_FILE = "server.cpp";
 
-namespace iz {
+namespace recd {
 
 ServerThread::ServerThread(QThread *parent)
     : QThread(parent),
@@ -67,6 +67,7 @@ void UserServer::startServer()
 
 
 /// prints a base menu to the user
+/// not implemented yet
 /// \brief UserServer::hConnection
 ///
 void UserServer::hConnection()
@@ -121,7 +122,11 @@ void UserServer::incomingConnection(qintptr socketDescriptor)
                 this, SLOT(disconnected()));
     }
 }
-
+/// accepts datagram messages from others
+/// to be configured later
+/// \brief MsgServer::MsgServer
+/// \param parent
+///
 MsgServer::MsgServer(QObject *parent)
     : QObject(parent)
 {
@@ -157,6 +162,7 @@ void MsgServer::init()
 void MsgServer::deinit()
 {
  // nothing for now... maybe message later
+    utils::IPC::Instance().sendMessage("Deinit udp server\n");
 }
 
 void MsgServer::readyRead()
@@ -175,5 +181,5 @@ void MsgServer::readyRead()
     }
 }
 
-} // namespce iz
+} // namespce recd
 

@@ -30,7 +30,7 @@ namespace plugin {
             stack_size = DEFAULT_STACK_SIZE;
         }
 
-        if (1) {
+        if (0) {
             pthread_attr_init(&m_attr);
             pthread_attr_getschedparam(&m_attr, &m_sched);
             if (prio < 0) {

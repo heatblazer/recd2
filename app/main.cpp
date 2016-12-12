@@ -85,10 +85,10 @@ int main(int argc, char *argv[])
     }
 
     if (is_daemon) {
-        iz::Daemon::daemonize();
+        recd::Daemon::daemonize();
     }
 
-    iz::SApplication app(argc, argv);
+    recd::SApplication app(argc, argv);
     int res = app.init();
     if (res < 0) {
         std::cout << "Error!\n"

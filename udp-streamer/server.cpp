@@ -18,6 +18,12 @@ namespace plugin {
         int16_t    data[32][16];
     };
 
+    struct sample_data_t
+    {
+        short* samples;
+        uint32_t size;
+    };
+
     Server* Server::s_inst = nullptr;
     interface_t Server::iface = {0,0,0,
                                  0,0,0,
@@ -124,17 +130,30 @@ namespace plugin {
                         // always write a null bytes packet on missed udp
                         if(!m_conn_info.onetimeSynch) {
                             m_conn_info.onetimeSynch = true;
-                            emit Instance().dataReady(&err_udp);
+                        //!!!    put_data((udp_data_t* )&err_udp);
                         } else {
                             for(int i=0; i < errs; ++i) {
-                                emit Instance().dataReady(&err_udp);
+                         //!!!       put_data((udp_data_t*) &err_udp);
                             }
                         }
                     } else {
                     // will use a new logic emit the udp struct
                     // to the recorder, so now we don`t need
                     // to depend each other
-                        emit Instance().dataReady(udp);
+
+                        //put_data((udp_data_t*) udp);
+
+                        QList<sample_data_t> ls;
+                        for(int i=0; i < 32; ++i) {
+                            sample_data_t s = {0, 0};
+                            s.samples = new short[16];
+                            s.size = 16;
+                            for(int j=0; j < 16; ++j) {
+                                s.samples[j] = udp->data[i][j];
+                            }
+                            ls.append(s);
+                        }
+                        put_data((QList<sample_data_t>*) &ls);
                     }
                  } else {
                     snprintf(msg, sizeof(msg), "Missed an UDP\n");
@@ -164,16 +183,20 @@ namespace plugin {
             // make sure you purge the list
             m_monitorData.clear();
         }
-
-        snprintf(msg, sizeof(msg),
-                 "Report: \n"
-                 "Desynch counter: (%d)\n"
-                 "Packet counter: (%d)\n"
-                 "Total lost: (%d)\n",
-                 Instance().m_conn_info.desynchCounter,
-                 Instance().m_conn_info.paketCounter,
-                 Instance().m_conn_info.totalLost);
-        utils::IPC::Instance().sendMessage(msg);
+        static int counter = 0;
+        if (counter > 15) {
+            snprintf(msg, sizeof(msg),
+                     "Report: \n"
+                     "Desynch counter: (%d)\n"
+                     "Packet counter: (%d)\n"
+                     "Total lost: (%d)\n",
+                     Instance().m_conn_info.desynchCounter,
+                     Instance().m_conn_info.paketCounter,
+                     Instance().m_conn_info.totalLost);
+            utils::IPC::Instance().sendMessage(msg);
+            counter = 0;
+        }
+        counter++;
     }
 
     /// dummy router for future uses of the states
@@ -224,7 +247,7 @@ namespace plugin {
 
     int Server::put_data(void *data)
     {
-        if (iface.nextPlugin != NULL) {
+        if (iface.nextPlugin != nullptr) {
             iface.nextPlugin->put_data(data);
         }
         return 0;

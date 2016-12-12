@@ -1,6 +1,6 @@
 #include "defs.h"
 
-namespace iz {
+namespace recd {
 
 InterfaceList::InterfaceList()
     : head(nullptr),
@@ -52,4 +52,4 @@ void InterfaceList::clear()
     }
 }
 
-} // iz
+} // recd

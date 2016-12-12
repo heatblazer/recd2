@@ -28,23 +28,11 @@ static inline bool isBigEndian(void)
 /// \param input mostly big endian
 /// \return flipped 4 bytes
 ///
-static inline int32_t flip32(int32_t input)
+static inline int32_t flip32(int32_t val)
 {
     (void)flip32;
-
-    union {
-        int32_t i;
-        char c[sizeof(int32_t)];
-    } in = {0}, out = {0};
-
-    in.i = input;
-    // always 4 byte swap
-    out.c[0] = in.c[3];
-    out.c[1] = in.c[2];
-    out.c[2] = in.c[1];
-    out.c[3] = in.c[0];
-
-    return out.i;
+    return ((val << 24) & 0xff000000) | ((val << 8) & 0x00ff0000)
+            | ((val >> 8) & 0x0000ff00) | ((val >> 24) & 0x000000ff);
 }
 
 /// flip endiness 16 bit
@@ -52,19 +40,9 @@ static inline int32_t flip32(int32_t input)
 /// \param input moslty big endian
 /// \return flipped 2 bytes
 ///
-static inline int16_t flip16(int16_t input)
+static inline int16_t flip16(int16_t val)
 {
-    union {
-        int16_t i;
-        char c[sizeof(int16_t)];
-    } in = {0}, out = {0};
-
-    in.i = input;
-    // alwyas 2 byte swap
-    out.c[0] = in.c[1];
-    out.c[1] = in.c[0];
-
-    return out.i;
+    return ((val << 8) | (val >> 8));
 }
 
 namespace utils {
@@ -76,7 +54,6 @@ Wav::Wav(const char *fname)
       m_maxSize(0),
       m_slot(-1)
 {
-   // m_requiresFlip = isBigEndian();
     strcpy(m_filename, fname);
 }
 
@@ -128,7 +105,7 @@ size_t Wav::get_size()
 {
     fseek(m_file, 0L, SEEK_END);
     const size_t size = ftell(m_file);
-    rewind(m_file);
+    fseek(m_file, 44, SEEK_CUR);
     return size;
 }
 
@@ -290,9 +267,10 @@ const char *Wav::getFileName()
     return m_filename;
 }
 
-size_t Wav::getFileSize() const
+size_t Wav::getFileSize()
 {
     return m_maxSize;
+
 }
 
 } // utils

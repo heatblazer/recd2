@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-namespace iz
+namespace recd
 {
 /// what a rtp header should be
 /// \brief The rtp_hdr_t struct
@@ -27,7 +27,7 @@ struct rtp_hdr_t
     int32_t CSRC[1];    // 0 - 15 items contrib sources
 };
 
-}  // iz
+}  // recd
 
 
 #endif // PROTOCOLS_H

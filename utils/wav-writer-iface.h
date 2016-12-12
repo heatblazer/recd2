@@ -66,7 +66,7 @@ public:
     /// \brief getFileSize
     /// \return filesizew
     ///
-    virtual size_t getFileSize() const = 0;
+    virtual size_t getFileSize() = 0;
 
     /// get channel slot associated with this file
     /// \brief getSlot
@@ -81,7 +81,8 @@ public:
     ///
     virtual void renameFile(const char* oldname, const char* newname) = 0;
 
-    /// provide default dtor to be implemented
+    /// provide default dtor to be implemented or calling 'delete' will produce
+    /// side effect
     virtual ~WavIface() = default;
 
 };

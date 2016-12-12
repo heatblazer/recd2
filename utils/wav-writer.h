@@ -27,7 +27,7 @@ public:
                             int fmt_len=16, short audio_fmt=1,  short chann_cnt=1);
     virtual void write_hdr(int spf=44100, int bps=16, int rifflen=0, int fmtlen=16, short audfmt=1, short chans=1);
     virtual const char* getFileName();
-    virtual size_t getFileSize() const;
+    virtual size_t getFileSize();
     virtual int     getSlot() const;
     virtual void renameFile(const char* oldname, const char* newname);
 
@@ -40,14 +40,14 @@ private:
     size_t get_size();
 
 protected:
-    FILE*   m_file;
-    wav_hdr_t m_header;
-    char m_filename[64];
-    bool m_isSetup;
-    bool m_isOpened;
-    bool m_requiresFlip;
-    size_t m_maxSize;
-    int m_slot; // slot to the file
+    FILE*       m_file;
+    wav_hdr_t   m_header;
+    char        m_filename[64];
+    bool        m_isSetup;
+    bool        m_isOpened;
+    bool        m_requiresFlip;
+    size_t      m_maxSize;
+    int         m_slot; // slot to the file
 };
 
 } // utils

@@ -14,6 +14,7 @@ namespace plugin {
     namespace udp {
 
     struct udp_data_t;
+    struct sample_data_t;
 
     struct conn_info {
         uint32_t paketCounter;

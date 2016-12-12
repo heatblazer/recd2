@@ -46,7 +46,7 @@ static void log_message(const char* msg)
     fclose(s_log);
 }
 
-namespace iz {
+namespace recd {
 
 static SApplication* g_application = nullptr;
 
@@ -233,7 +233,7 @@ void Daemon::log(const char *msg)
     log_message(msg);
 }
 
-} // iz
+} // recd
 
 // hinting
 #if 0

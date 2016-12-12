@@ -9,7 +9,7 @@
 // local files //
 #include "recorder-iface.h"
 
-namespace iz {
+namespace recd {
 
 
 // plugin manager shall load a library from
@@ -29,6 +29,6 @@ private:
     static InterfaceList m_pluginLinks;
 };
 
-} // iz
+} // recd
 
 #endif // PLUGINMANAGER_H

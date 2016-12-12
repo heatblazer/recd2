@@ -207,9 +207,9 @@ const char *QWav::getFileName()
     return m_name.toStdString().data();
 }
 
-size_t QWav::getFileSize() const
+size_t QWav::getFileSize()
 {
-    return m_size;
+    return (size_t)m_wav.size();
 }
 
 

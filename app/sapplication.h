@@ -7,7 +7,7 @@
 #include "plugin-manager.h"
 #include "server.h"
 
-namespace iz {
+namespace recd {
 
 // application will connect
 // server and recorder via
@@ -45,6 +45,6 @@ private:
     ServerThread        m_user_server;
 };
 
-} // iz
+} // recd
 
 #endif // SAPPLICATION_H

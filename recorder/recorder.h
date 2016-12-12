@@ -25,11 +25,11 @@ namespace plugin {
 
     struct sample_data_t
     {
-        uint32_t len;
-        short* data;
+        short* samples;
+        uint32_t size;
     };
 
-    /// threadable
+   /// threadable
     /// \brief The Recorder class
     ///
     class Recorder : public QThread
@@ -53,7 +53,8 @@ namespace plugin {
         void run() Q_DECL_OVERRIDE;
         void startRecorder();
         void stopRecoder();
-
+        void record(udp_data_t& udp);
+        void record(QList<sample_data_t> sd);
     private:
         explicit Recorder(QThread *parent=nullptr);
         virtual ~Recorder(); // we may inherit it too
@@ -64,6 +65,7 @@ namespace plugin {
 
     public slots:
         void record(short data[], int len);
+
         // special handle for QWav files
         // unused - pointer decay prevention
         /**
@@ -111,7 +113,9 @@ namespace plugin {
         // concurent stuff
         struct {
             QMutex mutex;
-            QQueue<sample_data_t> buffer;
+            //
+            //QQueue<udp_data_t> buffer;
+            QQueue<QList<sample_data_t> >buffer;
             bool running;
             unsigned long speed; // sleep interval
         } m_thread;

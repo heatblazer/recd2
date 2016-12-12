@@ -41,7 +41,7 @@ public:
     virtual bool isOpened() const;
 
     const char*  getFileName();
-    size_t  getFileSize() const;
+    size_t  getFileSize();
     virtual int getSlot() const;
     virtual void renameFile(const char* oldname, const char* newname);
 

@@ -2,7 +2,7 @@
 
 //static const char* THIS_FILE = "json-writer.cpp";
 
-namespace iz {
+namespace recd {
 
 JsonWriter::JsonWriter(QObject *parent)
     : QObject(parent)
@@ -45,4 +45,4 @@ JsonWriter &JsonWriter::add(const QString &tag)
 }
 
 
-} // namespace iz
+} // namespace recd

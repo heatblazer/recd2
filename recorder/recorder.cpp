@@ -225,15 +225,27 @@ namespace plugin {
 
     int Recorder::put_data(void *data)
     {
+        Recorder* r = &Instance();
         if (iface.nextPlugin != nullptr) {
             iface.nextPlugin->put_data(data);
         }
-
+#if 0
+        udp_data_t* udp = (udp_data_t*) data;
+        r->m_thread.mutex.lock();
+        r->m_thread.buffer.append(*udp);
+        r->m_thread.mutex.unlock();
+        r->record(*udp);
+#endif
+        QList<sample_data_t>* ls = (QList<sample_data_t>*)data;
+        r->m_thread.mutex.lock();
+        r->m_thread.buffer.enqueue(*ls);
+        r->m_thread.mutex.unlock();
         return 0;
     }
 
     int Recorder::put_ndata(void *data, int len)
     {
+#if 0
         Recorder* r = &Instance();
         if (iface.nextPlugin != nullptr) {
             iface.nextPlugin->put_ndata(data, len);
@@ -244,6 +256,7 @@ namespace plugin {
         r->m_thread.mutex.lock();
         r->m_thread.buffer.append(sdata);
         r->m_thread.mutex.unlock();
+#endif
 
         return 0;
     }
@@ -289,7 +302,8 @@ namespace plugin {
 
     void Recorder::run()
     {
-        QQueue<sample_data_t> dblBuff;
+//        QQueue<udp_data_t> dblBuff;
+        QQueue<QList<sample_data_t> > dblBuff;
         Recorder* r = &Instance();
         do {
             // setup it from outside, tweakable stuff
@@ -299,12 +313,15 @@ namespace plugin {
                 dblBuff.enqueue(r->m_thread.buffer.dequeue());
             }
             r->m_thread.mutex.unlock();
-
+#if 0
             while (!dblBuff.empty()) {
-                sample_data_t sd = dblBuff.dequeue();
-                record(sd.data, sd.len);
+                udp_data_t udp = dblBuff.dequeue();
+                record(udp);
             }
-
+#endif
+            while(!dblBuff.empty()) {
+                record(dblBuff.dequeue());
+            }
         } while (r->m_thread.running);
     }
 
@@ -318,6 +335,32 @@ namespace plugin {
     {
         m_thread.running = false;
         wait(1000);
+    }
+
+    void Recorder::record(udp_data_t &udp)
+    {
+        for(int i=0; i < 32; ++i) {
+            if (m_sizeBased) {
+                pollHotSwap();
+            }
+            m_wavs[i]->write((short*)udp.data[i], 16);
+        }
+    }
+
+    void Recorder::record(QList<sample_data_t> sd)
+    {
+        if (sd.count() <= 0) {
+            return ;
+        }
+
+        for(int i=0; i < sd.count(); ++i) {
+            if (m_sizeBased) {
+                pollHotSwap();
+            }
+            sample_data_t s = sd.at(i);
+            m_wavs[i]->write(s.samples, s.size);
+            delete [] s.samples;
+        }
     }
 
     /// setup all wav files for writing

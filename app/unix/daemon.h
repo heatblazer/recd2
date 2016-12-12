@@ -4,7 +4,7 @@
 // Daemon signals //
 #include <signal.h>
 
-namespace iz {
+namespace recd {
 
 // need a forward decl to pass to the register app foo()
 class SApplication;
@@ -30,6 +30,6 @@ private:
 
 
 };
-} // iz
+} // recd
 
 #endif // DAEMON_H

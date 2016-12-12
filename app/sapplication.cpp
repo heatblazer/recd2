@@ -9,7 +9,7 @@
 
 static const char* THIS_FILE = "sapplication.cpp";
 
-namespace iz {
+namespace recd {
 
 int SApplication::m_fdHUP = -1;
 int SApplication::m_fdTERM = -1;
@@ -255,4 +255,4 @@ void SApplication::proxyMainAll(int argc, char **argv)
 }
 
 
-} // iz
+} // recd
