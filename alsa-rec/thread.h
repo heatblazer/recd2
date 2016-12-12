@@ -26,6 +26,8 @@ namespace plugin {
 
     private:
         pthread_t m_thread;
+        pthread_attr_t m_attr;
+        sched_param m_sched;
         char m_name[128];
         bool m_running;
     };

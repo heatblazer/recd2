@@ -63,10 +63,8 @@ namespace plugin {
         static char err_msg[256] = {0};
 
         while (arec->m_athread->isRunning()) {
-            arec->m_mutex.lock();
             err = snd_pcm_readi(arec->m_alsa.cap_handle,
                                      buffer, arec->m_frames);
-            arec->m_mutex.unlock();
             if (err == -EPIPE) {
                 snd_pcm_prepare(arec->m_alsa.cap_handle);
             } else if (err < 0) {
@@ -76,13 +74,7 @@ namespace plugin {
                 utils::IPC::Instance().sendMessage(err_msg);
 
             } else {
-                char* dblbuff = nullptr;
-                dblbuff = (char*) alloca(err);
-                memset(dblbuff, 0, err);
-                arec->m_mutex.lock();
-                memcpy(dblbuff, buffer, err);
-                arec->m_mutex.unlock();
-                put_ndata((short*)dblbuff, err);
+                put_ndata((short*)buffer, err);
             }
         }
 
@@ -103,7 +95,7 @@ namespace plugin {
         int err = 0;
         AlsaRec* aref = &Instance();
 
-        if ((err = snd_pcm_open(&aref->m_alsa.cap_handle, "plughw:0,0", SND_PCM_STREAM_CAPTURE,
+        if ((err = snd_pcm_open(&aref->m_alsa.cap_handle, "hw:0,0", SND_PCM_STREAM_CAPTURE,
                                 0) < 0)) {
             snprintf(msg, sizeof(msg), "can not open sound device: hw:0 (%s)\n",
                     snd_strerror(err));

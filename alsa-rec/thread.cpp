@@ -1,10 +1,10 @@
 #include "thread.h"
 
-#include <unistd.h>
+#include <assert.h>
 #include <string.h>
+#include <unistd.h>
 
-
-#define DEFAULT_STACK_SizE (64 * 1024)
+#define DEFAULT_STACK_SIZE (64 * 1024)
 
 namespace plugin {
     namespace alsarec {
@@ -22,15 +22,30 @@ namespace plugin {
     bool PThread::create(int stack_size, void *usr_data, entryCb callback, int prio)
     {
         (void) prio; // unimplemented schedparams for now...
-
+        // attr init
         bool ret = false;
         int result = -1;
 
-        if (stack_size < DEFAULT_STACK_SizE) {
-            stack_size = DEFAULT_STACK_SizE;
+        if (stack_size < DEFAULT_STACK_SIZE) {
+            stack_size = DEFAULT_STACK_SIZE;
         }
 
-        result = pthread_create(&m_thread, NULL, callback, usr_data);
+        if (1) {
+            pthread_attr_init(&m_attr);
+            pthread_attr_getschedparam(&m_attr, &m_sched);
+            if (prio < 0) {
+                prio = 0;
+            } else if ( prio > 20) {
+                prio = 0;
+            } else {
+
+            }
+            m_sched.__sched_priority = prio;
+            pthread_attr_setschedparam(&m_attr, &m_sched);
+        }
+
+        result = pthread_create(&m_thread, &m_attr, callback, usr_data);
+
         if (result == 0) {
             ret = true;
             m_running = true;
