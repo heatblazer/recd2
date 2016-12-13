@@ -130,10 +130,16 @@ namespace plugin {
                         // always write a null bytes packet on missed udp
                         if(!m_conn_info.onetimeSynch) {
                             m_conn_info.onetimeSynch = true;
+                            for(int i=0; i < 32; ++i) {
+                                put_ndata((short*)err_udp.data[i], 16);
+                            }
                         //!!!    put_data((udp_data_t* )&err_udp);
                         } else {
                             for(int i=0; i < errs; ++i) {
                          //!!!       put_data((udp_data_t*) &err_udp);
+                               for(int j=0; j < 32; ++j) {
+                                   put_ndata((short*)err_udp.data[j], 16);
+                               }
                             }
                         }
                     } else {
@@ -142,7 +148,6 @@ namespace plugin {
                     // to depend each other
 
                         //put_data((udp_data_t*) udp);
-
                         QList<sample_data_t> ls;
                         for(int i=0; i < 32; ++i) {
                             sample_data_t s = {0, 0};
@@ -154,6 +159,7 @@ namespace plugin {
                             ls.append(s);
                         }
                         put_data((QList<sample_data_t>*) &ls);
+
                     }
                  } else {
                     snprintf(msg, sizeof(msg), "Missed an UDP\n");

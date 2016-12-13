@@ -313,12 +313,7 @@ namespace plugin {
                 dblBuff.enqueue(r->m_thread.buffer.dequeue());
             }
             r->m_thread.mutex.unlock();
-#if 0
-            while (!dblBuff.empty()) {
-                udp_data_t udp = dblBuff.dequeue();
-                record(udp);
-            }
-#endif
+
             while(!dblBuff.empty()) {
                 record(dblBuff.dequeue());
             }

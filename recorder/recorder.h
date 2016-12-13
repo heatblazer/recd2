@@ -115,6 +115,7 @@ namespace plugin {
             QMutex mutex;
             //
             //QQueue<udp_data_t> buffer;
+            QQueue<sample_data_t> buffer2;
             QQueue<QList<sample_data_t> >buffer;
             bool running;
             unsigned long speed; // sleep interval
