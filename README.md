@@ -43,8 +43,10 @@ A wav recorder over udp streams.
             void*   (*get_data)(void);                 // get worked data
             void    (*deinit)();                       // deinit lib
             int     (*main_proxy)(int, char**);        // pass caller args to lib
+            void    (*setName)(const char*);           // sets the plugin name
+            const char* (*getName)(void);              // gets the plugin name
             struct interface_t* getSelf();             // get this interface
-            void* this_plugin;                         // unused
+            char name[256];                            // plugin name
             struct interface_t* nextPlugin;            // next loaded plugin
         };
 
@@ -148,6 +150,7 @@ A wav recorder over udp streams.
     03.12.2016: Now program is plugin based. Recorder and server are separate.
     06.12.2016: Granulated project to smaller and added another to mailing list.
     09.12.2016: Now using IPC for messaging between plugins. Fast and simple.
+    15.12.2016: Now plugins have get and set Name functions to find them later.
 
 ## KISS FFT
     KISS FFT - A mixed-radix Fast Fourier Transform based up on the principle,

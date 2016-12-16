@@ -14,6 +14,8 @@ struct interface_t
     void*   (*get_data)(void);
     void    (*deinit)();
     int     (*main_proxy)(int, char**);
+    void    (*setName)(const char*);
+    const char* (*getName)(void);
     struct interface_t* (*getSelf)(void);
     char   name[256];
     struct interface_t* nextPlugin;

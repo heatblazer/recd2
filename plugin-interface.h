@@ -1,6 +1,11 @@
 #ifndef PLUGININTERFACE_H
 #define PLUGININTERFACE_H
 
+/* this is the plugin interface used by the program
+ * it`s independat and other projects may use it.
+ *
+*/
+
 #ifdef __cplusplus
 extern "C"{
 #endif
@@ -14,9 +19,11 @@ struct interface_t
     void*   (*get_data)(void);
     void    (*deinit)();
     int     (*main_proxy)(int, char**);
+    void    (*setName)(const char*);
+    const char* (*getName)(void);
     struct interface_t* (*getSelf)(void);
     char   name[256]; // the plugin name
-    struct interface_t* nextPlugin; // next put frame
+    struct interface_t* nextPlugin; // next plugin to put frame
 };
 
 const struct interface_t* get_interface();

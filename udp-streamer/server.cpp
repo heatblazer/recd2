@@ -27,11 +27,11 @@ namespace plugin {
     Server* Server::s_inst = nullptr;
     interface_t Server::iface = {0,0,0,
                                  0,0,0,
-                                 0,0,{0}, // warn fix
-                                 0};
+                                 0,0,0,
+                                 0,{0},0};
     // the err udp packet
-    static struct udp_data_t err_udp = {0, {0}, {{0}}}; // warn fix
-    ///////////////////////////////////////////////////////////////////////////////////
+    static struct udp_data_t err_udp = {0,{0},{{0}}}; // warn fix
+////////////////////////////////////////////////////////////////////////////////
 
     Server& Server::Instance()
     {
@@ -42,10 +42,10 @@ namespace plugin {
     }
 
     Server::Server(QObject *parent)
-        : QObject(parent)
+        : QObject(parent),
+          m_conn_info{0,0,0,false}
     {
     }
-
 
     /// simple init function
     /// \brief Server::init
@@ -58,7 +58,7 @@ namespace plugin {
         Server* s = &Server::Instance();
         printf("Initializing server...\n");
         // the error packet to be sent on packet lost
-        static const int16_t max = 37222;
+        static const int16_t max = 32111;
         for(int i=0; i < 32; ++i) {
             for(int j=0; j < 16; ++j) {
                 err_udp.data[i][j] = max;
@@ -85,7 +85,8 @@ namespace plugin {
         }
     }
 
-    /// ready read datagrams
+    /// ready read datagrams, send to other plugins
+    /// perform some packet reciever checks and other stuff
     /// \brief Server::readyReadUdp
     ///
     void Server::readyReadUdp()
@@ -127,39 +128,55 @@ namespace plugin {
                         m_conn_info.totalLost += errs;
                         m_conn_info.paketCounter = udp->counter; // synch back
 
+                        // it`s an err sender logic below
                         // always write a null bytes packet on missed udp
+                        QList<sample_data_t> err_ls;
+
                         if(!m_conn_info.onetimeSynch) {
                             m_conn_info.onetimeSynch = true;
                             for(int i=0; i < 32; ++i) {
-                                put_ndata((short*)err_udp.data[i], 16);
+                                sample_data_t s = {0, 0};
+                                s.samples = new short[16];
+                                s.size = 16;
+                                for(int j=0; j < 16; ++j) {
+                                    s.samples[j] = err_udp.data[i][j];
+                                }
+                                err_ls.append(s);
                             }
-                        //!!!    put_data((udp_data_t* )&err_udp);
+                            put_data((QList<sample_data_t>*) &err_ls);
                         } else {
                             for(int i=0; i < errs; ++i) {
-                         //!!!       put_data((udp_data_t*) &err_udp);
                                for(int j=0; j < 32; ++j) {
-                                   put_ndata((short*)err_udp.data[j], 16);
+                                   sample_data_t sd = {0, 0};
+                                   sd.samples = new short[16];
+                                   sd.size = 16;
+                                   for(int h=0; h < 16; ++h) {
+                                       sd.samples[h] = err_udp.data[j][h];
+                                   }
+                                   err_ls.append(sd);
                                }
+                               put_data((QList<sample_data_t>*) &err_ls);
                             }
                         }
                     } else {
                     // will use a new logic emit the udp struct
                     // to the recorder, so now we don`t need
                     // to depend each other
-
                         //put_data((udp_data_t*) udp);
                         QList<sample_data_t> ls;
+                        // copy all the data then send it to the plugins
                         for(int i=0; i < 32; ++i) {
                             sample_data_t s = {0, 0};
                             s.samples = new short[16];
                             s.size = 16;
+                            // fill the list to be passed to other plugins
                             for(int j=0; j < 16; ++j) {
                                 s.samples[j] = udp->data[i][j];
                             }
                             ls.append(s);
                         }
+                        // finally send it
                         put_data((QList<sample_data_t>*) &ls);
-
                     }
                  } else {
                     snprintf(msg, sizeof(msg), "Missed an UDP\n");
@@ -171,6 +188,10 @@ namespace plugin {
         }
     }
 
+    /// unused
+    /// \brief Server::hDataReady
+    /// \param data
+    ///
     void Server::hDataReady(udp_data_t *data)
     {
         for(int i=0; i < 32; ++i) {
@@ -178,9 +199,13 @@ namespace plugin {
         }
     }
 
+    /// check if the device is sending data
+    /// send some statistics each 15 seconds
+    /// \brief Server::checkConnection
+    ///
     void Server::checkConnection()
     {
-        static char msg[512] = {0};
+       // static char msg[512] = {0};
         if (m_monitorData.isEmpty()) {
             // not ok!
             Instance().disconnected();
@@ -189,6 +214,7 @@ namespace plugin {
             // make sure you purge the list
             m_monitorData.clear();
         }
+#if 0
         static int counter = 0;
         if (counter > 15) {
             snprintf(msg, sizeof(msg),
@@ -203,9 +229,10 @@ namespace plugin {
             counter = 0;
         }
         counter++;
+#endif
     }
 
-    /// dummy router for future uses of the states
+    /// state checking router
     /// \brief Server::route
     ///
     void Server::route(States state)
@@ -228,6 +255,9 @@ namespace plugin {
         }
     }
 
+    /// resets the counters
+    /// \brief Server::disconnected
+    ///
     void Server::disconnected()
     {
         m_conn_info.desynchCounter = 0;
@@ -261,7 +291,7 @@ namespace plugin {
 
     int Server::put_ndata(void *data, int len)
     {
-        if (iface.nextPlugin != NULL) {
+        if (iface.nextPlugin != nullptr) {
             iface.nextPlugin->put_ndata(data, len);
         }
         return 0;
@@ -269,7 +299,17 @@ namespace plugin {
 
     void *Server::get_data()
     {
-        return NULL; // dummy for now
+        return nullptr; // dummy for now
+    }
+
+    void Server::setName(const char *name)
+    {
+        strncpy(iface.name, name, 256);
+    }
+
+    const char *Server::getName()
+    {
+        return iface.name;
     }
 
     int Server::p_main(int argc, char **argv)
@@ -288,7 +328,7 @@ namespace plugin {
     } // udp
 } // plugin
 
-///////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 const interface_t *get_interface()
 {
     interface_t* piface = plugin::udp::Server::Instance().getSelf();
@@ -301,6 +341,8 @@ const interface_t *get_interface()
     piface->get_data = &plugin::udp::Server::get_data;
     piface->main_proxy = &plugin::udp::Server::p_main;
     piface->getSelf   = &plugin::udp::Server::getSelf;
+    piface->setName = &plugin::udp::Server::setName;
+    piface->getName = &plugin::udp::Server::getName;
     piface->nextPlugin = nullptr;
 
     return plugin::udp::Server::Instance().getSelf();

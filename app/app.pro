@@ -24,7 +24,6 @@ HEADERS += \
     types.h \
     unix/daemon.h \
     plugin-manager.h \
-    recorder-iface.h \
     protocols.h \
     defs.h \
     utils/json-writer.h \

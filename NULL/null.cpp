@@ -1,15 +1,23 @@
+/** A C like interface
+ * for what a simple plugin can look like
+ * it`s totally independant from the other
+ * world. This plugin is not a real program
+ * it`s a dummy to just test the plugin interfaces.
+*/
 #include "plugin-iface.h"
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 
-// ipc //
 #include "ipc-msg.h"
-
-// config //
 #include "recorder-config.h"
 
+// explicitly null everything
+static struct interface_t s_iface = {0,0,0,
+                                     0,0,0,
+                                     0,0,0,
+                                     0,{0},0};
 
-static struct interface_t s_iface;
 
 static void init()
 {
@@ -21,7 +29,6 @@ static int put_ndata(void *data, int len)
     if (s_iface.nextPlugin != NULL) {
         s_iface.nextPlugin->put_ndata(data, len);
     }
-    // remove it.. why returning...
     return 0;
 }
 
@@ -31,6 +38,16 @@ static int put_data(void *data)
         s_iface.nextPlugin->put_data(data);
     }
     return 0;
+}
+
+static void setName(const char* name)
+{
+    strncpy(s_iface.name, name, 256);
+}
+
+static const char* getName(void)
+{
+    return s_iface.name;
 }
 
 static void *get_data()
@@ -82,9 +99,9 @@ const struct interface_t *get_interface()
     s_iface.put_ndata = &put_ndata;
     s_iface.main_proxy = &main_proxy;
     s_iface.copy = &copy;
+    s_iface.setName = &setName;
+    s_iface.getName = &getName;
     s_iface.getSelf = &getSelf;
     s_iface.nextPlugin = nullptr;
-
     return &s_iface;
 }
-

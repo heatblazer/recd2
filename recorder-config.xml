@@ -13,9 +13,9 @@
      idea -->
 
 <!-- now using this tag to specify max channels -->
-<!-- by default recorder support up to 128 -->
+<!-- by default recorder support up to 128 channels with min of 1 -->
 <Channels
-    count="1"
+    count="32"
     />
 
 <HotSwap
@@ -24,7 +24,7 @@
     interval="1" /> <!-- minutes only!-->
 
 <!-- done: setups wav headers from here -->
-<Wave samplesPerFrame="8000" 
+<Wave samplesPerFrame="8000"
      bitsPerSec="16"
      fmtLength="16"
      audioFormat="1"
@@ -39,14 +39,14 @@
     logs="logs"
     />
 
-<Record 
+<Record
     timestamp="enabled"
     hasNumericConvention="true"
     />
 
 <!-- done: setups transport from here -->
 <Network transport="udp"
-         port="1234" 
+         port="1234"
          />
 
 <!-- name of file, path and timestamp appended and speed of the logging -->

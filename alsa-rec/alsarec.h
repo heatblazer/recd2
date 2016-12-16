@@ -29,6 +29,8 @@ namespace plugin {
         static int put_ndata(void* data, int len);
         static int put_data(void* data);
         static void* get_data(void);
+        static void setName(const char* name);
+        static const char* getName(void);
         static int main_proxy(int argc, char** argv);
         static struct interface_t* getSelf(void);
 

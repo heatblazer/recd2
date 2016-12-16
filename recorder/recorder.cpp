@@ -2,6 +2,7 @@
 
 #include <QDir>
 
+// remove it after tests passed //
 #include <iostream>
 
 #include "date-time.h"
@@ -41,9 +42,9 @@ namespace plugin {
     Recorder* Recorder::s_inst = nullptr;
     struct interface_t Recorder::iface = {0,0,0,
                                           0,0,0,
-                                          0,0,{0},
-                                         0};
-    //////////////////////////////////////////////////////////////////////////////////
+                                          0,0,0,
+                                          0,{0},0};
+////////////////////////////////////////////////////////////////////////////////
 
     Recorder::Recorder(QThread *parent)
         : QThread(parent),
@@ -158,7 +159,7 @@ namespace plugin {
                 }
                 // set the timer
                 r->m_hotswap.setInterval(time);
-                connect(&r->m_hotswap, SIGNAL(timeout()), &Instance(), SLOT(hotSwapFiles()));
+                connect(&r->m_hotswap, SIGNAL(timeout()), r, SLOT(hotSwapFiles()));
                 r->m_hotswap.start();
             } else {
                 // setup filesize change
@@ -191,21 +192,20 @@ namespace plugin {
             // swap by size
         }
 
-        Instance().setObjectName("recorder-thread");
+        Instance().setObjectName("recorder thread");
         Instance().startRecorder();
     }
 
     void Recorder::deinit()
     {
         Recorder* r = &Instance();
-
         IPC::Instance().sendMessage("Deinitializing recorder...\n");
         IPC::Instance().sendMessage("Closing all opened records...\n");
 
-        for(int i=0; i < r->m_maxChans; ++i) {
+        for(int i=0; i < 128; ++i) {
             if (r->m_wavs[i] != nullptr && r->m_wavs[i]->isOpened()) {
                 static char msg[256] = {0};
-                snprintf(msg, sizeof(msg), "Closing file: (%s)\n",
+                snprintf(msg, 256, "Closing file: (%s)\n",
                          r->m_wavs[i]->getFileName());
                 IPC::Instance().sendMessage(msg);
                 r->m_wavs[i]->close();
@@ -223,19 +223,19 @@ namespace plugin {
         (void) len;
     }
 
+    /// takes the list of samples and polls them
+    /// to the recorder thread
+    /// \brief Recorder::put_data
+    /// \param data
+    /// \return always 0
+    ///
     int Recorder::put_data(void *data)
     {
         Recorder* r = &Instance();
         if (iface.nextPlugin != nullptr) {
             iface.nextPlugin->put_data(data);
         }
-#if 0
-        udp_data_t* udp = (udp_data_t*) data;
-        r->m_thread.mutex.lock();
-        r->m_thread.buffer.append(*udp);
-        r->m_thread.mutex.unlock();
-        r->record(*udp);
-#endif
+
         QList<sample_data_t>* ls = (QList<sample_data_t>*)data;
         r->m_thread.mutex.lock();
         r->m_thread.buffer.enqueue(*ls);
@@ -243,29 +243,45 @@ namespace plugin {
         return 0;
     }
 
+    /// unused
+    /// \brief Recorder::put_ndata
+    /// \param data
+    /// \param len
+    /// \return nothing
+    ///
     int Recorder::put_ndata(void *data, int len)
     {
-#if 0
-        Recorder* r = &Instance();
         if (iface.nextPlugin != nullptr) {
             iface.nextPlugin->put_ndata(data, len);
         }
-        sample_data_t sdata = {0, 0};
-        sdata.len = len;
-        sdata.data = (short*) data;
-        r->m_thread.mutex.lock();
-        r->m_thread.buffer.append(sdata);
-        r->m_thread.mutex.unlock();
-#endif
-
         return 0;
     }
 
+    /// unused
+    /// \brief Recorder::get_data
+    /// \return nothing
+    ///
     void *Recorder::get_data()
     {
         return nullptr;
     }
 
+    void Recorder::setName(const char *name)
+    {
+        strncpy(iface.name, name, 256);
+    }
+
+    const char *Recorder::getName()
+    {
+        return iface.name;
+    }
+
+    /// configure recorder from xml via this main proxy
+    /// \brief Recorder::main_proxy
+    /// \param argc
+    /// \param argv
+    /// \return 0 on ok -1 on fail
+    ///
     int Recorder::main_proxy(int argc, char **argv)
     {
         if (argc < 2) {
@@ -302,7 +318,6 @@ namespace plugin {
 
     void Recorder::run()
     {
-//        QQueue<udp_data_t> dblBuff;
         QQueue<QList<sample_data_t> > dblBuff;
         Recorder* r = &Instance();
         do {
@@ -315,11 +330,15 @@ namespace plugin {
             r->m_thread.mutex.unlock();
 
             while(!dblBuff.empty()) {
-                record(dblBuff.dequeue());
+                QList<sample_data_t> sd = dblBuff.dequeue();
+                record(sd);
             }
         } while (r->m_thread.running);
     }
 
+    /// starts recorder thread
+    /// \brief Recorder::startRecorder
+    ///
     void Recorder::startRecorder()
     {
         m_thread.running = true;
@@ -332,22 +351,17 @@ namespace plugin {
         wait(1000);
     }
 
-    void Recorder::record(udp_data_t &udp)
-    {
-        for(int i=0; i < 32; ++i) {
-            if (m_sizeBased) {
-                pollHotSwap();
-            }
-            m_wavs[i]->write((short*)udp.data[i], 16);
-        }
-    }
-
+    /// current version of record
+    /// takes a list of samples and passes them to
+    /// the runner
+    /// \brief Recorder::record
+    /// \param list of sample data struct
+    ///
     void Recorder::record(QList<sample_data_t> sd)
     {
         if (sd.count() <= 0) {
             return ;
         }
-
         for(int i=0; i < sd.count(); ++i) {
             if (m_sizeBased) {
                 pollHotSwap();
@@ -432,18 +446,6 @@ namespace plugin {
         return res;
     }
 
-    void Recorder::record(short data[], int len)
-    {
-        for(int i=0; i < m_maxChans; ++i) {
-            if (m_sizeBased) {
-                pollHotSwap();
-            }
-            if (m_wavs[i] != nullptr && m_wavs[i]->isOpened()) {
-                m_wavs[i]->write(data, len);
-            }
-        }
-    }
-
     /// Timer based hotswap, if time elapses
     /// we swap files
     /// \brief Recorder::hotSwapFiles
@@ -489,11 +491,15 @@ namespace plugin {
         }
     }
 
+    /// check if hotswap is required
+    /// it can be optimized a bit
+    /// \brief Recorder::pollHotSwap
+    ///
     void Recorder::pollHotSwap()
     {
         for(int i=0; i < m_maxChans; ++i) {
             if (m_wavs[i] != nullptr && m_wavs[i]->isOpened()) {
-                // кой писал писал
+                // ако сме минали размера
                 if (m_wavs[i]->getFileSize() > m_maxFileSize) {
                     s_UID++;
                     char buff[256] = {0};
@@ -532,7 +538,7 @@ namespace plugin {
     } // rec
 } // plugin
 
-///////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 /// library thing
 /// \brief get_interface
@@ -549,7 +555,8 @@ const interface_t *get_interface()
     pif->main_proxy = &plugin::rec::Recorder::main_proxy;
     pif->getSelf = &plugin::rec::Recorder::getSelf;
     pif->copy = &plugin::rec::Recorder::copy;
+    pif->setName = &plugin::rec::Recorder::setName;
+    pif->getName = &plugin::rec::Recorder::getName;
     pif->nextPlugin = nullptr;
     return plugin::rec::Recorder::Instance().getSelf();
 }
-

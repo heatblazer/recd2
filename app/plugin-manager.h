@@ -6,11 +6,9 @@
 #include <QLibrary>
 #include <QObject>
 
-// local files //
-#include "recorder-iface.h"
+#include "defs.h"
 
 namespace recd {
-
 
 // plugin manager shall load a library from
 // .so or .dll file then resolves the deps

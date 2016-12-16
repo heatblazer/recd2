@@ -11,7 +11,6 @@
 #include "utils.h"
 #include "plugin-iface.h"
 #include "wav-writer-iface.h"
-#include "qwave-writer.h"
 
 namespace plugin {
     namespace rec {
@@ -44,6 +43,8 @@ namespace plugin {
         static int put_data(void* data);
         static int put_ndata(void* data, int len);
         static void* get_data(void);
+        static void setName(const char* name);
+        static const char* getName(void);
         static int main_proxy(int argc, char** argv);
         static struct interface_t* getSelf(void);
 
@@ -53,7 +54,6 @@ namespace plugin {
         void run() Q_DECL_OVERRIDE;
         void startRecorder();
         void stopRecoder();
-        void record(udp_data_t& udp);
         void record(QList<sample_data_t> sd);
     private:
         explicit Recorder(QThread *parent=nullptr);
@@ -62,17 +62,6 @@ namespace plugin {
 
     signals:
         void recordedBytes(uint32_t bytes);
-
-    public slots:
-        void record(short data[], int len);
-
-        // special handle for QWav files
-        // unused - pointer decay prevention
-        /**
-        template <typename T, size_t N> record(T (&data[N]))
-        {
-        }
-        */
 
     private slots:
         // hot swap - time based
@@ -88,14 +77,13 @@ namespace plugin {
 
         // abstracted!!!
         utils::WavIface* m_wavs[128];
-        int m_maxChans;
         // hotswap
-        QTimer m_hotswap; // timer based
-        bool m_sizeBased;
-
+        QTimer      m_hotswap; // timer based
+        int         m_maxChans;
+        bool        m_sizeBased;
         uint32_t    m_maxFileSize;
-
         static uint32_t s_UID;
+
         struct {
             int     samples_per_sec;
             int     bits_per_sec;
@@ -113,9 +101,6 @@ namespace plugin {
         // concurent stuff
         struct {
             QMutex mutex;
-            //
-            //QQueue<udp_data_t> buffer;
-            QQueue<sample_data_t> buffer2;
             QQueue<QList<sample_data_t> >buffer;
             bool running;
             unsigned long speed; // sleep interval

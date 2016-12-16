@@ -10,7 +10,7 @@ CONFIG += c++11
 
 TARGET = utils
 CONFIG += console
-CONFIG += staticlib
+CONFIG += staticlib # makes it an .a static lib!!!
 CONFIG -= app_bundle
 
 SOURCES += main.cpp \

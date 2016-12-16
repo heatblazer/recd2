@@ -39,10 +39,11 @@ bool RecPluginMngr::loadLibrary(const QString &src, const QString& name)
             || lib_symbols->put_ndata == nullptr
             || lib_symbols->main_proxy == nullptr
             || lib_symbols->copy == nullptr
-            || lib_symbols->getSelf == nullptr)
+            || lib_symbols->getSelf == nullptr
+            || lib_symbols->setName == nullptr
+            || lib_symbols->getName == nullptr)
         {
             load_all_res = false;
-
         } else {
             iface.init = lib_symbols->init;
             iface.deinit = lib_symbols->deinit;
@@ -50,16 +51,14 @@ bool RecPluginMngr::loadLibrary(const QString &src, const QString& name)
             iface.put_data = lib_symbols->put_data;
             iface.put_ndata = lib_symbols->put_ndata;
             iface.main_proxy = lib_symbols->main_proxy;
+            iface.setName = lib_symbols->setName;
+            iface.getName = lib_symbols->getName;
             iface.getSelf = lib_symbols->getSelf;
             load_all_res = true;
-
-            // not working yet
-            snprintf(iface.name, sizeof(iface.name), "%s",
-                     name.toStdString().data());
-            // link the plugins from here
+            // sets the interface name so we can find it later
+            iface.setName(name.toStdString().data());
             m_pluginLinks.put(iface.getSelf());
         }
-
     } else {
         static char err [256] = {0};
         snprintf(err, sizeof(err), "\n%s\n", plugin.errorString().toStdString().data());
@@ -74,24 +73,19 @@ bool RecPluginMngr::loadLibrary(const QString &src, const QString& name)
 /// ex. getInterface("Test!")->init();
 /// \brief RecPluginMngr::getInterface
 /// \param name of loaded plugin
-/// \return
+/// \return interface found by a name
 ///
 const interface_t *RecPluginMngr::getInterface(const QString &iface)
 {
-#if 0
-    if( m_plugins.find(iface) != m_plugins.end() ) {
-        return &m_plugins[iface];
-    } else {
-        return nullptr;
-    }
-#endif
+    // start walking from head node
     interface_t* it = m_pluginLinks.getFront();
     while (it != nullptr) {
-       if (QString(it->name) == iface) {
+       if (QString(it->getName()) == iface) {
            return it;
        }
        it = it->nextPlugin;
     }
+    // didn found it...
     return nullptr;
 }
 
@@ -125,6 +119,7 @@ RecPluginMngr::RecPluginMngr()
 ///
 RecPluginMngr::~RecPluginMngr()
 {
+    // nothing yet here
 }
 
 } // recd

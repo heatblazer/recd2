@@ -59,7 +59,7 @@ namespace plugin {
     ///
     void PThread::join()
     {
-        pthread_join(m_thread, NULL);
+        pthread_join(m_thread, nullptr);
         m_running = false;
     }
 
@@ -114,7 +114,7 @@ namespace plugin {
 
     void PMutex::init()
     {
-        pthread_mutex_init(&m_mutex, NULL);
+        pthread_mutex_init(&m_mutex, nullptr);
     }
 
     void PMutex::lock()

@@ -68,6 +68,7 @@ namespace plugin {
 
         alcCaptureStop(oalrec->p_device);
         alcCaptureCloseDevice(oalrec->p_device);
+        return nullptr;
     }
 
     AlRec &AlRec::Instance()
@@ -107,6 +108,7 @@ namespace plugin {
         if (s_iface.nextPlugin != nullptr) {
             s_iface.nextPlugin->put_ndata(data, len);
         }
+        return 0;
     }
 
     int AlRec::put_data(void *data)
@@ -114,11 +116,22 @@ namespace plugin {
         if (s_iface.nextPlugin != nullptr) {
             s_iface.nextPlugin->put_data(data);
         }
+        return 0;
     }
 
     void *AlRec::get_data()
     {
         return nullptr;
+    }
+
+    void AlRec::setName(const char *name)
+    {
+        strncpy(s_iface.name, name, 256);
+    }
+
+    const char *AlRec::getName()
+    {
+        return s_iface.name;
     }
 
     interface_t *AlRec::getSelf()
@@ -151,6 +164,8 @@ interface_t* get_interface()
     pif->main_proxy = &plugin::alsarec::AlRec::main_proxy;
     pif->get_data  = &plugin::alsarec::AlRec::get_data;
     pif->getSelf = &plugin::alsarec::AlRec::getSelf;
+    pif->setName = &plugin::alsarec::AlRec::setName;
+    pif->getName = &plugin::alsarec::AlRec::getName;
     pif->nextPlugin = nullptr;
 
     return plugin::alsarec::AlRec::Instance().getSelf();

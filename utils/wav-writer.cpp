@@ -103,9 +103,7 @@ void Wav::renameFile(const char *oldname, const char *newname)
 
 size_t Wav::get_size()
 {
-    fseek(m_file, 0L, SEEK_END);
     const size_t size = ftell(m_file);
-    fseek(m_file, 44, SEEK_CUR);
     return size;
 }
 
@@ -269,8 +267,9 @@ const char *Wav::getFileName()
 
 size_t Wav::getFileSize()
 {
-    return m_maxSize;
-
+//    return m_maxSize;
+    return get_size(); // performance lost since ftell is slower than just
+                       // using a raw variable
 }
 
 } // utils
