@@ -123,6 +123,7 @@ namespace plugin {
                                  (udp->counter - m_conn_info.paketCounter),  // lost
                                  m_conn_info.totalLost);               // total lost
                         utils::IPC::Instance().sendMessage(msg);
+
                         m_conn_info.desynchCounter++;
                         int errs = udp->counter - m_conn_info.paketCounter;
                         m_conn_info.totalLost += errs;
@@ -214,22 +215,6 @@ namespace plugin {
             // make sure you purge the list
             m_monitorData.clear();
         }
-#if 0
-        static int counter = 0;
-        if (counter > 15) {
-            snprintf(msg, sizeof(msg),
-                     "Report: \n"
-                     "Desynch counter: (%d)\n"
-                     "Packet counter: (%d)\n"
-                     "Total lost: (%d)\n",
-                     Instance().m_conn_info.desynchCounter,
-                     Instance().m_conn_info.paketCounter,
-                     Instance().m_conn_info.totalLost);
-            utils::IPC::Instance().sendMessage(msg);
-            counter = 0;
-        }
-        counter++;
-#endif
     }
 
     /// state checking router

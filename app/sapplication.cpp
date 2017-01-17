@@ -121,6 +121,8 @@ SApplication::~SApplication()
 ///
 int SApplication::init()
 {
+    QTimer::singleShot(1000, this, SLOT(hEvLoop()));
+
     bool log_init = utils::Logger::Instance().init();
     if (!log_init) {
         return -1;
@@ -164,6 +166,7 @@ int SApplication::init()
     }
     utils::Logger::Instance().logMessage(THIS_FILE, "Initialization of application completed!\n");
     return 0;
+
 }
 
 /// stop all stuff
@@ -187,6 +190,13 @@ void SApplication::deinit()
     }
     utils::Logger::Instance().deinit();
     m_user_server.wait(1000);
+}
+
+void SApplication::hEvLoop()
+{
+
+    // important ! inti all plugins before
+
 }
 
 void SApplication::loadPlugins()

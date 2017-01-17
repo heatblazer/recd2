@@ -2,16 +2,14 @@
 include($$top_srcdir/recd2.pri)
 
 TEMPLATE = lib
-
+QT += multimedia # Audio Recorder
 LIBS += -lpthread
 LIBS += -lasound
 LIBS += -lopenal
 
 SOURCES += main.cpp \
-    thread.cpp \
-    alsarec.cpp
+    qcapdev.cpp
 
 HEADERS += \
     plugin-iface.h \
-    thread.h \
-    alsarec.h
+    qcapdev.h
