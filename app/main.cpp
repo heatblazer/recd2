@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
         recd::Daemon::daemonize();
     }
 
+
     recd::SApplication app(argc, argv);
     int res = app.init();
     if (res < 0) {

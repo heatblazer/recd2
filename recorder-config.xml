@@ -38,6 +38,17 @@
     records="records"
     logs="logs"
     />
+<!-- only if mahcine mic is used and the plugin is loaded -->
+
+<!-- qualitu: low, medium, high -->
+<QAudioCapture
+    device="alsa:default"
+    sampleRate="8000"
+    bitRate="16"
+    chans="1"
+    quality="medium"
+/>
+
 
 <Record
     timestamp="enabled"

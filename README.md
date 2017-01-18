@@ -76,7 +76,7 @@ A wav recorder over udp streams.
     13. [DONE] Fix all warnings in all subprojects, please.
     14. [DONE] Most plugins depend on utils library. Organize project so everything is set and
     ready to use.
-    15. Working on the ALSA lib.
+    15. Working on the ALSA lib. Now using QAudioRecorder.
 
 ## BUGS
     [Bug1] Strange bug as for 16.11.2016, when the program gives 100% cpu load on my other Fedora computer.
@@ -90,6 +90,8 @@ A wav recorder over udp streams.
     [Fix Bug2] Fixed the bug with the hotswap. Tested 24h size based hotswap, written over
     90Gb files over 50 000 files.
     [Bug3] Something happened to QWav class. I`ll fix it ASAP. Will revert it soon.
+    [Bug4] Don`t know if it`s bug or inproper ALSA config for the rec. Now I configure it outside,
+    so I expect to be fixed soon.
 
 
 ## NOTES

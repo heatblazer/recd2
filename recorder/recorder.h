@@ -22,11 +22,6 @@ namespace plugin {
         int16_t    data[32][16];
     };
 
-    struct sample_data_t
-    {
-        short* samples;
-        uint32_t size;
-    };
 
    /// threadable
     /// \brief The Recorder class
@@ -54,7 +49,7 @@ namespace plugin {
         void run() Q_DECL_OVERRIDE;
         void startRecorder();
         void stopRecoder();
-        void record(QList<sample_data_t> sd);
+        void record(QList<utils::sample_data_t> sd);
     private:
         explicit Recorder(QThread *parent=nullptr);
         virtual ~Recorder(); // we may inherit it too
@@ -101,7 +96,7 @@ namespace plugin {
         // concurent stuff
         struct {
             QMutex mutex;
-            QQueue<QList<sample_data_t> >buffer;
+            QQueue<QList<utils::sample_data_t> >buffer;
             bool running;
             unsigned long speed; // sleep interval
         } m_thread;

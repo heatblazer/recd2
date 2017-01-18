@@ -127,6 +127,7 @@ bool RecorderConfig::fastLoadFile(const QString &fname)
     if (fname == "") {
         return res;
     }
+    m_tags.clear();
     QFile file(fname);
     if (file.open(QIODevice::ReadOnly)) {
         QXmlStreamReader reader(file.readAll());

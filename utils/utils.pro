@@ -19,7 +19,8 @@ SOURCES += main.cpp \
     recorder-config.cpp \
     wav-writer.cpp \
     writer.cpp \
-    ipc-msg.cpp
+    ipc-msg.cpp \
+    types.cpp
 
 HEADERS += \
     date-time.h \

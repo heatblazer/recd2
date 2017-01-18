@@ -7,6 +7,11 @@ namespace utils {
 // opacity
 struct udp_data_t;
 struct tcp_data_t;
+struct sample_data_t
+{
+    short* samples;
+    uint32_t size;
+};
 
 struct wav_hdr_t
 {

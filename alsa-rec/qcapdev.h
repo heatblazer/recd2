@@ -6,20 +6,12 @@
 #include <QAudioRecorder>
 #include <QAudioProbe>
 
-
 #include <stdint.h>
 
 #include "plugin-iface.h"
 
 namespace plugin {
     namespace qrec {
-
-    // helper, also prevent ptr decays
-    struct sample_data_t
-    {
-        short* samples;
-        uint32_t size;
-    };
 
     class QCapDevice : public QObject
     {

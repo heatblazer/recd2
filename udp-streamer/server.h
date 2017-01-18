@@ -62,6 +62,7 @@ namespace plugin {
         void checkConnection();
         void route(States state);
         void disconnected();
+        void hEvLoop();
 
     private:
         explicit Server(QObject* parent=nullptr);

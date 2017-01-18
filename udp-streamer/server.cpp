@@ -55,6 +55,9 @@ namespace plugin {
     ///
     void Server::init()
     {
+//        Server* s = &Instance();
+//        QTimer::singleShot(10, s, SLOT(hEvLoop()));
+
         Server* s = &Server::Instance();
         printf("Initializing server...\n");
         // the error packet to be sent on packet lost
@@ -83,6 +86,7 @@ namespace plugin {
             printf("Bind FAIL!\n");
             Instance().route(DISCONNECTED);
         }
+
     }
 
     /// ready read datagrams, send to other plugins
@@ -249,6 +253,38 @@ namespace plugin {
         m_conn_info.paketCounter = 0;
         m_conn_info.totalLost = 0;
         m_conn_info.onetimeSynch = false;
+    }
+
+    void Server::hEvLoop()
+    {
+        Server* s = &Server::Instance();
+        printf("Initializing server...\n");
+        // the error packet to be sent on packet lost
+        static const int16_t max = 32111;
+        for(int i=0; i < 32; ++i) {
+            for(int j=0; j < 16; ++j) {
+                err_udp.data[i][j] = max;
+            }
+        }
+        s->udp = new QUdpSocket;
+        bool bres = s->udp->bind(1234, QUdpSocket::ShareAddress);
+
+        connect(s->udp, SIGNAL(readyRead()),
+                s, SLOT(readyReadUdp())/*, Qt::DirectConnection*/);
+
+        connect(s, SIGNAL(dataReady(udp_data_t*)),
+                s, SLOT(hDataReady(udp_data_t*)));
+        if (bres) {
+
+            printf("Bind OK!\n");
+            s->m_liveConnection.setInterval(1000);
+            connect(&s->m_liveConnection, SIGNAL(timeout()),
+                    s, SLOT(checkConnection()));
+            s->m_liveConnection.start();
+        } else {
+            printf("Bind FAIL!\n");
+            Instance().route(DISCONNECTED);
+        }
     }
 
     /// deinitialze the server, maybe some unfinished
