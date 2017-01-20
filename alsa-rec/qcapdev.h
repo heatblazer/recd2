@@ -3,8 +3,9 @@
 
 // qt stuff //
 #include <QObject>
-#include <QAudioRecorder>
+#include <QAudioInput>
 #include <QAudioProbe>
+#include <QFile>
 
 #include <stdint.h>
 
@@ -29,6 +30,7 @@ namespace plugin {
         static int main_proxy(int argc, char** argv);
         static struct interface_t* getSelf(void);
 
+        static void listDevices();
         // these require the event loop
         void start();
         void stop();
@@ -40,8 +42,8 @@ namespace plugin {
         virtual ~QCapDevice();
         static QCapDevice* s_inst;
         // maybe members later
-        QAudioRecorder* p_rec;
-        QAudioProbe* p_probe;
+        QAudioInput* p_rec;
+        QIODevice* io_handle; // handle bytes from device
         struct interface_t iface;
     };
 

@@ -4,12 +4,15 @@
 #include <QAudioBuffer>
 #include <QAudioProbe>
 #include <QAudioRecorder>
+#include <QAudioFormat>
 #include <QtCore>
 #include <QUrl>
 
 // remove it later //
 #include <iostream>
 #include <istream>
+
+#include <stdio.h>
 
 // message server //
 #include "ipc-msg.h"
@@ -24,23 +27,16 @@ namespace plugin {
     QCapDevice::QCapDevice(QObject *parent)
         : QObject(parent),
           p_rec(nullptr),
-          p_probe(nullptr),
+          io_handle(nullptr),
           iface({0, 0, 0,
                 0, 0, 0,
                 0, 0, 0,
                 0, {0}, 0})
     {
-        p_rec = new QAudioRecorder;
-        p_probe = new QAudioProbe;
-
     }
 
     QCapDevice::~QCapDevice()
     {
-        if (p_probe != nullptr) {
-            delete p_probe;
-            p_probe = nullptr;
-        }
     }
 
     QCapDevice &QCapDevice::Instance()
@@ -54,7 +50,7 @@ namespace plugin {
     void QCapDevice::init()
     {
         QCapDevice*r = &Instance();
-        QTimer::singleShot(1000, r, SLOT(hEvLoop()));
+        QTimer::singleShot(0, r, SLOT(hEvLoop()));
     }
 
     void QCapDevice::deinit()
@@ -120,6 +116,12 @@ namespace plugin {
                         int i = 0;
                     }
                 }
+                if (strcmp(argv[i], "-l") ==  0 ||
+                           strcmp(argv[i], "--list-dev") == 0) {
+                    Instance().listDevices();
+                    std::cout << "exitinig...\n";
+                    exit(0);
+                }
             }
             return 0;
         }
@@ -132,92 +134,88 @@ namespace plugin {
         return &r->iface;
     }
 
+    void QCapDevice::listDevices()
+    {
+    }
+
     void QCapDevice::start()
     {
-        p_rec->record();
+
     }
 
     void QCapDevice::stop()
     {
-        p_rec->stop();
+
     }
 
     void QCapDevice::hEvLoop()
     {
-        const MPair<QString, QString>& device =
-                RecorderConfig::Instance().getAttribPairFromTag("QAudioCapture", "device");
 
-        const MPair<QString, QString>& s_rate =
-                RecorderConfig::Instance().getAttribPairFromTag("QAudioCapture", "sampleRate");
+        if (1) {
+            bool parse_res = false;
+            int srate, ccnt, brate;
+            QAudioFormat format;
 
-        const MPair<QString, QString>& bit_rate =
-                RecorderConfig::Instance().getAttribPairFromTag("QAudioCapture", "bitRate");
+            const MPair<QString, QString>& device =
+                    RecorderConfig::Instance().getAttribPairFromTag("QAudioCapture", "device");
 
-        const MPair<QString, QString>& chans =
-                RecorderConfig::Instance().getAttribPairFromTag("QAudioCapture", "chans");
+            const MPair<QString, QString>& s_rate =
+                    RecorderConfig::Instance().getAttribPairFromTag("QAudioCapture", "sampleRate");
 
-        const MPair<QString, QString>& quality =
-                RecorderConfig::Instance().getAttribPairFromTag("QAudioCapture", "quality");
+            const MPair<QString, QString>& bit_rate =
+                    RecorderConfig::Instance().getAttribPairFromTag("QAudioCapture", "bitRate");
 
-        p_rec->setAudioInput(device.m_type2);
-        p_probe->setSource(p_rec);
+            const MPair<QString, QString>& chans =
+                    RecorderConfig::Instance().getAttribPairFromTag("QAudioCapture", "chans");
 
-        // lazy... do a slot later ... just testing it fast
-        // for now use lambds
-        // lazy C++11 syntax, refractor later
-        connect(p_probe, &QAudioProbe::audioBufferProbed,
-                   [=](const QAudioBuffer& buff)
+            const MPair<QString, QString>& quality =
+                    RecorderConfig::Instance().getAttribPairFromTag("QAudioCapture", "quality");
+
+            srate = s_rate.m_type2.toInt(&parse_res);
+            if (!parse_res) {
+                format.setSampleRate(8000);
+            } else {
+                format.setSampleRate(srate);
+            }
+
+            ccnt = chans.m_type2.toInt(&parse_res);
+            if (!parse_res) {
+                format.setChannelCount(1);
+            } else {
+                format.setChannelCount(ccnt);
+            }
+
+
+            format.setChannelCount(1);
+            format.setSampleSize(16);
+            format.setCodec("audio/pcm");
+            format.setByteOrder(QAudioFormat::LittleEndian);
+            format.setSampleType(QAudioFormat::UnSignedInt);
+
+            QAudioDeviceInfo info = QAudioDeviceInfo::defaultInputDevice();
+            if (!info.isFormatSupported(format)) {
+                utils::IPC::Instance().sendMessage("default format not supported"
+                                                   ", trying to use nearest\n");
+                format = info.nearestFormat(format);
+            }
+
+            p_rec = new QAudioInput(format, this);
+        }
+
+        io_handle = p_rec->start();
+
+        connect(io_handle, &QIODevice::readyRead,
+                [=]()
         {
-            // not working - sends bad data ...
+            QByteArray samples = io_handle->readAll();
             QList<utils::sample_data_t> ls;
             utils::sample_data_t sdata = {0, 0};
-            sdata.samples = new short[buff.byteCount()];
-            sdata.size = (uint32_t) buff.byteCount();
-            memcpy(sdata.samples, buff.constData<short>(), buff.byteCount());
+            sdata.samples = new short[samples.size()];
+            sdata.size = (uint32_t) samples.size();
+            memcpy(sdata.samples, samples.constData(), samples.size());
             ls.append(sdata);
             iface.put_data((QList<utils::sample_data_t>*)&ls);
         });
-
-        if (1) {
-
-            bool parse_res = false;
-            int sample_rate = 0 , brate = 0, ccnt = 0;
-            QAudioEncoderSettings settings;
-            // get it from config file
-            settings.setCodec("audio/PCM");
-
-            // channels
-            ccnt = chans.m_type2.toInt(&parse_res);
-            if (parse_res) {
-                settings.setChannelCount(ccnt);
-            } else {
-                settings.setChannelCount(1);
-            }
-
-            // sample rate
-            sample_rate = s_rate.m_type2.toInt(&parse_res);
-            if (parse_res) {
-                settings.setSampleRate(sample_rate);
-            } else {
-                settings.setSampleRate(8000);
-            }
-
-            // bit rate
-            brate = bit_rate.m_type2.toInt(&parse_res);
-            if (parse_res) {
-                settings.setBitRate(brate);
-            } else {
-                settings.setBitRate(16);
-            }
-
-            settings.setQuality(QMultimedia::NormalQuality);
-            settings.setEncodingMode(QMultimedia::ConstantQualityEncoding);
-            p_rec->setOutputLocation(QUrl());
-            p_rec->setAudioSettings(settings);
-            p_rec->setContainerFormat("raw");
-        }
-
-        p_rec->record();
     }
 
     } // qrec

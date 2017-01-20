@@ -77,6 +77,9 @@ A wav recorder over udp streams.
     14. [DONE] Most plugins depend on utils library. Organize project so everything is set and
     ready to use.
     15. Working on the ALSA lib. Now using QAudioRecorder.
+    16. Now using QAudioInput: a class that can read directly from QIODevice and handle the
+    data stream via a connection. The best approach so far. It needs a proper setup from the
+    config file.
 
 ## BUGS
     [Bug1] Strange bug as for 16.11.2016, when the program gives 100% cpu load on my other Fedora computer.
