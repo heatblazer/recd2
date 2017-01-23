@@ -55,9 +55,9 @@ namespace plugin {
     ///
     void Server::init()
     {
-//        Server* s = &Instance();
-//        QTimer::singleShot(10, s, SLOT(hEvLoop()));
-
+        Server* s = &Instance();
+        QTimer::singleShot(0, s, SLOT(hEvLoop()));
+#if 0
         Server* s = &Server::Instance();
         printf("Initializing server...\n");
         // the error packet to be sent on packet lost
@@ -86,6 +86,7 @@ namespace plugin {
             printf("Bind FAIL!\n");
             Instance().route(DISCONNECTED);
         }
+#endif
 
     }
 

@@ -5,6 +5,7 @@
 #include <QAudioProbe>
 #include <QAudioRecorder>
 #include <QAudioFormat>
+#include <QAudioDeviceInfo>
 #include <QtCore>
 #include <QUrl>
 
@@ -185,10 +186,8 @@ namespace plugin {
                 format.setChannelCount(ccnt);
             }
 
-
-            format.setChannelCount(1);
-            format.setSampleSize(16);
             format.setCodec("audio/pcm");
+            format.setSampleSize(16);
             format.setByteOrder(QAudioFormat::LittleEndian);
             format.setSampleType(QAudioFormat::UnSignedInt);
 

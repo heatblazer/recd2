@@ -1,17 +1,16 @@
-//////////// THIS IS A UNIT LIB TEST //////////////
-
+#include <QApplication>
 #include <iostream>
 #include "plugin-interface.h"
+#include "test/fft_test.h"
 
 using namespace std;
 
 int main(int argc, char *argv[])
 {
-    const interface_t* dft = get_interface();
-    dft->init();
-    dft->main_proxy(argc, argv);
-    dft->deinit();
+    QApplication app(argc, argv);
+    FFTTest f;
+    f.init();
 
-    return 0;
+    return app.exec();
 }
 

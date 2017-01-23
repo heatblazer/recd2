@@ -8,7 +8,7 @@ DISTFILES += README.md \
 SUBDIRS += \
     app \           # original program
     udp-client \   # test client
-    #DFT \          # discrete fourier transform ( disable for now )
+    DFT \          # discrete fourier transform
     udp-streamer \ # udp treamer plugin
     NULL \         # dummy test plugin
     recorder \       # recorder plugin

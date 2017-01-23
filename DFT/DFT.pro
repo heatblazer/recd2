@@ -1,10 +1,19 @@
+# commnon stuff for everyone
+include($$top_srcdir/recd2.pri)
+
+
+QT += core
+QT += gui
+QT += widgets
+
+# use the kiss or the default code from "C numerical algorithms"
 TEMPLATE = app
 CONFIG += console c++11
 CONFIG -= app_bundle
-CONFIG -= qt
+
+
 
 SOURCES += main.cpp \
-    dft.cpp \
     External/tools/fftutil.c \
     External/tools/kfc.c \
     External/tools/kiss_fastfir.c \
@@ -13,7 +22,8 @@ SOURCES += main.cpp \
     External/tools/kiss_fftr.c \
     External/tools/psdpng.c \
     External/kiss_fft.c \
-    null.cpp
+    iz_fft.cpp \
+    test/fft_test.cpp
 
 HEADERS += \
     plugin-interface.h \
@@ -23,7 +33,9 @@ HEADERS += \
     External/tools/kiss_fftr.h \
     External/_kiss_fft_guts.h \
     External/kiss_fft.h \
-    External/kissfft.hh
+    External/kissfft.hh \
+    iz_fft.h \
+    test/fft_test.h
 
 DISTFILES += \
     External/TIPS \
