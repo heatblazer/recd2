@@ -68,6 +68,14 @@ namespace plugin {
         QCapDevice* r = &Instance();
         if (r->iface.nextPlugin != nullptr) {
             r->iface.nextPlugin->put_data(data);
+        } else {
+            QList<utils::sample_data_t>* ls = (QList<utils::sample_data_t>*)data;
+            for(int i=0; i < ls->count(); ++i) {
+                utils::sample_data_t s = ls->at(i);
+                if (s.samples != nullptr) {
+                    delete [] s.samples;
+                }
+            }
         }
     }
 

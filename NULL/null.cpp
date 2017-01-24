@@ -9,8 +9,11 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <QList>
+
 #include "ipc-msg.h"
 #include "recorder-config.h"
+#include "utils.h"
 
 // explicitly null everything
 static struct interface_t s_iface = {0,0,0,
@@ -36,6 +39,14 @@ static int put_data(void *data)
 {
     if (s_iface.nextPlugin != NULL) {
         s_iface.nextPlugin->put_data(data);
+    } else {
+        QList<utils::sample_data_t>* ls = (QList<utils::sample_data_t>*)data;
+        for(int i=0; i < ls->count(); ++i) {
+            utils::sample_data_t s = ls->at(i);
+            if (s.samples != nullptr) {
+                delete [] s.samples;
+            }
+        }
     }
     return 0;
 }

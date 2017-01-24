@@ -13,8 +13,12 @@ struct interface_t
     void*   (*get_data)(void);
     void    (*deinit)();
     int     (*main_proxy)(int, char**);
-
+    void    (*setName)(const char*);
+    const char* (*getName)(void);
+    struct interface_t* (*getSelf)(void);
+    char   name[256]; // iface name
     struct interface_t* nextPlugin;
+
 };
 
 const struct interface_t* get_interface();

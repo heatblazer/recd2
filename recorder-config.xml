@@ -16,12 +16,12 @@
 <!-- by default recorder support up to 128 channels with min of 1 -->
 <!-- impacts the UDP streamer for now... -->
 <Channels
-    count="1"
+    count="32"
     />
 
 <HotSwap
-    timeBased="enabled"
-    maxSize="5MB"
+    timeBased="disabled"
+    maxSize="512MB"
     interval="1" /> <!-- minutes only!-->
 
 

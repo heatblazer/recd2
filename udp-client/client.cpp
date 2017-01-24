@@ -91,7 +91,7 @@ void Client::transmit()
     if (buff) {
         for(int i=0; i < 32; ++i) {
             for(int j=0; j < 16; j++) {
-                m_packet.packet.data[i][j] = buff[j];
+                m_packet.packet.data[i][j] = 0xff00ff;
             }
         }
 

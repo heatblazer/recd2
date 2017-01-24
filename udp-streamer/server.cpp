@@ -55,9 +55,6 @@ namespace plugin {
     ///
     void Server::init()
     {
-        Server* s = &Instance();
-        QTimer::singleShot(0, s, SLOT(hEvLoop()));
-#if 0
         Server* s = &Server::Instance();
         printf("Initializing server...\n");
         // the error packet to be sent on packet lost
@@ -86,8 +83,6 @@ namespace plugin {
             printf("Bind FAIL!\n");
             Instance().route(DISCONNECTED);
         }
-#endif
-
     }
 
     /// ready read datagrams, send to other plugins
@@ -307,6 +302,14 @@ namespace plugin {
     {
         if (iface.nextPlugin != nullptr) {
             iface.nextPlugin->put_data(data);
+        } else {
+            QList<sample_data_t>* ls = (QList<sample_data_t>*) data;
+            for(int i=0; i < ls->count(); ++i) {
+                sample_data_t sd = ls->at(i);
+                if (sd.samples != nullptr) {
+                    delete [] sd.samples;
+                }
+            }
         }
         return 0;
     }

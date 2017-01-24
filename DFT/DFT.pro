@@ -7,7 +7,7 @@ QT += gui
 QT += widgets
 
 # use the kiss or the default code from "C numerical algorithms"
-TEMPLATE = app
+TEMPLATE = lib
 CONFIG += console c++11
 CONFIG -= app_bundle
 
@@ -22,8 +22,7 @@ SOURCES += main.cpp \
     External/tools/kiss_fftr.c \
     External/tools/psdpng.c \
     External/kiss_fft.c \
-    iz_fft.cpp \
-    test/fft_test.cpp
+    iz_fft.cpp
 
 HEADERS += \
     plugin-interface.h \
@@ -34,8 +33,7 @@ HEADERS += \
     External/_kiss_fft_guts.h \
     External/kiss_fft.h \
     External/kissfft.hh \
-    iz_fft.h \
-    test/fft_test.h
+    iz_fft.h
 
 DISTFILES += \
     External/TIPS \

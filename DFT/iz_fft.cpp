@@ -1,6 +1,11 @@
 #include "iz_fft.h"
 
+#include <QTimer>
+
 #include <math.h>
+#include <alloca.h>
+
+#include "ipc-msg.h"
 
 #define SWAP(a, b) tempr = (a); (a) = (b); (b) = tempr
 
@@ -16,7 +21,6 @@ namespace plugin {
     /// \param sign
     ///
     FFT::FFT()
-        : vector(nullptr)
     {
         pi = 4 * atan((double)1);
 
@@ -24,38 +28,36 @@ namespace plugin {
 
     FFT::~FFT()
     {
-        if (vector != nullptr) {
-            delete [] vector;
-            vector = nullptr;
-        }
     }
 
-    void FFT::ComplexFFT(float data[], unsigned long number_of_samples, unsigned int srate, int sign)
+    void FFT::ComplexFFT(data_t data, int sign)
     {
         unsigned long n, mmax, m, j, istep, i;
         double wtemp, wr, wpr, wpi, wi, theta, tempr, tempi;
 
-        if (vector != nullptr) {
-            delete [] vector;
+        float* vector = new float[2 * data.srate];
+        if (vector == nullptr) {
+            return;
         }
-
-        vector = new float[2 * srate];
+        memset(vector, 0, 2 * data.srate);
+        //vector = new float[2 * srate];
         //put the real array in a complex array
         //the complex part is filled with 0's
         //the remaining vector with no data is filled with 0's
-        for(n = 0; n < number_of_samples; n++) {
-            if (n < number_of_samples) {
-                vector[2 * n] = data[n];
+        for(n = 0; n < data.number_of_samples; n++) {
+            if (n < data.number_of_samples) {
+                vector[2 * n] = data.data[n];
             } else {
                 vector[2 * n] = 0;
             }
+            vector[2*n+1] = 0;
         }
 
         //binary inversion (note that the indexes
         //start from 0 witch means that the
         //real part of the complex is on the even-indexes
         //and the complex part is on the odd-indexes)
-        n = srate << 1;
+        n = data.srate << 1;
         j = 0;
         for(i=0; i < n/2; i+=2) {
             if (j > i) {
@@ -104,7 +106,7 @@ namespace plugin {
         // end of algorithm
 
         fundamental_frequency = 0;
-        for(i = 2; i <= srate; i += 2) {
+        for(i = 2; i <= data.srate; i += 2) {
             if ((pow(vector[i], 2) + pow(vector[i+1], 2)) >
                 (pow(vector[fundamental_frequency], 2) + pow(vector[fundamental_frequency+1], 2))) {
                 fundamental_frequency = i;
@@ -113,7 +115,168 @@ namespace plugin {
         }
 
         fundamental_frequency = (long) floor((float) fundamental_frequency/2);
+        // do something with the samples
+        delete [] vector;
+    }
+
+
+
+    FFTPlugin* FFTPlugin::s_inst = nullptr;
+
+    FFTPlugin &FFTPlugin::Instance()
+    {
+        if (s_inst == nullptr) {
+            s_inst = new FFTPlugin;
+        }
+        return *s_inst;
+    }
+
+    // asynchro init
+    void FFTPlugin::init()
+    {
+        FFTPlugin* r = &Instance();
+        r->setObjectName("FFT thread");
+        r->setStackSize(256 * 1024);
+        r->m_isRunning = true;
+        r->start();
+    }
+
+    void FFTPlugin::deinit()
+    {
+        utils::IPC::Instance().sendMessage("Deinitign FFT\n");
+        FFTPlugin* r = &Instance();
+        r->m_isRunning = false;
+        r->wait(1000);
+    }
+
+    void FFTPlugin::copy(const void *src, void *dst, int len)
+    {
+        (void) src; (void) dst; (void) len;
+    }
+
+    int FFTPlugin::put_data(void *data)
+    {
+        FFTPlugin* r = &Instance();
+        QList<utils::sample_data_t>* ls = (QList<utils::sample_data_t>*)data;
+        r->m_lock.lock();
+        for(int i=0; i < ls->count(); ++i) {
+            r->m_sampleBuffer.append(ls->at(i));
+        }
+
+        r->m_lock.unlock();
+
+        if (r->iface.nextPlugin != nullptr) {
+            // but before that do the fft
+            r->iface.nextPlugin->put_data(data);
+        } else {
+            for(int i=0; i < ls->count(); ++i) {
+                utils::sample_data_t s = ls->at(i);
+                if (s.samples != nullptr) {
+                    delete [] s.samples;
+                }
+            }
+        }
+    }
+
+    int FFTPlugin::put_ndata(void *data, int len)
+    {
+        FFTPlugin* r = &Instance();
+        if (r->iface.nextPlugin != nullptr) {
+            r->iface.nextPlugin->put_ndata(data, len);
+        }
+    }
+
+    void *FFTPlugin::get_data()
+    {
+        return nullptr;
+    }
+
+    void FFTPlugin::setName(const char *name)
+    {
+        FFTPlugin* r = &Instance();
+        strncpy(r->iface.name, name, sizeof(r->iface.name)/sizeof(r->iface.name[0]));
+    }
+
+    const char *FFTPlugin::getName()
+    {
+        FFTPlugin* r = &Instance();
+        return r->iface.name;
+    }
+
+    int FFTPlugin::p_main(int argc, char **argv)
+    {
+        (void) argc; (void) argv;
+        return 0;
+    }
+
+    interface_t *FFTPlugin::getSelf()
+    {
+        FFTPlugin* r = &Instance();
+        return &r->iface;
+    }
+
+    void FFTPlugin::run()
+    {
+        FFTPlugin* r = &Instance();
+        QList<utils::sample_data_t> dblBuff;
+
+        do {
+            usleep(100);
+            r->m_lock.lock();
+            while (!r->m_sampleBuffer.empty()) {
+                dblBuff.append(r->m_sampleBuffer.takeFirst());
+            }
+            r->m_lock.unlock();
+
+            while (!dblBuff.empty()) {
+                utils::sample_data_t sdata = dblBuff.takeFirst();
+                if (0/*bugg!!!*/) {
+                    data_t d;
+                    d.data = new float[sdata.size];
+                    memcpy(d.data, sdata.samples, sdata.size);
+                    d.number_of_samples = sdata.size;
+                    d.srate = 16;
+                    r->m_ftransform.ComplexFFT(d, 1);
+                }
+                // do something with analyze
+                // r->m_ftransform.vector
+            }
+
+        } while (m_isRunning);
+    }
+
+    FFTPlugin::FFTPlugin(QThread *parent)
+        : QThread(parent),
+          m_isRunning(false)
+    {
+
+    }
+
+    FFTPlugin::~FFTPlugin()
+    {
+
     }
 
     } // fft
 } // plugin
+
+
+////////////////////////////////////////////////////////////////////////////////
+const interface_t *get_interface()
+{
+    interface_t* piface = plugin::fft::FFTPlugin::Instance().getSelf();
+
+    piface->init = &plugin::fft::FFTPlugin::init;
+    piface->deinit = &plugin::fft::FFTPlugin::deinit;
+    piface->copy = &plugin::fft::FFTPlugin::copy;
+    piface->put_data = &plugin::fft::FFTPlugin::put_data;
+    piface->put_ndata = &plugin::fft::FFTPlugin::put_ndata;
+    piface->get_data = &plugin::fft::FFTPlugin::get_data;
+    piface->main_proxy = &plugin::fft::FFTPlugin::p_main;
+    piface->getSelf   = &plugin::fft::FFTPlugin::getSelf;
+    piface->setName = &plugin::fft::FFTPlugin::setName;
+    piface->getName = &plugin::fft::FFTPlugin::getName;
+    piface->nextPlugin = nullptr;
+
+    return plugin::fft::FFTPlugin::Instance().getSelf();
+}
