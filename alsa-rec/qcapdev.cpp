@@ -65,17 +65,18 @@ namespace plugin {
 
     int QCapDevice::put_data(void *data)
     {
+        if (data == nullptr) {
+            return 1;
+        }
         QCapDevice* r = &Instance();
         if (r->iface.nextPlugin != nullptr) {
             r->iface.nextPlugin->put_data(data);
         } else {
             QList<utils::sample_data_t>* ls = (QList<utils::sample_data_t>*)data;
-            for(int i=0; i < ls->count(); ++i) {
+            for(int i=0; i <ls->count(); ++i) {
                 utils::sample_data_t s = ls->at(i);
-                if (s.samples != nullptr) {
-                    delete [] s.samples;
-                }
             }
+            ls->clear();
         }
     }
 
@@ -217,9 +218,8 @@ namespace plugin {
             QByteArray samples = io_handle->readAll();
             QList<utils::sample_data_t> ls;
             utils::sample_data_t sdata = {0, 0};
-            sdata.samples = new short[samples.size()];
+            sdata.samples = (short*) samples.data();
             sdata.size = (uint32_t) samples.size();
-            memcpy(sdata.samples, samples.constData(), samples.size());
             ls.append(sdata);
             iface.put_data((QList<utils::sample_data_t>*)&ls);
         });

@@ -2,11 +2,36 @@
 #define TYPES_H
 
 #include <stdint.h>
+#include <stdio.h>
 
 namespace utils {
 // opacity
 struct udp_data_t;
 struct tcp_data_t;
+
+// I am having some troubles playing with bits...
+// now I am going to use a nice template structure
+// that displays all of them
+// this will inspect individual BITS of a data type
+// int for example usedful for sample data and stuff alike.
+// not sure if this compiles under C++11 because union templates are
+// non 98 standart compilant.
+template <typename T> union bytes_t
+{
+    T var;
+    struct b {
+        uint8_t a: 1;
+        uint8_t b: 1;
+        uint8_t c: 1;
+        uint8_t d: 1;
+        uint8_t e: 1;
+        uint8_t f: 1;
+        uint8_t g: 1;
+        uint8_t h: 1;
+    } bits[sizeof(T)];
+};
+
+
 struct sample_data_t
 {
     short* samples;

@@ -74,11 +74,11 @@ int main(int argc, char *argv[])
         }
     } else {
         std::cout << "Usage:\n"
-                  << "Load config: iz2 -c <path to conf file>\n"
-                  << "Load config: iz2 --config <path to conf file>\n"
-                  << "Print help and exit: iz2 -h\n"
-                  << "Print help and exit: iz2 --help\n"
-                  << "Daemonize: iz2 -d\n"
+                  << "Load config: recd2 -c <path to conf file>\n"
+                  << "Load config: recd2 --config <path to conf file>\n"
+                  << "Print help and exit: recd2 -h\n"
+                  << "Print help and exit: recd2 --help\n"
+                  << "Daemonize: recd2 -d\n"
                   << std::endl;
         std::cout << "You will be entering a failsafe mode with defaults."
                   << std::endl;

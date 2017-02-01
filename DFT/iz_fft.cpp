@@ -156,6 +156,9 @@ namespace plugin {
 
     int FFTPlugin::put_data(void *data)
     {
+        if (data == nullptr) {
+            return 1;
+        }
         FFTPlugin* r = &Instance();
         QList<utils::sample_data_t>* ls = (QList<utils::sample_data_t>*)data;
         r->m_lock.lock();
@@ -170,7 +173,7 @@ namespace plugin {
             r->iface.nextPlugin->put_data(data);
         } else {
             for(int i=0; i < ls->count(); ++i) {
-                utils::sample_data_t s = ls->at(i);
+                utils::sample_data_t s = ls->takeAt(i);
                 if (s.samples != nullptr) {
                     delete [] s.samples;
                 }

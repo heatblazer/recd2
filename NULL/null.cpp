@@ -42,7 +42,7 @@ static int put_data(void *data)
     } else {
         QList<utils::sample_data_t>* ls = (QList<utils::sample_data_t>*)data;
         for(int i=0; i < ls->count(); ++i) {
-            utils::sample_data_t s = ls->at(i);
+            utils::sample_data_t s = ls->takeAt(i);
             if (s.samples != nullptr) {
                 delete [] s.samples;
             }

@@ -19,3 +19,5 @@ HEADERS += \
 
 PRE_TARGETDEPS += \
     $$top_builddir/utils/libutils.a
+
+DEFINES += "REQ_FLIP"

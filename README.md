@@ -80,6 +80,8 @@ A wav recorder over udp streams.
     16. Now using QAudioInput: a class that can read directly from QIODevice and handle the
     data stream via a connection. The best approach so far. It needs a proper setup from the
     config file.
+    17. I have to fix a bit the plugin interface API, some things are not to my liking, and
+    a refractory is pending from this day: 24.01.2017!!!
 
 ## BUGS
     [Bug1] Strange bug as for 16.11.2016, when the program gives 100% cpu load on my other Fedora computer.
@@ -156,6 +158,12 @@ A wav recorder over udp streams.
     06.12.2016: Granulated project to smaller and added another to mailing list.
     09.12.2016: Now using IPC for messaging between plugins. Fast and simple.
     15.12.2016: Now plugins have get and set Name functions to find them later.
+    24.01.2017: A lot of bugfixes and memory leaks fixes.
+    24.01.2017: A partially working (still not configured well) ALSA recorder.
+    24.01.2017: A FFT plugin tested, still for now a memory crash is preset, but
+    will fix it ASAP.
+    24.01.2017: Yet more leaks and fixes are being made...
+    24.01.2017: Some fixes: Now I don`t use QThread, rather I use pthreads.
 
 ## KISS FFT
     KISS FFT - A mixed-radix Fast Fourier Transform based up on the principle,

@@ -20,7 +20,8 @@ SOURCES += main.cpp \
     wav-writer.cpp \
     writer.cpp \
     ipc-msg.cpp \
-    types.cpp
+    types.cpp \
+    thread.cpp
 
 HEADERS += \
     date-time.h \
@@ -32,6 +33,7 @@ HEADERS += \
     writer.h \
     utils.h \
     types.h \
-    ipc-msg.h
+    ipc-msg.h \
+    thread.h
 
 #QMAKE_CXXFLAGS += -fPIC

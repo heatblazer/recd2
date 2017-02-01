@@ -1,6 +1,7 @@
 #ifndef RECORDER_H
 #define RECORDER_H
 #include "utils.h"
+#include "thread.h"
 
 #include <QObject>
 #include <QTimer> // hotswap interval
@@ -26,7 +27,7 @@ namespace plugin {
    /// threadable
     /// \brief The Recorder class
     ///
-    class Recorder : public QThread
+    class Recorder : public QObject
     {
         Q_OBJECT // this class may be emiter
     public:
@@ -46,12 +47,13 @@ namespace plugin {
         utils::WavIface *getWavByName(const QString& fname);
 
         // threads stuff
-        void run() Q_DECL_OVERRIDE;
+        static void* run(void* pArgs);
+
         void startRecorder();
         void stopRecoder();
         void record(QList<utils::sample_data_t> sd);
     private:
-        explicit Recorder(QThread *parent=nullptr);
+        explicit Recorder(QObject *parent=nullptr);
         virtual ~Recorder(); // we may inherit it too
         bool setupWavFiles();
 
@@ -95,7 +97,8 @@ namespace plugin {
 
         // concurent stuff
         struct {
-            QMutex mutex;
+            utils::PMutex mutex;
+            utils::PThread thread;
             QQueue<QList<utils::sample_data_t> >buffer;
             bool running;
             unsigned long speed; // sleep interval

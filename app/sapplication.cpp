@@ -204,14 +204,14 @@ void SApplication::loadPlugins()
     // plugin setup section
     // this is a bit toug logic for now
     utils::PairList list = utils::RecorderConfig::Instance().getTagPairs("Plugin");
-    static char msg[256] = {0};
+    char msg[256] = {0};
 
     for(int i=0; i < list.count(); ++i) {
        if (list.at(i).m_type1 == "name" && list.at(i).m_type2 != "") {
             // perform the parsina and plugin setup here
             // the array is ordered and we assume name is
             // in the front
-           snprintf(msg, 256, "Loading (%s) plugin...\n",
+           snprintf(msg, sizeof(msg), "Loading (%s) plugin...\n",
                    list.at(i).m_type2.toStdString().data());
            utils::Logger::Instance().logMessage(THIS_FILE, msg);
            if (i+3 > list.count()) {
@@ -222,11 +222,11 @@ void SApplication::loadPlugins()
                res = RecPluginMngr::loadLibrary(list.at(i+3).m_type2, list.at(i).m_type2);
                const char* plugin = list.at(i).m_type2.toStdString().data();
                if (!res) {
-                   snprintf(msg, 256, "Failed to load: (%s) plugin.\n",
+                   snprintf(msg, sizeof(msg), "Failed to load: (%s) plugin.\n",
                             plugin);
                    utils::Logger::Instance().logMessage(THIS_FILE, msg);
                } else {
-                   snprintf(msg, 256, "Loaded: (%s) plugin.\n",
+                   snprintf(msg, sizeof(msg), "Loaded: (%s) plugin.\n",
                             plugin);
                    utils::Logger::Instance().logMessage(THIS_FILE, msg);
                }

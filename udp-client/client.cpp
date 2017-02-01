@@ -63,7 +63,7 @@ Client::Client(QObject *parent)
 //      m_addres("192.168.32.94")
       m_addres("127.0.0.1")
 {
-    m_timer.setInterval(20);
+    m_timer.setInterval(5);
     connect(&m_timer, SIGNAL(timeout()),
             this, SLOT(transmit()));
 }
@@ -85,24 +85,21 @@ void Client::init()
 
 void Client::transmit()
 {
-    std::cout << "Transmitting...\n";
     static uint32_t counter = 0;
-    uint16_t* buff = (uint16_t*) gen_sawtooth(16);
-    if (buff) {
-        for(int i=0; i < 32; ++i) {
-            for(int j=0; j < 16; j++) {
-                m_packet.packet.data[i][j] = 0xff00ff;
-            }
+    for(int i=0; i < 8; ++i) {
+        for(int j=0; j < 32; j++) {
+            m_packet.packet.data[i][j] = 1;
         }
-
-        memset(m_packet.packet.null_bytes, 0, sizeof(m_packet.packet.null_bytes)
-                                                / sizeof(m_packet.packet.null_bytes[0]));
-        m_packet.packet.counter = ++counter;
-        p_socket->write(m_packet.data, sizeof(udp_data_t));
-        free(buff);
-    } else {
-        std::cout << "No data.. \n";
     }
+
+    memset(m_packet.packet.null_bytes, 0, sizeof(m_packet.packet.null_bytes)
+                                            / sizeof(m_packet.packet.null_bytes[0]));
+    m_packet.packet.counter = ++counter;
+    if (m_packet.packet.counter > 200000000) {
+        int i = 0;
+    }
+    p_socket->write(m_packet.data, sizeof(udp_data_t2));
+
 }
 
 

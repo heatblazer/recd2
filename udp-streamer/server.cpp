@@ -15,7 +15,15 @@ namespace plugin {
     {
         uint32_t    counter;
         uint8_t     null_bytes[32];
-        int16_t    data[32][16];
+        int16_t     data[32][16];
+
+    };
+
+    struct udp_data_t2
+    {
+        uint32_t    counter;
+        uint8_t     null_bytes[32];
+        int16_t     data[16][32];
     };
 
     struct sample_data_t
@@ -23,6 +31,27 @@ namespace plugin {
         short* samples;
         uint32_t size;
     };
+
+    /// flip the bytes to match the logic of the program
+    /// \brief copy_and_flip
+    /// \param in
+    /// \return
+    ///
+    static inline udp_data_t copy_and_flip(udp_data_t2 in)
+    {
+        udp_data_t out;
+        out.counter = in.counter;
+        for(int i=0; i < 32; ++i) {
+            out.null_bytes[i] = in.null_bytes[i];
+        }
+
+        for(int i=0; i < 16; ++i) {
+            for(int j=0; j < 32; ++j) {
+                out.data[j][i] = in.data[i][j];
+            }
+        }
+        return out;
+    }
 
     Server* Server::s_inst = nullptr;
     interface_t Server::iface = {0,0,0,
@@ -105,29 +134,33 @@ namespace plugin {
                                        &m_senderHost, &m_senderPort);
                 if (read > 0) {
                     // the udp structure from the device
-                    udp_data_t* udp = (udp_data_t*) buff.data();
-
+#ifdef REQ_FLIP
+                    udp_data_t2* udp2 = (udp_data_t2*) buff.data();
+                    udp_data_t udp = copy_and_flip(*udp2);
+#else
+                    udp_data_t udp = *(udp_data_t*) buff.data();
+#endif
                     // one frame lost for synching with my counter
 
-                    if (udp->counter != ++m_conn_info.paketCounter) {
+                    if (udp.counter != ++m_conn_info.paketCounter) {
                         snprintf(msg, sizeof(msg),
-                                 "Last synch packet:(%d)\t at: [%s]\n"
-                                 "Total desynch:(%d)\n"
-                                 "Server counter: (%d)\n"
-                                 "Lost: (%d)\n"
-                                 "Total lost: (%d)\n",
-                                 udp->counter, // next got ocunter
+                                 "Last synch packet:(%u)\t at: [%s]\n"
+                                 "Total desynch:(%u)\n"
+                                 "Server counter: (%u)\n"
+                                 "Lost: (%u)\n"
+                                 "Total lost: (%u)\n",
+                                 udp.counter, // next got ocunter
                                  utils::DateTime::getDateTime(),       // current time
                                  m_conn_info.desynchCounter,    // desync counter
                                  m_conn_info.paketCounter,      // server counter
-                                 (udp->counter - m_conn_info.paketCounter),  // lost
+                                 (udp.counter - m_conn_info.paketCounter),  // lost
                                  m_conn_info.totalLost);               // total lost
-                        utils::IPC::Instance().sendMessage(msg);
 
+                        utils::IPC::Instance().sendMessage(msg);
                         m_conn_info.desynchCounter++;
-                        int errs = udp->counter - m_conn_info.paketCounter;
+                        int errs = udp.counter - m_conn_info.paketCounter;
                         m_conn_info.totalLost += errs;
-                        m_conn_info.paketCounter = udp->counter; // synch back
+                        m_conn_info.paketCounter = udp.counter; // synch back
 
                         // it`s an err sender logic below
                         // always write a null bytes packet on missed udp
@@ -137,7 +170,8 @@ namespace plugin {
                             m_conn_info.onetimeSynch = true;
                             for(int i=0; i < 32; ++i) {
                                 sample_data_t s = {0, 0};
-                                s.samples = new short[16];
+                                short smpl[16] = {0};
+                                s.samples = smpl;
                                 s.size = 16;
                                 for(int j=0; j < 16; ++j) {
                                     s.samples[j] = err_udp.data[i][j];
@@ -149,7 +183,8 @@ namespace plugin {
                             for(int i=0; i < errs; ++i) {
                                for(int j=0; j < 32; ++j) {
                                    sample_data_t sd = {0, 0};
-                                   sd.samples = new short[16];
+                                   short smpls[16]= {0};
+                                   sd.samples = smpls;
                                    sd.size = 16;
                                    for(int h=0; h < 16; ++h) {
                                        sd.samples[h] = err_udp.data[j][h];
@@ -168,11 +203,12 @@ namespace plugin {
                         // copy all the data then send it to the plugins
                         for(int i=0; i < 32; ++i) {
                             sample_data_t s = {0, 0};
-                            s.samples = new short[16];
+                            short smpls[16] ={0};
+                            s.samples = smpls;
                             s.size = 16;
                             // fill the list to be passed to other plugins
                             for(int j=0; j < 16; ++j) {
-                                s.samples[j] = udp->data[i][j];
+                                s.samples[j] = udp.data[i][j];
                             }
                             ls.append(s);
                         }
@@ -195,6 +231,7 @@ namespace plugin {
     ///
     void Server::hDataReady(udp_data_t *data)
     {
+
         for(int i=0; i < 32; ++i) {
             put_ndata((short*)&data->data[i], 16);
         }
@@ -245,42 +282,11 @@ namespace plugin {
     ///
     void Server::disconnected()
     {
+        m_monitorData.clear();
         m_conn_info.desynchCounter = 0;
         m_conn_info.paketCounter = 0;
         m_conn_info.totalLost = 0;
         m_conn_info.onetimeSynch = false;
-    }
-
-    void Server::hEvLoop()
-    {
-        Server* s = &Server::Instance();
-        printf("Initializing server...\n");
-        // the error packet to be sent on packet lost
-        static const int16_t max = 32111;
-        for(int i=0; i < 32; ++i) {
-            for(int j=0; j < 16; ++j) {
-                err_udp.data[i][j] = max;
-            }
-        }
-        s->udp = new QUdpSocket;
-        bool bres = s->udp->bind(1234, QUdpSocket::ShareAddress);
-
-        connect(s->udp, SIGNAL(readyRead()),
-                s, SLOT(readyReadUdp())/*, Qt::DirectConnection*/);
-
-        connect(s, SIGNAL(dataReady(udp_data_t*)),
-                s, SLOT(hDataReady(udp_data_t*)));
-        if (bres) {
-
-            printf("Bind OK!\n");
-            s->m_liveConnection.setInterval(1000);
-            connect(&s->m_liveConnection, SIGNAL(timeout()),
-                    s, SLOT(checkConnection()));
-            s->m_liveConnection.start();
-        } else {
-            printf("Bind FAIL!\n");
-            Instance().route(DISCONNECTED);
-        }
     }
 
     /// deinitialze the server, maybe some unfinished
@@ -300,16 +306,20 @@ namespace plugin {
 
     int Server::put_data(void *data)
     {
+        if (data == nullptr) {
+            return 1;
+        }
         if (iface.nextPlugin != nullptr) {
             iface.nextPlugin->put_data(data);
         } else {
             QList<sample_data_t>* ls = (QList<sample_data_t>*) data;
             for(int i=0; i < ls->count(); ++i) {
-                sample_data_t sd = ls->at(i);
-                if (sd.samples != nullptr) {
+                sample_data_t sd = ls->takeAt(i);
+                if (/*sd.samples != nullptr*/0) {
                     delete [] sd.samples;
                 }
             }
+            ls->clear();
         }
         return 0;
     }

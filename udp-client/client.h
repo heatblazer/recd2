@@ -15,6 +15,16 @@ struct udp_data_t
     uint8_t     null_bytes[32];
     uint16_t    data[32][16];
 };
+
+struct udp_data_t2
+{
+    uint32_t    counter;
+    uint8_t     null_bytes[32];
+    uint16_t    data[16][32];
+};
+
+
+
 class Client : public QObject
 {
     Q_OBJECT
@@ -31,8 +41,8 @@ private:
     QUdpSocket* p_socket;
     QHostAddress m_addres;
     union {
-        udp_data_t packet;
-        char data[sizeof(udp_data_t)];
+        udp_data_t2 packet;
+        char data[sizeof(udp_data_t2)];
     } m_packet;
 };
 

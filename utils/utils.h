@@ -8,5 +8,6 @@
 #include "recorder-config.h"
 #include "logger.h"
 #include "ipc-msg.h"
+#include "thread.h"
 
 #endif // UTILS_H

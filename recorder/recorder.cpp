@@ -46,15 +46,14 @@ namespace plugin {
                                           0,{0},0};
 ////////////////////////////////////////////////////////////////////////////////
 
-    Recorder::Recorder(QThread *parent)
-        : QThread(parent),
+    Recorder::Recorder(QObject *parent)
+        : QObject(parent),
           m_maxChans(0),
           m_sizeBased(false),
           m_maxFileSize(0)
     {
         m_thread.running = false;
         m_thread.speed = 100;
-
         for(int i=0; i < 128; ++i) {
             m_wavs[i] = nullptr;
         }
@@ -191,8 +190,8 @@ namespace plugin {
             // setup the default logic
             // swap by size
         }
-
-        Instance().setObjectName("recorder thread");
+        r->m_thread.mutex.init();
+        r->m_thread.thread.setName("recorder thread");
         Instance().startRecorder();
     }
 
@@ -214,6 +213,9 @@ namespace plugin {
             }
         }
         r->stopRecoder();
+        r->m_thread.thread.deinit();
+        r->m_thread.mutex.deinit();
+
     }
 
     void Recorder::copy(const void *src, void *dst, int len)
@@ -231,6 +233,9 @@ namespace plugin {
     ///
     int Recorder::put_data(void *data)
     {
+        if (data == nullptr) {
+            return 1;
+        }
         Recorder* r = &Instance();
         if (iface.nextPlugin != nullptr) {
             iface.nextPlugin->put_data(data);
@@ -316,13 +321,13 @@ namespace plugin {
         return nullptr;
     }
 
-    void Recorder::run()
+    void* Recorder::run(void* pArgs)
     {
         QQueue<QList<sample_data_t> > dblBuff;
-        Recorder* r = &Instance();
+        Recorder* r = (Recorder*) pArgs;
         do {
             // setup it from outside, tweakable stuff
-            usleep(r->m_thread.speed);
+            //r->m_thread.thread.suspend(r->m_thread.speed);
             r->m_thread.mutex.lock();
             while (!r->m_thread.buffer.isEmpty()) {
                 dblBuff.enqueue(r->m_thread.buffer.dequeue());
@@ -331,8 +336,9 @@ namespace plugin {
 
             while(!dblBuff.empty()) {
                 QList<sample_data_t> sd = dblBuff.dequeue();
-                record(sd);
+                r->record(sd);
             }
+            r->m_thread.thread.suspend(0);
         } while (r->m_thread.running);
     }
 
@@ -342,13 +348,14 @@ namespace plugin {
     void Recorder::startRecorder()
     {
         m_thread.running = true;
-        QThread::start();
+        //QThread::start();
+        m_thread.thread.create(64 * 1024, 20, Recorder::run, this);
     }
 
     void Recorder::stopRecoder()
     {
         m_thread.running = false;
-        wait(1000);
+        m_thread.thread.join();
     }
 
     /// current version of record
@@ -368,8 +375,9 @@ namespace plugin {
             }
             sample_data_t s = sd.at(i);
             m_wavs[i]->write(s.samples, s.size);
-            delete [] s.samples;
+            //delete [] s.samples;
         }
+        sd.clear();
     }
 
     /// setup all wav files for writing

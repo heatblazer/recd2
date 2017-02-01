@@ -1,3 +1,4 @@
+// some test main...
 #include <QCoreApplication>
 #include "logger.h"
 #include "qwave-writer.h"

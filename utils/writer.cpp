@@ -8,22 +8,48 @@
 //static const char* THIS_FILE = "writer.cpp";
 
 namespace utils {
+
+void *Writer::worker(void *pArgs)
+{
+    Writer* w = (Writer*) pArgs;
+
+    QQueue<QByteArray> dblBuff;
+    dblBuff.reserve(512); // bigger
+    do {
+        w->m_thread.suspend(w->m_speed);
+        w->m_mutex.lock();
+        while (!w->m_buffer.isEmpty()) {
+            dblBuff.enqueue(w->m_buffer.dequeue());
+        }
+        w->m_mutex.unlock();
+
+        while (!dblBuff.isEmpty()) {
+            QByteArray d = dblBuff.dequeue();
+            w->m_file.write(d, d.size());
+            w->m_file.flush();
+        }
+    } while (w->m_isRunning);
+}
+
+
+
 /// TODO: configure speed of the logging!!!
 /// \brief Writer::Writer
 /// \param parent
 ///
-Writer::Writer(QThread *parent)
-    : QThread(parent),
-      m_isRunning(false),
+Writer::Writer()
+    : m_isRunning(false),
       m_speed(1000)
 {
+    m_mutex.init();
 }
 
 Writer::~Writer()
 {
+    // mebers will be destroyed automatically
 }
 
-bool Writer::setup(const QString& fname, int initial_buffsize, ulong log_speed)
+bool Writer::setup(const QString &fname, int initial_buffsize, ulong log_speed)
 {
     bool res = true;
     m_buffer.reserve(initial_buffsize);
@@ -42,38 +68,21 @@ void Writer::write(const QByteArray &data)
     m_mutex.unlock();
 }
 
-void Writer::run()
-{
-    QQueue<QByteArray> dblBuff;
-    dblBuff.reserve(512); // bigger
-    do {
-        QThread::msleep(m_speed);
-
-        m_mutex.lock();
-        while (!m_buffer.isEmpty()) {
-            dblBuff.enqueue(m_buffer.dequeue());
-        }
-        m_mutex.unlock();
-
-        while (!dblBuff.isEmpty()) {
-            QByteArray d = dblBuff.dequeue();
-            m_file.write(d, d.size());
-            m_file.flush();
-        }
-
-    } while (m_isRunning);
-}
-
 void Writer::startWriter()
 {
     m_isRunning = true;
-    start();
+    m_thread.create(64 * 1024, 10, Writer::worker, this);
 }
 
 void Writer::stopWriter()
 {
     m_isRunning = false;
-    wait(1000); // qt`s variant for joining
+    m_thread.join();
+}
+
+void Writer::setObjectName(const QString &name)
+{
+    m_thread.setName(name.toStdString().data());
 }
 
 } // utils
