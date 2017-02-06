@@ -5,6 +5,7 @@
 #include <QTimer>
 #include <QObject>
 #include <QUdpSocket>
+#include <QTcpSocket>
 
 #include <stdint.h>
 #define PACK_SizE 32 * 4
@@ -34,11 +35,12 @@ public:
     void init();
 
 public slots:
-
+    void disconnected();
     void transmit();
 private:
     QTimer m_timer;
     QUdpSocket* p_socket;
+    QTcpSocket* p_tcp;
     QHostAddress m_addres;
     union {
         udp_data_t2 packet;

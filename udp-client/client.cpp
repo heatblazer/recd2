@@ -74,31 +74,42 @@ Client::~Client()
 
 void Client::init()
 {
-    p_socket = new QUdpSocket(this);
-    p_socket->connectToHost(m_addres,
-                            1234, QIODevice::WriteOnly);
-    if (p_socket->state() == QUdpSocket::ConnectedState) {
-        m_timer.start();
+    p_tcp = new QTcpSocket(this);
+    connect(p_tcp, SIGNAL(connected()),
+            this, SLOT(transmit()));
+    connect(p_tcp, SIGNAL(disconnected()),
+            this, SLOT(disconnected()));
+    p_tcp->connectToHost(QHostAddress::Any,
+                          1234);
+    if (!p_tcp->waitForConnected(3000)) {
+
+    } else {
     }
 
 }
 
-void Client::transmit()
+void Client::disconnected()
 {
-    static uint32_t counter = 0;
-    for(int i=0; i < 8; ++i) {
-        for(int j=0; j < 32; j++) {
-            m_packet.packet.data[i][j] = 1;
-        }
-    }
+    std::cout << "Disconnected!\n";
+}
 
-    memset(m_packet.packet.null_bytes, 0, sizeof(m_packet.packet.null_bytes)
-                                            / sizeof(m_packet.packet.null_bytes[0]));
-    m_packet.packet.counter = ++counter;
-    if (m_packet.packet.counter > 200000000) {
-        int i = 0;
-    }
-    p_socket->write(m_packet.data, sizeof(udp_data_t2));
+void Client::transmit()
+{    static uint32_t counter = 0;
+     for(int i=0; i < 16; ++i) {
+         for(int j=0; j < 32; j++) {
+             m_packet.packet.data[i][j] = 1;
+         }
+     }
+
+     memset(m_packet.packet.null_bytes, 0, sizeof(m_packet.packet.null_bytes)
+                                             / sizeof(m_packet.packet.null_bytes[0]));
+     m_packet.packet.counter = ++counter;
+     if (m_packet.packet.counter > 200000000) {
+         int i = 0;
+     }
+     p_tcp->write(m_packet.data, sizeof(udp_data_t));
+     p_tcp->flush();
+     std::cout << "Transmitting...\n";
 
 }
 

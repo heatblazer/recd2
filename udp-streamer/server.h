@@ -3,6 +3,9 @@
 
 #include <QObject>
 #include <QTimer>
+#include <QTcpSocket>
+#include <QTcpServer>
+#include <QThread>
 #include <QUdpSocket>
 #include <QQueue>
 
@@ -13,6 +16,7 @@
 namespace plugin {
     namespace udp {
 
+    class TcpServer;
     struct udp_data_t;
     struct sample_data_t;
 
@@ -58,6 +62,9 @@ namespace plugin {
 
     private slots:
         void readyReadUdp();
+        void readyReadTcp();
+        void tcpConnected();
+        void tcpDisconnected();
         void hDataReady(udp_data_t *data);
         void checkConnection();
         void route(States state);
@@ -67,12 +74,39 @@ namespace plugin {
         explicit Server(QObject* parent=nullptr);
 
         QUdpSocket* udp;
+        TcpServer*  p_server;
+
         QTimer      m_liveConnection;
         QHostAddress m_senderHost;
         quint16      m_senderPort;
         conn_info m_conn_info;
         QQueue<char> m_monitorData;
         static Server* s_inst;
+
+        friend class TcpServer;
+        friend class ServerThread;
+    };
+
+    class TcpServer : public QObject
+    {
+        Q_OBJECT
+    public:
+        explicit TcpServer(QObject* parent= nullptr);
+        virtual ~TcpServer();
+        void init(); // todo fill in later
+        void deinit(); // todo fill in later
+
+    public slots:
+        void hConnection();
+        void readyReadData();
+
+    private:
+        QTcpServer* tcp_server;
+        struct {
+            size_t size;
+            QByteArray data;
+        } m_packet;
+
     };
 
     } // udp
