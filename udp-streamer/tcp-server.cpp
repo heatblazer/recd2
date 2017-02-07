@@ -117,8 +117,8 @@ void TcpServer::init()
                 s->m_conn_info.paketCounter = frame.counter;
                 snprintf(msg, sizeof(msg), "Missed: %lu\n",
                          (long unsigned int) s->m_conn_info.paketCounter+1);
-
                 utils::IPC::Instance().sendMessage(msg);
+
             } else {
                 m_lock.lock();
                 m_buffer.enqueue(frame);

@@ -110,9 +110,10 @@ void Client::transmit()
      if (m_packet.packet.counter > 200000000) {
          int i = 0;
      }
+     std::cout << m_packet.packet.counter << std::endl;
+
      p_tcp->write(m_packet.data, sizeof(udp_data_t));
      p_tcp->flush();
-     std::cout << "Transmitting...\n";
 
 }
 
