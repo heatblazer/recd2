@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <sched.h>
 
 namespace utils {
 
@@ -175,6 +177,29 @@ BSemaphore::BSemaphore(const char *name)
 BSemaphore::~BSemaphore()
 {
 
+}
+
+SpinLock::SpinLock()
+    : m_lock(0)
+{
+
+}
+
+SpinLock::~SpinLock()
+{
+
+}
+
+void SpinLock::lock()
+{
+    while (!__sync_bool_compare_and_swap(&m_lock, 0, 1)) {
+        sched_yield();
+    }
+}
+
+void SpinLock::unlock()
+{
+    m_lock = 0;
 }
 
 

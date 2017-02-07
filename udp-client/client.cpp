@@ -84,6 +84,9 @@ void Client::init()
     if (!p_tcp->waitForConnected(3000)) {
 
     } else {
+        while (1) {
+            transmit();
+        }
     }
 
 }

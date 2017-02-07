@@ -32,12 +32,30 @@ template <typename T> union bytes_t
 };
 
 
+/// postimplemented struct for udp header
+/// \brief The udp_data_t struct
+///
+struct udp_data_t
+{
+    uint32_t    counter;
+    uint8_t     null_bytes[32];
+    int16_t     data[32][16];
+
+};
+
+// required for flippingp_server
+struct udp_data_t2
+{
+    uint32_t    counter;
+    uint8_t     null_bytes[32];
+    int16_t     data[16][32];
+};
+
 struct sample_data_t
 {
     short* samples;
     uint32_t size;
 };
-
 struct wav_hdr_t
 {
     char riff_tag[4];

@@ -11,11 +11,13 @@ CONFIG -= app_bundle
 
 
 SOURCES += main.cpp \
-    server.cpp
+    server.cpp \
+    tcp-server.cpp
 
 HEADERS += \
     plugin-interface.h \
-    server.h
+    server.h \
+    tcp-server.h
 
 PRE_TARGETDEPS += \
     $$top_builddir/utils/libutils.a

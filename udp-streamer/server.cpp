@@ -1,47 +1,24 @@
 #include "server.h"
+
 #include <iostream>
-#include <stdio.h>
+
 
 #include <QCoreApplication>
 
 #include "ipc-msg.h"
 #include "date-time.h"
 #include "recorder-config.h"
+#include "types.h"
 
 namespace plugin {
     namespace udp {
-
-    /// postimplemented struct for udp header
-    /// \brief The udp_data_t struct
-    ///
-    struct udp_data_t
-    {
-        uint32_t    counter;
-        uint8_t     null_bytes[32];
-        int16_t     data[32][16];
-
-    };
-
-    // required for flipping
-    struct udp_data_t2
-    {
-        uint32_t    counter;
-        uint8_t     null_bytes[32];
-        int16_t     data[16][32];
-    };
-
-    struct sample_data_t
-    {
-        short* samples;
-        uint32_t size;
-    };
 
     /// flip the bytes to match the logic of the program
     /// \brief copy_and_flip
     /// \param in
     /// \return
     ///
-    static inline udp_data_t copy_and_flip(udp_data_t2 in)
+    static inline udp_data_t copy_and_flip(utils::udp_data_t2 in)
     {
         udp_data_t out;
         out.counter = in.counter;
@@ -85,7 +62,7 @@ namespace plugin {
 
     /// simple init function
     /// \brief Server::init
-    /// \param is_daemon
+    /// \param is_daemonp_server
     /// \param udp maybe and tcp later
     /// \param port
     ///
@@ -106,31 +83,29 @@ namespace plugin {
                 utils::RecorderConfig::Instance().
                 getAttribPairFromTag("Network", "transport");
         if (transport.m_type2 == "udp") {
-            s->udp = new QUdpSocket;
-            bres = s->udp->bind(1234, QUdpSocket::ShareAddress);
+                s->udp = new QUdpSocket;
+                bres = s->udp->bind(1234, QUdpSocket::ShareAddress);
 
-            connect(s->udp, SIGNAL(readyRead()),
-                    s, SLOT(readyReadUdp())/*, Qt::DirectConnection*/);
+                connect(s->udp, SIGNAL(readyRead()),
+                        s, SLOT(readyReadUdp())/*, Qt::DirectConnection*/);
 
-            connect(s, SIGNAL(dataReady(udp_data_t*)),
-                    s, SLOT(hDataReady(udp_data_t*)));
-            if (bres) {
-                printf("Bind OK!\n");
-                s->m_liveConnection.setInterval(1000);
-                connect(&s->m_liveConnection, SIGNAL(timeout()),
-                        s, SLOT(checkConnection()));
-                s->m_liveConnection.start();
-            } else {
-                printf("Bind FAIL!\n");
-                Instance().route(DISCONNECTED);
-            }
+                connect(s, SIGNAL(dataReady(udp_data_t*)),
+                        s, SLOT(hDataReady(udp_data_t*)));
+                if (bres) {
+                    printf("Bind OK!\n");
+                    s->m_liveConnection.setInterval(1000);
+                    connect(&s->m_liveConnection, SIGNAL(timeout()),
+                            s, SLOT(checkConnection()));
+                    s->m_liveConnection.start();
+                } else {
+                        printf("Bind FAIL!\n");
+                        Instance().route(DISCONNECTED);
+                }
             } else if (transport.m_type2 == "tcp") {
-            s->p_server = new TcpServer(s);
-            s->p_server->init();
-            s->m_liveConnection.setInterval(1000);
-            connect(&s->m_liveConnection, SIGNAL(timeout()),
-                    s, SLOT(checkConnection()));
-            s->m_liveConnection.start();
+                s->p_server = new TcpServer;
+                s->p_server->init();
+                // connection checker
+
         } else {
             std::cout << "Invalid xml attribute (" << transport.m_type2.toStdString()
                       << ")" << " from Tag: ("  <<
@@ -162,7 +137,7 @@ namespace plugin {
                 if (read > 0) {
                     // the udp structure from the device
 #ifdef REQ_FLIP
-                    udp_data_t2* udp2 = (udp_data_t2*) buff.data();
+                    utils::udp_data_t2* udp2 = (utils::udp_data_t2*) buff.data();
                     udp_data_t udp = copy_and_flip(*udp2);
 #else
                     udp_data_t udp = *(udp_data_t*) buff.data();
@@ -265,7 +240,7 @@ namespace plugin {
     }
 
     /// check if the device is sending data
-    /// send some statistics each 15 seconds
+    /// send some statistics each 1 second
     /// \brief Server::checkConnection
     ///
     void Server::checkConnection()
@@ -323,7 +298,10 @@ namespace plugin {
     ///
     void Server::deinit(void)
     {
-        utils::IPC::Instance().sendMessage("UDP Server: deinit\n");
+        Server* s = &Instance();
+        s->p_server->deinit();
+
+        utils::IPC::Instance().sendMessage("Server: deinit\n");
     }
 
     void Server::copy(const void *src, void *dst, int len)
@@ -417,11 +395,12 @@ namespace plugin {
         utils::IPC::Instance().sendMessage("Socket disconnected...\n");
     }
 
+#if 0
     // tpc server stuff
-    TcpServer::TcpServer(QObject *parent)
-        : QObject(parent),
-         tcp_server(nullptr),
-         m_packet{0}
+    TcpServer::TcpServer()
+        :
+         m_packet{0},
+         socket_fd(-1)
     {
     }
 
@@ -432,7 +411,10 @@ namespace plugin {
 
     void TcpServer::init()
     {
+#if 0
         tcp_server = new QTcpServer(this);
+        tcp_server->setMaxPendingConnections(1);
+
         connect(tcp_server, SIGNAL(newConnection()),
                 this, SLOT(hConnection()));
         if (!tcp_server->listen(QHostAddress::Any, 1234)) {
@@ -440,18 +422,54 @@ namespace plugin {
         } else {
             utils::IPC::Instance().sendMessage("Server started!\n");
         }
+#endif
 
     }
 
     void TcpServer::hConnection()
     {
-        Server* s = &Server::Instance();
+
+#if 0
         QTcpSocket* sock = tcp_server->nextPendingConnection();
+        ((QAbstractSocket*) sock)->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+        //((QAbstractSocket*) sock)->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption,
+        //                                           1060 * 10);
+
         if (sock != nullptr) {
             connect(sock, SIGNAL(readyRead()),
                     this, SLOT(readyReadData()));
-        }
 
+            //connect(sock, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
+            //        this, SLOT(hState(QAbstractSocket::SocketState)));
+            //connect(sock, SIGNAL(disconnected()),
+            //        sock, SLOT(deleteLater()));
+
+        }
+#endif
+    }
+
+    void TcpServer::hDisconnect()
+    {
+        std::cout << "Disconnected from client..." << std::endl;
+        exit(1);
+    }
+
+    void TcpServer::hState(QAbstractSocket::SocketState state)
+    {
+        switch (state) {
+        case QAbstractSocket::ConnectedState:
+            utils::IPC::Instance().sendMessage("Connected\n");
+            break;
+        case QAbstractSocket::ConnectingState:
+            utils::IPC::Instance().sendMessage("Connecting\n");
+            break;
+        case QAbstractSocket::UnconnectedState:
+            utils::IPC::Instance().sendMessage("Not connected\n");
+            break;
+        default:
+            utils::IPC::Instance().sendMessage("Unknown \n");
+            break;
+        }
     }
 
 
@@ -460,6 +478,7 @@ namespace plugin {
         Server* s = &Server::Instance();
 
         QTcpSocket* r = static_cast<QTcpSocket*>(sender());
+
         if (r == nullptr) {
             std::cout << "Failed to obtain a socket reference." << std::endl;
             exit(0); // deleteme later
@@ -476,10 +495,8 @@ namespace plugin {
 
             // the udp structure from the device
             udp_data_t tcp = *(udp_data_t*) m_packet.data.data();
-
-            s->m_monitorData.append('.');
-
             std::cout << tcp.counter << std::endl;
+
             if (++s->m_conn_info.paketCounter != tcp.counter) {
                 s->m_conn_info.paketCounter = tcp.counter;
                 // missed a packet
@@ -508,7 +525,7 @@ namespace plugin {
         }
 
     }
-
+#endif
     } // udp
 } // plugin
 

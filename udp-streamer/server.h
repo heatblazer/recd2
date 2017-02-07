@@ -12,13 +12,11 @@
 #include <stdint.h>
 
 #include "plugin-interface.h"
+#include "tcp-server.h"
+#include "utils.h"
 
 namespace plugin {
     namespace udp {
-
-    class TcpServer;
-    struct udp_data_t;
-    struct sample_data_t;
 
     struct conn_info {
         uint32_t paketCounter;
@@ -83,32 +81,35 @@ namespace plugin {
         QQueue<char> m_monitorData;
         static Server* s_inst;
 
+
         friend class TcpServer;
         friend class ServerThread;
     };
-
-    class TcpServer : public QObject
+#if 0
+    class TcpServer
     {
-        Q_OBJECT
+
     public:
-        explicit TcpServer(QObject* parent= nullptr);
+        explicit TcpServer();
         virtual ~TcpServer();
         void init(); // todo fill in later
         void deinit(); // todo fill in later
 
     public slots:
         void hConnection();
+        void hDisconnect();
+        void hState(QAbstractSocket::SocketState state);
         void readyReadData();
 
     private:
-        QTcpServer* tcp_server;
         struct {
             size_t size;
             QByteArray data;
         } m_packet;
 
+        int socket_fd;
     };
-
+#endif
     } // udp
 } // plugin
 

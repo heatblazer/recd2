@@ -23,6 +23,17 @@ namespace utils {
 
     typedef void* (*entryPoint)(void*);
 
+    class SpinLock
+    {
+    public:
+        SpinLock();
+        ~SpinLock();
+        void lock();
+        void unlock();
+    private:
+        volatile int m_lock;
+    };
+
     class PMutex
     {
     public:
