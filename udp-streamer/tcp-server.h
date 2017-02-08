@@ -38,10 +38,12 @@ namespace plugin {
         void deinit();
 
     private:
-        QQueue<udp_data_t> m_buffer;
+        utils::udp_data_t m_frames;
+        QQueue<utils::udp_data_t> m_buffer;
+        utils::PMutex m_lock;
         Server* p_server;
         int socket_fd;
-        utils::SpinLock m_lock;
+
 
     };
     } // udp

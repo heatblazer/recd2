@@ -9,5 +9,6 @@
 #include "logger.h"
 #include "ipc-msg.h"
 #include "thread.h"
+#include "ring-buffer.h"
 
 #endif // UTILS_H

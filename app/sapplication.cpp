@@ -121,7 +121,6 @@ SApplication::~SApplication()
 ///
 int SApplication::init()
 {
-    QTimer::singleShot(1000, this, SLOT(hEvLoop()));
 
     bool log_init = utils::Logger::Instance().init();
     if (!log_init) {
@@ -194,9 +193,7 @@ void SApplication::deinit()
 
 void SApplication::hEvLoop()
 {
-
     // important ! inti all plugins before
-
 }
 
 void SApplication::loadPlugins()

@@ -9,6 +9,7 @@
 namespace utils {
 
 PMutex::PMutex()
+    : is_locked(false)
 {
 }
 
@@ -28,11 +29,13 @@ int PMutex::init()
 
 void PMutex::lock()
 {
+    is_locked = true;
     pthread_mutex_lock(&m_mutex);
 }
 
 void PMutex::unlock()
 {
+    is_locked = false;
     pthread_mutex_unlock(&m_mutex);
 }
 
@@ -40,6 +43,11 @@ void PMutex::deinit()
 {
     //pthread_mutexattr_destroy(&m_sched_param);
     pthread_mutex_destroy(&m_mutex);
+}
+
+const bool PMutex::locked()
+{
+    return is_locked;
 }
 
 pthread_t PThread::currentThread()

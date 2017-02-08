@@ -43,9 +43,11 @@ namespace utils {
         void lock();
         void unlock();
         void deinit();
+        const bool locked();
     private:
         pthread_mutex_t m_mutex;
         pthread_mutexattr_t m_sched_param;
+        volatile bool is_locked;
     };
 
     class PThread

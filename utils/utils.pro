@@ -21,7 +21,8 @@ SOURCES += main.cpp \
     writer.cpp \
     ipc-msg.cpp \
     types.cpp \
-    thread.cpp
+    thread.cpp \
+    ring-buffer.cpp
 
 HEADERS += \
     date-time.h \
@@ -34,6 +35,7 @@ HEADERS += \
     utils.h \
     types.h \
     ipc-msg.h \
-    thread.h
+    thread.h \
+    ring-buffer.h
 
 #QMAKE_CXXFLAGS += -fPIC

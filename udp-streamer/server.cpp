@@ -102,16 +102,14 @@ namespace plugin {
                         Instance().route(DISCONNECTED);
                 }
             } else if (transport.m_type2 == "tcp") {
-                s->p_server = new TcpServer;
-                s->p_server->init();
-                // connection checker
+                // give time to everithying to init
+                QTimer::singleShot(3000, s, SLOT(initTcpServer()));
 
         } else {
             std::cout << "Invalid xml attribute (" << transport.m_type2.toStdString()
                       << ")" << " from Tag: ("  <<
                          transport.m_type1.toStdString() << ")" << std::endl;
             exit(1);
-
         }
 
     }
@@ -289,6 +287,12 @@ namespace plugin {
         m_conn_info.paketCounter = 0;
         m_conn_info.totalLost = 0;
         m_conn_info.onetimeSynch = false;
+    }
+
+    void Server::initTcpServer()
+    {
+        p_server = new TcpServer;
+        p_server->init();
     }
 
     /// deinitialze the server, maybe some unfinished

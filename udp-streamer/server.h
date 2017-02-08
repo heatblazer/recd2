@@ -67,6 +67,7 @@ namespace plugin {
         void checkConnection();
         void route(States state);
         void disconnected();
+        void initTcpServer();
 
     private:
         explicit Server(QObject* parent=nullptr);
