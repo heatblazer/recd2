@@ -92,14 +92,14 @@
 <!-- This is an alsa sample capture device, not a recorder, it captures from
 mic, then passes down to the chain. -->
 
-
+<!--
 <Plugin
     name="alsarec"
     order="1"
     enabled="true"
     path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/alsa-rec/libalsa-rec.so"
     />
-
+-->
 <!-- this plugin is based on the udp server written for the device -->
 <!--
 <Plugin
@@ -115,12 +115,26 @@ to be used for debugging other plugins below it. Also it can
 be used to track the chaingin of the plugins -->
 
 <Plugin
+    name="producer"
+    order="1"
+    enabled="true"
+    path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_8_0_GCC_64bit-Debug/test-producer/libtest-producer.so"
+    />
+
+<Plugin
     name="null"
     order="1"
     enabled="true"
-    path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/NULL/libNULL.so"
+    path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_8_0_GCC_64bit-Debug/NULL/libNULL.so"
     />
-
+<!--
+<Plugin
+    name="consumer"
+    order="1"
+    enabled="true"
+    path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_8_0_GCC_64bit-Debug/test-consumer/libtest-consumer.so"
+    />
+-->
 <!-- this is the typical recorder of wav files, it has nothing special here,
 collect samples and record them to wavs -->
 
@@ -128,8 +142,8 @@ collect samples and record them to wavs -->
     name="rec"
     order="1"
     enabled="true"
-    path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/recorder/librecorder.so"
+    path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_8_0_GCC_64bit-Debug/recorder/librecorder.so"
     />
-
+    
 </Config>
 

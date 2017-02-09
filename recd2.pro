@@ -13,7 +13,9 @@ SUBDIRS += \
     NULL \         # dummy test plugin
     recorder \       # recorder plugin
     alsa-rec \
-    utils
+    utils \
+    test-producer \
+    test-consumer
 
 app.depends = utils
 udp-streamer.depends = utils

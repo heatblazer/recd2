@@ -164,6 +164,8 @@ A wav recorder over udp streams.
     will fix it ASAP.
     24.01.2017: Yet more leaks and fixes are being made...
     24.01.2017: Some fixes: Now I don`t use QThread, rather I use pthreads.
+    09.02.2017: Added test-producer and test-consumer plugins that are separate
+    threads, for unit testing, perf testing and benchmarks.
 
 ## KISS FFT
     KISS FFT - A mixed-radix Fast Fourier Transform based up on the principle,
