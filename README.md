@@ -167,6 +167,12 @@ A wav recorder over udp streams.
     09.02.2017: Added test-producer and test-consumer plugins that are separate
     threads, for unit testing, perf testing and benchmarks.
 
+## TESTING
+    1. Use test-prducer to generate test data
+    2. Use test-consumer to obtain the data
+    3. You can perf-test the recorder if set the recorder plugin last and
+    produce som data from test-producer
+
 ## KISS FFT
     KISS FFT - A mixed-radix Fast Fourier Transform based up on the principle,
     "Keep It Simple, Stupid."

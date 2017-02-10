@@ -128,20 +128,23 @@ Producer &Producer::Instance()
 void *Producer::worker(void *pArgs)
 {
     Producer* p = (Producer*) pArgs;
-    static uint32_t cnt = 0;
-    static QList<utils::udp_data_t> ls;
+    utils::udp_data_t err_udp = {0, {0}, {{0}}};
 
     for(;;) {
-        utils::udp_data_t test ={0, {0}, {{0}}};
-        for (int i=0; i < 32; ++i) {
+        QList<utils::sample_data_t> ls;
+        for(int i=0; i < 32; ++i) {
+            utils::sample_data_t s = {0, 0};
+            short smpl[16] = {0};
+            s.samples = smpl;
+            s.size = 16;
             for(int j=0; j < 16; ++j) {
-                test.data[i][j] = (i % 2 == 0) ? 0xffff: 0x0000;
+                s.samples[j] = err_udp.data[i][j];
             }
+            ls.append(s);
         }
-        test.counter = cnt++;
-        ls.append(test);
-        p->put_data((QList<utils::udp_data_t>*)&ls);
-        p->suspend(1);
+
+        p->put_data((QList<utils::sample_data_t>*)&ls);
+        p->suspend(10);
     }
 }
 
