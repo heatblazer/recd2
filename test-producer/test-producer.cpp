@@ -28,6 +28,7 @@ void Producer::init()
     utils::IPC::Instance().sendMessage("Init Producer...\n");
 
     ((PThread*)p)->setName("producer-thread");
+    p->isRunning = true;
     p->create(128 * 1024, 10, Producer::worker, p);
 
 }
@@ -69,6 +70,7 @@ void *Producer::get_data()
 
 void Producer::deinit()
 {
+    Instance().isRunning = false;
     Instance().join();
     utils::IPC::Instance().sendMessage("Deinit Consumer\n");
 }
@@ -107,7 +109,8 @@ Producer::Producer()
     : s_iface({0,0,0,
               0,0,0,
               0,0,0,
-              0,{0},0})
+              0,{0},0}),
+      isRunning(false)
 {
 }
 
@@ -130,7 +133,7 @@ void *Producer::worker(void *pArgs)
     Producer* p = (Producer*) pArgs;
     utils::udp_data_t err_udp = {0, {0}, {{0}}};
 
-    for(;;) {
+    while (p->isRunning) {
         QList<utils::sample_data_t> ls;
         for(int i=0; i < 32; ++i) {
             utils::sample_data_t s = {0, 0};

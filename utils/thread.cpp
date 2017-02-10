@@ -136,7 +136,9 @@ int PThread::create(size_t stack_size, int priority, entryPoint cb, void* user_d
 
 void PThread::join()
 {
-    pthread_join(m_thread, nullptr);
+    void* ret;
+    int* r = (int*) ret;
+    pthread_join(m_thread, &ret);
 }
 
 void PThread::setName(const char *name)

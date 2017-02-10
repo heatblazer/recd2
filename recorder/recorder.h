@@ -31,6 +31,11 @@ namespace plugin {
     {
         Q_OBJECT // this class may be emiter
     public:
+        enum Chans
+        {
+            Count = 32
+        };
+
         // will use later the num_channels when concept is more clear
         static Recorder& Instance();
         static void init();
@@ -44,7 +49,7 @@ namespace plugin {
         static int main_proxy(int argc, char** argv);
         static struct interface_t* getSelf(void);
 
-        utils::WavIface *getWavByName(const QString& fname);
+        utils::Wav *getWavByName(const QString& fname);
 
         // threads stuff
         static void* run(void* pArgs);
@@ -73,7 +78,7 @@ namespace plugin {
         // not allowed...
 
         // abstracted!!!
-        utils::WavIface* m_wavs[128];
+        utils::Wav* m_wavs[Chans::Count];
         // hotswap
         QTimer      m_hotswap; // timer based
         int         m_maxChans;

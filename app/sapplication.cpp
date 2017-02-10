@@ -187,6 +187,7 @@ void SApplication::deinit()
         it->deinit();
         it = it->nextPlugin;
     }
+
     utils::Logger::Instance().deinit();
     m_user_server.wait(1000);
 }

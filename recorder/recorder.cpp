@@ -54,7 +54,7 @@ namespace plugin {
     {
         m_thread.running = false;
         m_thread.speed = 100;
-        for(int i=0; i < 128; ++i) {
+        for(int i=0; i < Chans::Count; ++i) {
             m_wavs[i] = nullptr;
         }
     }
@@ -201,15 +201,17 @@ namespace plugin {
         IPC::Instance().sendMessage("Deinitializing recorder...\n");
         IPC::Instance().sendMessage("Closing all opened records...\n");
 
-        for(int i=0; i < 128; ++i) {
-            if (r->m_wavs[i] != nullptr && r->m_wavs[i]->isOpened()) {
-                static char msg[256] = {0};
-                snprintf(msg, 256, "Closing file: (%s)\n",
-                         r->m_wavs[i]->getFileName());
-                IPC::Instance().sendMessage(msg);
-                r->m_wavs[i]->close();
-                delete r->m_wavs[i];
-                r->m_wavs[i] = nullptr;
+        for(int i=0; i < Chans::Count; ++i) {
+            if (r->m_wavs[i] != nullptr) {
+                if (r->m_wavs[i]->isOpened()) {
+                    static char msg[256] = {0};
+                    snprintf(msg, 256, "Closing file: (%s)\n",
+                             r->m_wavs[i]->getFileName());
+                    IPC::Instance().sendMessage(msg);
+                    r->m_wavs[i]->close();
+                    delete r->m_wavs[i];
+                    r->m_wavs[i] = nullptr;
+                }
             }
         }
         r->stopRecoder();
@@ -309,7 +311,7 @@ namespace plugin {
         return &iface;
     }
 
-    WavIface *Recorder::getWavByName(const QString &fname)
+    Wav *Recorder::getWavByName(const QString &fname)
     {
         for(int i=0; i < m_maxChans; ++i) {
             // fixed a bug with calling compare() here isntead of
@@ -374,8 +376,9 @@ namespace plugin {
                 pollHotSwap();
             }
             sample_data_t s = sd.at(i);
-            m_wavs[i]->write(s.samples, s.size);
-            //delete [] s.samples;
+            if (m_wavs[i] != nullptr) {
+                m_wavs[i]->write(s.samples, s.size);
+            }
         }
         sd.clear();
     }
