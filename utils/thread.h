@@ -23,15 +23,23 @@ namespace utils {
 
     typedef void* (*entryPoint)(void*);
 
+    /// this will be used for the realtime
+    /// critical section
+    /// \brief The SpinLock class
+    ///
     class SpinLock
     {
     public:
         SpinLock();
         ~SpinLock();
-        void lock();
-        void unlock();
+        bool tryLock();
+        bool unlock();
     private:
-        volatile int m_lock;
+        // replaced volatile
+        union {
+            unsigned long int threadId;
+        } m_atomicVar;
+        unsigned int m_lckCount;
     };
 
     class PMutex

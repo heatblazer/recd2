@@ -188,7 +188,7 @@ BSemaphore::~BSemaphore()
 }
 
 SpinLock::SpinLock()
-    : m_lock(0)
+    : m_lckCount(0)
 {
 
 }
@@ -198,16 +198,31 @@ SpinLock::~SpinLock()
 
 }
 
-void SpinLock::lock()
+bool SpinLock::tryLock()
 {
-    while (!__sync_bool_compare_and_swap(&m_lock, 0, 1)) {
-        sched_yield();
+    pthread_t t = PThread::currentThread();
+    bool lock_succeded = (m_atomicVar.threadId == t) ||
+            __sync_bool_compare_and_swap(&m_atomicVar.threadId, 0, t);
+    if (lock_succeded) {
+        m_lckCount++;
     }
+
+    return lock_succeded;
 }
 
-void SpinLock::unlock()
+
+bool SpinLock::unlock()
 {
-    m_lock = 0;
+    pthread_t t = PThread::currentThread();
+    bool unlock_success = false;
+
+    if (m_atomicVar.threadId == t) {
+        m_lckCount--;
+        unlock_success = (m_lckCount != 0) ||
+                __sync_bool_compare_and_swap(&m_atomicVar.threadId, t, 0);
+    }
+
+    return unlock_success;
 }
 
 
