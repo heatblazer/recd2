@@ -1,36 +1,19 @@
-#ifndef IZ_FFT_H
-#define IZ_FFT_H
-#include <QThread>
-#include <QObject>
-#include <QMutex>
-#include <QList>
-
+#ifndef DTMF_H
+#define DTMF_H
 
 #include "plugin-interface.h"
 #include "utils.h"
 
+// lib for dtmf //
+#include "DtmfDetector.hpp"
+
 namespace plugin {
-    namespace fft {
-    struct data_t
-    {
-        float* data;
-        unsigned long number_of_samples;
-        unsigned int srate;
-    };
+    namespace dtmf {
 
-    struct FFT
-    {
-        double pi;
-        unsigned long fundamental_frequency;
-        FFT();
-        ~FFT();
-        void ComplexFFT(data_t data, int sign);
-    };
-
-    class FFTPlugin : public QThread
+    class Dtmf : public QThread
     {
     public:
-        static FFTPlugin& Instance();
+        static Dtmf& Instance();
         // plugin stuff
         static void init();
         static void deinit(void);
@@ -47,20 +30,22 @@ namespace plugin {
         virtual void run() Q_DECL_OVERRIDE;
 
     private:
-        explicit FFTPlugin(QThread* parent = nullptr);
-        virtual ~FFTPlugin();
+        explicit Dtmf(QThread* parent = nullptr);
+        ~Dtmf();
 
-        static FFTPlugin* s_inst;
+        static Dtmf* s_inst;
         bool m_isRunning;
-        FFT m_ftransform;
+        DtmfDetector m_dtmfDetector;
         QList<utils::sample_data_t> m_sampleBuffer;
         QMutex m_lock;
         // plugin stuff
         struct interface_t iface;
     };
 
-    } // fft
+    } // dtmf
 } // plugin
 
 
-#endif // IZ_FFT_H
+
+
+#endif // DTMF_H
