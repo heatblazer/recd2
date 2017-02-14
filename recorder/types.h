@@ -7,7 +7,7 @@ namespace plugin {
     namespace rec {
 
     // opacity
-    struct udp_data_t;
+    struct frame_data_t;
     struct tcp_data_t;
 
     struct wav_hdr_t

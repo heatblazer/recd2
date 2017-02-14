@@ -44,6 +44,8 @@ static int getOpts(char* str)
 
 int main(int argc, char *argv[])
 {
+#if 1
+
     // if no args - run in lab mode to test
     // and debug , later we`ll be sure
     // the >1 arg is provided
@@ -101,16 +103,20 @@ int main(int argc, char *argv[])
     }
 
     return app.exec();
-#if 0
-    utils::udp_data_t d = {1, {0}, {{0}}};
+#else
     utils::RingBuffer rb;
     rb.init();
 
-    for(int i=0; i < 10; ++i) {
+    for(int i=0; i < 1000; ++i) {
+        utils::frame_data_t d;
+        d.counter = i;
         rb.write(d);
+        if (i > 300) {
+            printf("sssss");
+        }
     }
 
-    utils::udp_data_t *pd;
+    utils::frame_data_t *pd;
     int r = rb.readAll(&pd);
 
     for(int i=0; i < r; ++i) {

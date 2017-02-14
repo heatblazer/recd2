@@ -6,7 +6,7 @@
 
 namespace utils {
 // opacity
-struct udp_data_t;
+struct frame_data_t;
 struct tcp_data_t;
 
 // I am having some troubles playing with bits...
@@ -33,9 +33,9 @@ template <typename T> union bytes_t
 
 
 /// postimplemented struct for udp header
-/// \brief The udp_data_t struct
+/// \brief The frame_data_t struct
 ///
-struct udp_data_t
+struct frame_data_t
 {
     uint32_t    counter;
     uint8_t     null_bytes[32];
@@ -44,7 +44,7 @@ struct udp_data_t
 };
 
 // required for flippingp_server
-struct udp_data_t2
+struct frame_data_t2
 {
     uint32_t    counter;
     uint8_t     null_bytes[32];

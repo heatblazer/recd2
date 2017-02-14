@@ -18,9 +18,9 @@ namespace plugin {
     /// \param in
     /// \return
     ///
-    static inline utils::udp_data_t copy_and_flip(utils::udp_data_t2 in)
+    static inline utils::frame_data_t copy_and_flip(utils::frame_data_t2 in)
     {
-        utils::udp_data_t out;
+        utils::frame_data_t out;
         out.counter = in.counter;
         for(int i=0; i < 32; ++i) {
             out.null_bytes[i] = in.null_bytes[i];
@@ -41,7 +41,7 @@ namespace plugin {
                                  0,0,0,
                                  0,{0},0};
     // the err udp packet
-    static struct utils::udp_data_t err_udp = {0,{0},{{0}}}; // warn fix
+    static struct utils::frame_data_t err_udp = {0,{0},{{0}}}; // warn fix
 ////////////////////////////////////////////////////////////////////////////////
 
     Server& Server::Instance()
@@ -89,8 +89,8 @@ namespace plugin {
                 connect(s->udp, SIGNAL(readyRead()),
                         s, SLOT(readyReadUdp())/*, Qt::DirectConnection*/);
 
-                connect(s, SIGNAL(dataReady(udp_data_t*)),
-                        s, SLOT(hDataReady(udp_data_t*)));
+                connect(s, SIGNAL(dataReady(frame_data_t*)),
+                        s, SLOT(hDataReady(frame_data_t*)));
                 if (bres) {
                     printf("Bind OK!\n");
                     s->m_liveConnection.setInterval(1000);
@@ -103,7 +103,7 @@ namespace plugin {
                 }
             } else if (transport.m_type2 == "tcp") {
                 // give time to everithying to init
-                QTimer::singleShot(3000,
+                QTimer::singleShot(0,
                                    [=]()
                 {
                     s->initTcpServer();
@@ -139,10 +139,10 @@ namespace plugin {
                 if (read > 0) {
                     // the udp structure from the device
 #ifdef REQ_FLIP
-                    utils::udp_data_t2* udp2 = (utils::udp_data_t2*) buff.data();
-                    utils::udp_data_t udp = copy_and_flip(*udp2);
+                    utils::frame_data_t2* udp2 = (utils::frame_data_t2*) buff.data();
+                    utils::frame_data_t udp = copy_and_flip(*udp2);
 #else
-                    udp_data_t udp = *(udp_data_t*) buff.data();
+                    frame_data_t udp = *(frame_data_t*) buff.data();
 #endif
                     // one frame lost for synching with my counter
 
@@ -202,7 +202,7 @@ namespace plugin {
                     // will use a new logic emit the udp struct
                     // to the recorder, so now we don`t need
                     // to depend each other
-                        //put_data((udp_data_t*) udp);
+                        //put_data((frame_data_t*) udp);
                         QList<utils::sample_data_t> ls;
                         // copy all the data then send it to the plugins
                         for(int i=0; i < 32; ++i) {
@@ -233,7 +233,7 @@ namespace plugin {
     /// \brief Server::hDataReady
     /// \param data
     ///
-    void Server::hDataReady(utils::udp_data_t *data)
+    void Server::hDataReady(utils::frame_data_t *data)
     {
 
         for(int i=0; i < 32; ++i) {
@@ -487,17 +487,17 @@ namespace plugin {
             exit(0); // deleteme later
         }
 
-        int drainBytes = sizeof(udp_data_t) - m_packet.size;
+        int drainBytes = sizeof(frame_data_t) - m_packet.size;
         if (drainBytes != 0) {
             QByteArray d = r->read(drainBytes);
             m_packet.size += d.count();
             m_packet.data.append(d.data(), d.count());
         }
 
-        if ((drainBytes == 0) && (m_packet.size == sizeof(udp_data_t))) {
+        if ((drainBytes == 0) && (m_packet.size == sizeof(frame_data_t))) {
 
             // the udp structure from the device
-            udp_data_t tcp = *(udp_data_t*) m_packet.data.data();
+            frame_data_t tcp = *(frame_data_t*) m_packet.data.data();
             std::cout << tcp.counter << std::endl;
 
             if (++s->m_conn_info.paketCounter != tcp.counter) {

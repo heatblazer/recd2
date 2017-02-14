@@ -29,6 +29,8 @@ void *Writer::worker(void *pArgs)
             w->m_file.flush();
         }
     } while (w->m_isRunning);
+
+    return (int*)0;
 }
 
 

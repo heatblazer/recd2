@@ -30,7 +30,7 @@ public:
     static struct interface_t* getSelf(void);
 
 private:
-    utils::udp_data_t test_data;
+    utils::frame_data_t test_data;
     struct interface_t s_iface;
     static Producer* s_instance;
     bool isRunning;

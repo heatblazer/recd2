@@ -24,7 +24,7 @@ int PMutex::init()
     //ret = pthread_mutexattr_init(&m_sched_param);
     //ret = pthread_mutexattr_setpshared(&m_sched_param, PTHREAD_PROCESS_SHARED);
     ret = pthread_mutex_init(&m_mutex, nullptr);
-    return 0;
+    return ret;
 }
 
 void PMutex::lock()
@@ -45,7 +45,7 @@ void PMutex::deinit()
     pthread_mutex_destroy(&m_mutex);
 }
 
-const bool PMutex::locked()
+bool PMutex::locked() const
 {
     return is_locked;
 }
@@ -65,8 +65,8 @@ pthread_t PThread::currentThread()
 ///
 PThread::PThread(SchedAlgorithms algo)
     : m_schedAlgo(algo),
-      m_name{0},
-      m_stack(nullptr)
+      m_stack(nullptr),
+      m_name{0}
 {
 }
 
@@ -137,7 +137,6 @@ int PThread::create(size_t stack_size, int priority, entryPoint cb, void* user_d
 void PThread::join()
 {
     void* ret;
-    int* r = (int*) ret;
     pthread_join(m_thread, &ret);
 }
 

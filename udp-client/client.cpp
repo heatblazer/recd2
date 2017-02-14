@@ -112,7 +112,7 @@ void Client::transmit()
      }
      std::cout << m_packet.packet.counter << std::endl;
 
-     p_tcp->write(m_packet.data, sizeof(udp_data_t));
+     p_tcp->write(m_packet.data, sizeof(frame_data_t));
      p_tcp->flush();
 
 }

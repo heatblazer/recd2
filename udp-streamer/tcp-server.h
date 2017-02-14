@@ -23,6 +23,7 @@ namespace plugin {
             utils::PMutex lock;
             TcpServer* const ref;
             friend class TcpServer;
+            bool m_isRunning;
         };
 
 
@@ -35,8 +36,8 @@ namespace plugin {
         void deinit();
 
     private:
-
-        utils::udp_data_t m_frames;
+        bool m_isRunning ;
+        utils::frame_data_t m_frames;
         struct {
             utils::RingBuffer data;
             bool isBusy;

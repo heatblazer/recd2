@@ -6,6 +6,7 @@
 #include <alloca.h>
 
 #include "ipc-msg.h"
+#include "utils.h"
 
 #define SWAP(a, b) tempr = (a); (a) = (b); (b) = tempr
 

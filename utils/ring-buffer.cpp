@@ -1,5 +1,7 @@
 #include "ring-buffer.h"
 
+#include <string.h>
+
 namespace utils {
 
 RingBuffer::RingBuffer()
@@ -18,10 +20,14 @@ void RingBuffer::init()
     wHead = &m_buffer[0];
 }
 
-int RingBuffer::readAll(udp_data_t **ret)
+int RingBuffer::readAll(frame_data_t **ret)
 {
     int diff = rwDiff();
-    udp_data_t* d = new udp_data_t[diff];
+    if (diff == 0) {
+        (*ret) = nullptr;
+        return 0;
+    }
+    frame_data_t* d = new frame_data_t[diff];
     for(int i=0; i < diff; ++i){
         d[i] = read();
     }
@@ -29,22 +35,26 @@ int RingBuffer::readAll(udp_data_t **ret)
     return diff;
 }
 
-void RingBuffer::write(udp_data_t &t)
+void RingBuffer::write(frame_data_t &t)
 {
-    if ((rwDiff() >= 0)) {
-        *wHead = t;
-        advanceWriteHead();
-    }
+    *wHead = t;
+    advanceWriteHead();
 }
 
-udp_data_t &RingBuffer::read()
+frame_data_t RingBuffer::read()
 {
-    udp_data_t ret = {1, {0}, {{0}}};
-    if ((rwDiff() >= 0)) {
-        ret = *rHead;
-        advanceReadHead();
-    }
+    frame_data_t ret = {0, {0}, {{0}}};
+    ret = *rHead;
+    advanceReadHead();
     return ret;
+}
+
+/// clear ring buffer data
+/// \brief RingBuffer::clear
+///
+void RingBuffer::clear()
+{
+    memset(&m_buffer, 0, sizeof(m_buffer));
 }
 
 void RingBuffer::advanceWriteHead()
@@ -76,12 +86,12 @@ int RingBuffer::rwDiff()
     return wHead - rHead;
 }
 
-const udp_data_t *RingBuffer::begin() const
+const frame_data_t *RingBuffer::begin() const
 {
     return &m_buffer[0];
 }
 
-const udp_data_t *RingBuffer::end() const
+const frame_data_t *RingBuffer::end() const
 {
     return &m_buffer[RingBuffer::SIZE-1];
 }

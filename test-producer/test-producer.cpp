@@ -131,7 +131,7 @@ Producer &Producer::Instance()
 void *Producer::worker(void *pArgs)
 {
     Producer* p = (Producer*) pArgs;
-    utils::udp_data_t err_udp = {0, {0}, {{0}}};
+    utils::frame_data_t err_udp = {0, {0}, {{0}}};
 
     while (p->isRunning) {
         QList<utils::sample_data_t> ls;

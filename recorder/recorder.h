@@ -16,7 +16,7 @@
 namespace plugin {
     namespace rec {
 
-    struct udp_data_t
+    struct frame_data_t
     {
         uint32_t    counter;
         uint8_t     null_bytes[32];

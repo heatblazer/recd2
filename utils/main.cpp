@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     // test the ring buffer
     utils::RingBuffer rb;
     rb.init();
-    utils::udp_data_t d = {1, {0}, {{0}}};
+    utils::frame_data_t d = {1, {0}, {{0}}};
 
     for(int i=0; i < 10; ++i) {
         rb.write(d);
