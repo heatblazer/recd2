@@ -13,7 +13,7 @@ public:
     void init();
     int readAll(frame_data_t** ret);
     void write(frame_data_t& t);
-    frame_data_t read();
+    frame_data_t *read();
     void clear();
 
 private:

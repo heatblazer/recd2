@@ -29,7 +29,7 @@ int RingBuffer::readAll(frame_data_t **ret)
     }
     frame_data_t* d = new frame_data_t[diff];
     for(int i=0; i < diff; ++i){
-        d[i] = read();
+        d[i] = *read();
     }
     (*ret) = d;
     return diff;
@@ -41,11 +41,15 @@ void RingBuffer::write(frame_data_t &t)
     advanceWriteHead();
 }
 
-frame_data_t RingBuffer::read()
+frame_data_t* RingBuffer::read()
 {
-    frame_data_t ret = {0, {0}, {{0}}};
-    ret = *rHead;
-    advanceReadHead();
+    frame_data_t *ret = nullptr;
+    if (rHead == wHead) {
+        return nullptr;
+    } else {
+        ret = rHead;
+        advanceReadHead();
+    }
     return ret;
 }
 

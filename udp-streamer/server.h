@@ -63,7 +63,6 @@ namespace plugin {
         void readyReadTcp();
         void tcpConnected();
         void tcpDisconnected();
-        void hDataReady(utils::frame_data_t *data);
         void checkConnection();
         void route(States state);
         void disconnected();

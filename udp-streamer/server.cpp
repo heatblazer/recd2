@@ -229,17 +229,6 @@ namespace plugin {
         }
     }
 
-    /// unused
-    /// \brief Server::hDataReady
-    /// \param data
-    ///
-    void Server::hDataReady(utils::frame_data_t *data)
-    {
-
-        for(int i=0; i < 32; ++i) {
-            put_ndata((short*)&data->data[i], 16);
-        }
-    }
 
     /// check if the device is sending data
     /// send some statistics each 1 second

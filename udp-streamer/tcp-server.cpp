@@ -98,9 +98,9 @@ void *TcpServer::worker(void *pArgs)
                     utils::IPC::Instance().sendMessage(msg);
                 } else {
                     // do soemthin with the data
-                    //s->m_lock.lock();
+                    s->m_lock.lock();
                     s->m_buffer.data.write(frame);
-                    //s->m_lock.unlock();
+                    s->m_lock.unlock();
                 }
             }
             // close old conn - register a new one
@@ -160,10 +160,26 @@ void *TcpServer::Writer::worker(void *pArgs)
     for (;;) {
         // perform the read stuff here
         QList<utils::sample_data_t> ls;
-        utils::frame_data_t t;
-        t = w->ref->m_buffer.data.read();
-        printf("Cnt: %lu\r", t.counter);
-        Server::Instance().put_data((QList<utils::sample_data_t>*)&ls);
+        utils::frame_data_t* t = nullptr;
+        w->lock.lock();
+        t = (w->ref->m_buffer.data).read();
+        w->lock.unlock();
+        if (t == nullptr) {
+            continue;
+        } else {
+            printf("Cnt: %lu\r", t->counter);
+            for(int i=0; i < 32; ++i) {
+                utils::sample_data_t sdata = {0, 0};
+                short samples[16] = {0};
+                sdata.samples = samples;
+                sdata.size = 16;
+                for (int j=0; j < 16; ++j) {
+                    sdata.samples[j] = t->data[i][j];
+                }
+                ls.append(sdata);
+            }
+            Server::Instance().put_data((QList<utils::sample_data_t>*)&ls);
+        }
     }
 }
 
