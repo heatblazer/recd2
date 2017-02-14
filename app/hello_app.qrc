@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>hello_app.js</file>
+    </qresource>
+</RCC>

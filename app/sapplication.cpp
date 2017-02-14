@@ -1,6 +1,13 @@
 #include "sapplication.h"
 
 #include <QDir>
+#include <QFile>
+
+// script engine //
+#include <QTranslator>
+#include <QTextStream>
+#include <QtScript/QtScript>
+
 #include <iostream> // remove it later
 
 #include "defs.h"
@@ -25,6 +32,8 @@ void SApplication::writeToSocket(const char *data)
     (void) data;
 }
 
+static bool temp_test_enable = false;
+
 /// the inheritee of QApplication is
 /// responsible for initing all stuff
 /// \brief SApplication::SApplication
@@ -38,6 +47,22 @@ SApplication::SApplication(int &argc, char **argv)
     // proxy them to the plugins if needed
     s_argc = argc;
     s_argv = argv;
+    if (temp_test_enable) {
+        QScriptEngine engine;
+        QTranslator translator;
+        translator.load("helloapp_la");
+        installTranslator(&translator);
+        QString fname(":/scripts/app.js");
+        QFile file(fname);
+        file.open(QIODevice::ReadOnly);
+        QTextStream strm(&file);
+        QString content = strm.readAll();
+        file.close();
+        QScriptValue evVal = engine.evaluate(content, fname);
+        if (evVal.isError()) {
+            exit(-1);
+        }
+    }
 
     // just program name
     if (argc == 1) {

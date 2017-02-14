@@ -1,10 +1,6 @@
 #ifndef PLUGININTERFACE_H
 #define PLUGININTERFACE_H
 
-/* this is the plugin interface used by the program
- * it`s independat and other projects may use it.
- *
-*/
 
 #ifdef __cplusplus
 extern "C"{

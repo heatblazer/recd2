@@ -147,7 +147,7 @@ void *Producer::worker(void *pArgs)
         }
 
         p->put_data((QList<utils::sample_data_t>*)&ls);
-        p->suspend(10);
+        p->suspend(0);
     }
 }
 

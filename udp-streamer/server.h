@@ -56,14 +56,14 @@ namespace plugin {
         static struct interface_t iface;
 
     signals:
-        void dataReady(udp_data_t* data);
+        void dataReady(utils::udp_data_t* data);
 
     private slots:
         void readyReadUdp();
         void readyReadTcp();
         void tcpConnected();
         void tcpDisconnected();
-        void hDataReady(udp_data_t *data);
+        void hDataReady(utils::udp_data_t *data);
         void checkConnection();
         void route(States state);
         void disconnected();

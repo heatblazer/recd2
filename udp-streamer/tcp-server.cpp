@@ -8,7 +8,7 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/select.h>
+#include <sys/select.h> // error handlig from the socket fd based on timeout
 
 #include "server.h"
 #include "utils.h"
@@ -23,40 +23,92 @@ void *TcpServer::worker(void *pArgs)
 {
     TcpServer* s = (TcpServer*) pArgs;
 
-    QQueue<utils::udp_data_t> dblBff;
+    static const int SIZE = 1060;
+    uint8_t* buffer = nullptr;
+    int client, newsocketfd;
+    size_t len;
+
+    int select_result = 0;
+    fd_set read_set;
+    struct timeval timeout;
+
+    timeout.tv_sec = 20;
+    timeout.tv_usec = 0;
+
+    FD_ZERO(&read_set);
+
+    static char msg[128] = {0};
+    struct sockaddr_in serv_addr, client_addr;
+
+
+    if ((s->socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        perror("Error opening socket!");
+        exit(1);
+    }
+
+    FD_SET(s->socket_fd, &read_set);
+
+    memset((char*)&serv_addr, 0, sizeof(serv_addr));
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = INADDR_ANY;
+    serv_addr.sin_port = htons(1234);
+
+    if (bind(s->socket_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+        perror("BIND failed");
+        exit(1);
+    }
+
+    listen(s->socket_fd, 5);
+    client = sizeof(client_addr);
 
     for(;;) {
+        select_result = select(s->socket_fd+1, &read_set, NULL, NULL, &timeout);
+        if (select_result < 0) {
+            // handle error
+            utils::IPC::Instance().sendMessage("Error in select()\n");
+            break;
 
-        s->m_lock.lock();
-        dblBff = s->m_buffer;
-        s->m_lock.unlock();
-
-        QList<sample_data_t> ls;
-        if (dblBff.isEmpty()) {
-            continue;
-        }
-        while (!dblBff.isEmpty()) {
-            const utils::udp_data_t& frame = s->m_buffer.dequeue();
-            std::cout << frame.counter << std::endl;
-            // copy all the data then send it to the plugins
-
-            for(int i=0; i < 32; ++i) {
-                sample_data_t pkt = {0, 0};
-                short smpls[16] ={0};
-
-                pkt.samples = smpls;
-                pkt.size = 16;
-                // fill the list to be passed to other plugins
-                for(int j=0; j < 16; ++j) {
-                    pkt.samples[j] = frame.data[i][j];
-                }
-                ls.append(pkt);
+        } else if (select_result == 0) {
+            // handle timeout
+            utils::IPC::Instance().sendMessage("select handle timed out after 20 seconds\n");
+            break;
+        } else {
+            newsocketfd = accept(s->socket_fd, (struct sockaddr*)&client_addr, (socklen_t*)&client);
+            if (newsocketfd < 0) {
+                perror("Error on accept");
+                exit(1);
             }
+
+            for(;;) {
+                utils::udp_data_t frame = {0, {0}, {{0}}};
+                for(buffer = (uint8_t*)&frame, len = 0; len < SIZE; ) {
+                    int nn = read(newsocketfd, buffer, SIZE - len);
+                    len += nn;
+                    buffer += nn;
+                }
+                if (++s->p_server->m_conn_info.paketCounter != frame.counter) {
+                    s->p_server->m_conn_info.paketCounter = frame.counter;
+                    snprintf(msg, sizeof(msg), "Missed: %lu\n",
+                             (long unsigned int) s->p_server->m_conn_info.paketCounter+1);
+                    utils::IPC::Instance().sendMessage(msg);
+                } else {
+                    // do soemthin with the data
+//                    s->m_buffer.isBusy = true;
+                    s->m_lock.lock();
+                    s->m_buffer.data.write(frame);
+                    s->m_lock.unlock();
+//                    s->m_buffer.isBusy = false;
+                }
+            }
+            // close old conn - register a new one
+            close(newsocketfd);
         }
-        // finally send it
-        s->p_server->put_data((QList<sample_data_t>*) &ls);
-        s->suspend(0);
     }
+
+    utils::IPC::Instance().sendMessage("Stoppint TCP server...\n");
+    // finally close socket
+    close(s->socket_fd);
 }
 
 TcpServer::TcpServer()
@@ -65,6 +117,8 @@ TcpServer::TcpServer()
       socket_fd(-1)
 {
     p_server = &Server::Instance();
+    m_writer = new Writer(this);
+    m_buffer.data.init();
 }
 
 TcpServer::~TcpServer()
@@ -73,80 +127,67 @@ TcpServer::~TcpServer()
 
 void TcpServer::init()
 {
-    static const int SIZE = 1060;
-    uint8_t* buffer = nullptr;
-    int client, newsocketfd;
-    size_t len;
-
-    struct sockaddr_in serv_addr, client_addr;
-
-    if ((socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("Error opening socket!");
-        exit(1);
-    }
-
-    memset((char*)&serv_addr, 0, sizeof(serv_addr));
-
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
-    serv_addr.sin_port = htons(1234);
-
-    if (bind(socket_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
-        perror("BIND failed");
-        exit(1);
-    }
-
-    listen(socket_fd, 5);
-    client = sizeof(client_addr);
-
-
-    static char msg[128] = {0};
     // start buffer thread
+    m_lock.init();
     setName("tcp-thread");
     create(128 * 1024, 20, TcpServer::worker, this);
-    for(;;) {
-
-        newsocketfd = accept(socket_fd, (struct sockaddr*)&client_addr, (socklen_t*)&client);
-        if (newsocketfd < 0) {
-            perror("Error on accept");
-            exit(1);
-        }
-
-        for(;;) {
-            for(buffer = (uint8_t*)&m_frames, len = 0; len < SIZE;) {
-                int nn = read(newsocketfd, buffer, SIZE - len);
-                len += nn;
-                buffer += nn;
-            }
-
-            m_lock.lock();
-            m_buffer.enqueue(m_frames);
-            m_lock.unlock();
-#if 0
-            for(int i=0; i < 16; ++i) {
-                printf("%lu\n", (long unsigned int) m_frames[i].counter);
-                if (++p_server->m_conn_info.paketCounter != m_frames[i].counter) {
-                    p_server->m_conn_info.paketCounter = m_frames[i].counter;
-                    snprintf(msg, sizeof(msg), "Missed: %lu\n",
-                             (long unsigned int) p_server->m_conn_info.paketCounter+1);
-                    utils::IPC::Instance().sendMessage(msg);
-                } else {
-                    //m_buffer.write(frame);
-            }
-#endif
-        }
-
-        close(newsocketfd);
-    }
-
-    close(socket_fd);
+    m_writer->init();
 }
 
 void TcpServer::deinit()
 {
-    //join();
     utils::IPC::Instance().sendMessage("TCP server deinit\n");
+    utils::PThread::join();
+    m_lock.deinit();
+    m_writer->join();
 }
+
+TcpServer::Writer::Writer(TcpServer * const p)
+    : ref(p)
+{
+}
+
+void *TcpServer::Writer::worker(void *pArgs)
+{
+    Writer* w  = (Writer*) pArgs;
+
+    for (;;) {
+        QList<utils::sample_data_t> ls;
+
+        utils::udp_data_t* readData = nullptr;
+        int read_size = 0;
+
+        w->lock.lock();
+        read_size = w->ref->m_buffer.data.readAll(&readData);
+        w->lock.unlock();
+
+        for (int i=0; i < read_size; ++i) {
+            std::cout << "Read size: " << read_size << std::endl;
+            std::cout << readData[i].counter << std::endl;
+            for(int j=0; j < 32; ++j) {
+                utils::sample_data_t smpls = {0, 0};
+                short smpl[16] = {0};
+                smpls.samples = smpl;
+                smpls.size = 16;
+                for(int h=0; h < 16; ++h) {
+                    smpls.samples[j] = readData[i].data[j][h];
+                }
+                ls.append(smpls);
+            }
+        }
+
+        Server::Instance().put_data((QList<utils::sample_data_t>*)&ls);
+        delete [] readData;
+    }
+}
+
+void TcpServer::Writer::init()
+{
+    lock.init();
+    setName("tcp-writer-thread");
+    create(128 * 1024, 10, Writer::worker, this);
+}
+
 
 } // udp
 

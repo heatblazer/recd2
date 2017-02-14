@@ -11,7 +11,7 @@ public:
     RingBuffer();
     ~RingBuffer();
     void init();
-
+    int readAll(udp_data_t** ret);
     void write(udp_data_t& t);
     udp_data_t &read();
 

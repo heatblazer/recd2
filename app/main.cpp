@@ -50,6 +50,8 @@ int main(int argc, char *argv[])
     std::cout << "Starting recording server..."
               << std::endl;
 
+    Q_INIT_RESOURCE(hello_app); // the js script
+
     bool is_daemon = false;
     if (argc > 1) {
         int opts = 0;
@@ -99,4 +101,24 @@ int main(int argc, char *argv[])
     }
 
     return app.exec();
+#if 0
+    utils::udp_data_t d = {1, {0}, {{0}}};
+    utils::RingBuffer rb;
+    rb.init();
+
+    for(int i=0; i < 10; ++i) {
+        rb.write(d);
+    }
+
+    utils::udp_data_t *pd;
+    int r = rb.readAll(&pd);
+
+    for(int i=0; i < r; ++i) {
+        std::cout << pd[i].counter << std::endl;
+    }
+    delete [] pd;
+
+    return 0;
+#endif
 }
+

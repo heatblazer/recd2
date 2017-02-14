@@ -18,9 +18,9 @@ namespace plugin {
     /// \param in
     /// \return
     ///
-    static inline udp_data_t copy_and_flip(utils::udp_data_t2 in)
+    static inline utils::udp_data_t copy_and_flip(utils::udp_data_t2 in)
     {
-        udp_data_t out;
+        utils::udp_data_t out;
         out.counter = in.counter;
         for(int i=0; i < 32; ++i) {
             out.null_bytes[i] = in.null_bytes[i];
@@ -41,7 +41,7 @@ namespace plugin {
                                  0,0,0,
                                  0,{0},0};
     // the err udp packet
-    static struct udp_data_t err_udp = {0,{0},{{0}}}; // warn fix
+    static struct utils::udp_data_t err_udp = {0,{0},{{0}}}; // warn fix
 ////////////////////////////////////////////////////////////////////////////////
 
     Server& Server::Instance()
@@ -103,7 +103,11 @@ namespace plugin {
                 }
             } else if (transport.m_type2 == "tcp") {
                 // give time to everithying to init
-                QTimer::singleShot(3000, s, SLOT(initTcpServer()));
+                QTimer::singleShot(3000,
+                                   [=]()
+                {
+                    s->initTcpServer();
+                });
 
         } else {
             std::cout << "Invalid xml attribute (" << transport.m_type2.toStdString()
@@ -136,7 +140,7 @@ namespace plugin {
                     // the udp structure from the device
 #ifdef REQ_FLIP
                     utils::udp_data_t2* udp2 = (utils::udp_data_t2*) buff.data();
-                    udp_data_t udp = copy_and_flip(*udp2);
+                    utils::udp_data_t udp = copy_and_flip(*udp2);
 #else
                     udp_data_t udp = *(udp_data_t*) buff.data();
 #endif
@@ -164,12 +168,12 @@ namespace plugin {
 
                         // it`s an err sender logic below
                         // always write a null bytes packet on missed udp
-                        QList<sample_data_t> err_ls;
+                        QList<utils::sample_data_t> err_ls;
 
                         if(!m_conn_info.onetimeSynch) {
                             m_conn_info.onetimeSynch = true;
                             for(int i=0; i < 32; ++i) {
-                                sample_data_t s = {0, 0};
+                                utils::sample_data_t s = {0, 0};
                                 short smpl[16] = {0};
                                 s.samples = smpl;
                                 s.size = 16;
@@ -178,11 +182,11 @@ namespace plugin {
                                 }
                                 err_ls.append(s);
                             }
-                            put_data((QList<sample_data_t>*) &err_ls);
+                            put_data((QList<utils::sample_data_t>*) &err_ls);
                         } else {
                             for(int i=0; i < errs; ++i) {
                                for(int j=0; j < 32; ++j) {
-                                   sample_data_t sd = {0, 0};
+                                   utils::sample_data_t sd = {0, 0};
                                    short smpls[16]= {0};
                                    sd.samples = smpls;
                                    sd.size = 16;
@@ -191,7 +195,7 @@ namespace plugin {
                                    }
                                    err_ls.append(sd);
                                }
-                               put_data((QList<sample_data_t>*) &err_ls);
+                               put_data((QList<utils::sample_data_t>*) &err_ls);
                             }
                         }
                     } else {
@@ -199,10 +203,10 @@ namespace plugin {
                     // to the recorder, so now we don`t need
                     // to depend each other
                         //put_data((udp_data_t*) udp);
-                        QList<sample_data_t> ls;
+                        QList<utils::sample_data_t> ls;
                         // copy all the data then send it to the plugins
                         for(int i=0; i < 32; ++i) {
-                            sample_data_t s = {0, 0};
+                            utils::sample_data_t s = {0, 0};
                             short smpls[16] ={0};
                             s.samples = smpls;
                             s.size = 16;
@@ -213,7 +217,7 @@ namespace plugin {
                             ls.append(s);
                         }
                         // finally send it
-                        put_data((QList<sample_data_t>*) &ls);
+                        put_data((QList<utils::sample_data_t>*) &ls);
                     }
                  } else {
                     snprintf(msg, sizeof(msg), "Missed an UDP\n");
@@ -229,7 +233,7 @@ namespace plugin {
     /// \brief Server::hDataReady
     /// \param data
     ///
-    void Server::hDataReady(udp_data_t *data)
+    void Server::hDataReady(utils::udp_data_t *data)
     {
 
         for(int i=0; i < 32; ++i) {
@@ -321,13 +325,8 @@ namespace plugin {
         if (iface.nextPlugin != nullptr) {
             iface.nextPlugin->put_data(data);
         } else {
-            QList<sample_data_t>* ls = (QList<sample_data_t>*) data;
-            for(int i=0; i < ls->count(); ++i) {
-                sample_data_t sd = ls->takeAt(i);
-                if (/*sd.samples != nullptr*/0) {
-                    delete [] sd.samples;
-                }
-            }
+            QList<utils::sample_data_t>* ls = (QList<utils::sample_data_t>*) data;
+
             ls->clear();
         }
         return 0;

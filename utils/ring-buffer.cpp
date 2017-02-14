@@ -14,21 +14,32 @@ RingBuffer::~RingBuffer()
 
 void RingBuffer::init()
 {
-    rHead = m_buffer;
-    wHead = m_buffer;
+    rHead = &m_buffer[0];
+    wHead = &m_buffer[0];
+}
+
+int RingBuffer::readAll(udp_data_t **ret)
+{
+    int diff = rwDiff();
+    udp_data_t* d = new udp_data_t[diff];
+    for(int i=0; i < diff; ++i){
+        d[i] = read();
+    }
+    (*ret) = d;
+    return diff;
 }
 
 void RingBuffer::write(udp_data_t &t)
 {
     if ((rwDiff() >= 0)) {
-        wHead = &t;
+        *wHead = t;
         advanceWriteHead();
     }
 }
 
 udp_data_t &RingBuffer::read()
 {
-    udp_data_t ret = {0, {0}, {{0}}};
+    udp_data_t ret = {1, {0}, {{0}}};
     if ((rwDiff() >= 0)) {
         ret = *rHead;
         advanceReadHead();

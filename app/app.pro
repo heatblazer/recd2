@@ -7,6 +7,10 @@ TARGET = recd2
 CONFIG += console
 CONFIG -= app_bundle
 
+RESOURCES += \
+    hello_app.qrc
+
+
 TEMPLATE = app
 
 LIBS += -ldl

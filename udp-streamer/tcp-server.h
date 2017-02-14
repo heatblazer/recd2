@@ -12,25 +12,22 @@ namespace plugin {
 
     class Server;
 
-    struct sample_data_t
-    {
-        short* samples;
-        uint32_t size;
-    };
-
-
-    struct udp_data_t
-    {
-        uint32_t    counter;
-        uint8_t     null_bytes[32];
-        int16_t     data[32][16];
-
-    };
-
 
     class TcpServer : public utils::PThread
     {
+        class Writer : utils::PThread
+        {
+            Writer(TcpServer* const p);
+            static void* worker(void *pArgs);
+            void init();
+            utils::PMutex lock;
+            TcpServer* const ref;
+            friend class TcpServer;
+        };
+
+
         static void* worker(void* pArgs);
+
     public:
         explicit TcpServer();
         virtual ~TcpServer();
@@ -38,14 +35,18 @@ namespace plugin {
         void deinit();
 
     private:
+
         utils::udp_data_t m_frames;
-        QQueue<utils::udp_data_t> m_buffer;
+        struct {
+            utils::RingBuffer data;
+            bool isBusy;
+        } m_buffer;
         utils::PMutex m_lock;
         Server* p_server;
         int socket_fd;
-
-
+        Writer* m_writer;
     };
+
     } // udp
 } // plugin
 #endif // TCPSERVER_H
