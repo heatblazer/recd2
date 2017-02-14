@@ -178,14 +178,51 @@ void PThread::deinit()
 
 }
 
-BSemaphore::BSemaphore(const char *name)
+void BSemaphore::Lock()
 {
-    strncpy(m_name, name, sizeof(m_name)/sizeof(m_name[0]));
+    pthread_mutex_lock(&m_lock);
+}
+
+void BSemaphore::Unlock()
+{
+    pthread_mutex_unlock(&m_lock);
+}
+
+BSemaphore::BSemaphore()
+    : m_count(0)
+{
+    m_cond = PTHREAD_COND_INITIALIZER;
+    pthread_mutex_init(&m_lock, nullptr);
 }
 
 BSemaphore::~BSemaphore()
 {
+    pthread_mutex_destroy(&m_lock);
+}
 
+int BSemaphore::create()
+{
+}
+
+void BSemaphore::post()
+{
+    Lock();
+    while (m_count <= 0) {
+        pthread_cond_wait(&m_cond, &m_lock);
+    }
+    m_count--;
+    Unlock();
+}
+
+void BSemaphore::wait()
+{
+    Lock();
+    int prev_val = m_count++;
+    Unlock();
+
+    if (prev_val == 0) {
+        pthread_cond_signal(&m_cond);
+    }
 }
 
 SpinLock::SpinLock()

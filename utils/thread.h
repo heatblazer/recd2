@@ -96,19 +96,19 @@ namespace utils {
     // binary semaphore using mutexes conditionals and counters
     class BSemaphore
     {
-        // TODO: to be implemented
+        void Lock();
+        void Unlock();
     public:
-        explicit BSemaphore(const char* name);
+        explicit BSemaphore();
         ~BSemaphore();
         int create();
         void post();
         void wait();
-        void close();
+
     private:
-        PMutex m_lock;
-        pthread_cond_t m_nonzero;
-        unsigned m_count;
-        char m_name[64];
+        pthread_mutex_t m_lock;
+        pthread_cond_t m_cond; // 0 or 1
+        int m_count;
     };
 }
 #endif // THREAD_H
