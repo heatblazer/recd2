@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <iostream>
 #include <QList>
@@ -26,6 +27,15 @@ void Producer::init()
 {
     Producer* p = &Instance();
     utils::IPC::Instance().sendMessage("Init Producer...\n");
+
+    FILE* fp = fopen("test.wav", "rb");
+    if (!fp) {
+        return;
+    }
+    uint8_t* t = (uint8_t*) &p->samples;
+    size_t r = fread(t, 1, sizeof(samples), fp);
+    fclose(fp);
+
 
     ((PThread*)p)->setName("producer-thread");
     p->isRunning = true;
@@ -132,19 +142,17 @@ void *Producer::worker(void *pArgs)
 {
     Producer* p = (Producer*) pArgs;
     utils::frame_data_t err_udp = {0, {0}, {{0}}};
-
+    static int cnt = 0;
     while (p->isRunning) {
         QList<utils::sample_data_t> ls;
-        for(int i=0; i < 32; ++i) {
-            utils::sample_data_t s = {0, 0};
-            short smpl[16] = {0};
-            s.samples = smpl;
-            s.size = 16;
-            for(int j=0; j < 16; ++j) {
-                s.samples[j] = err_udp.data[i][j];
-            }
-            ls.append(s);
+        utils::sample_data_t s = {0, 0};
+        short smpl[16] = {0};
+        s.samples = smpl;
+        s.size = 16;
+        for(int j=0; j < 16; ++j) {
+            s.samples[j] = p->samples.data[cnt++ % sizeof(p->samples.data)];
         }
+        ls.append(s);
 
         p->put_data((QList<utils::sample_data_t>*)&ls);
         p->suspend(0);

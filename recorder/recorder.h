@@ -33,7 +33,7 @@ namespace plugin {
     public:
         enum Chans
         {
-            Count = 32
+            Count = 128 // no more than 128 chans
         };
 
         // will use later the num_channels when concept is more clear

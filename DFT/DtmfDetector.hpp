@@ -32,8 +32,10 @@ public:
 		public:
 
 		/// The number of detected push buttons, max number = 64
-		INT32 getIndexDialButtons() 
-			const {return indexForDialButtons;}
+        INT32 getIndexDialButtons() const
+        {
+            return indexForDialButtons;
+        }
 
 		/// Address of array, where store detected push buttons
 		char *getDialButtonsArray() 
@@ -44,6 +46,7 @@ public:
 			const {indexForDialButtons = 0;}
 
 		DtmfDetectorInterface():indexForDialButtons(0), pDialButtons(dialButtons){dialButtons[0] = 0;}
+
 };
 
 class DtmfDetector : public DtmfDetectorInterface
@@ -55,7 +58,7 @@ protected:
 		INT32 T[COEFF_NUMBER];
 		INT16  *internalArray;
 		const INT32 frameSize; //Size of a frame is measured in INT16(word)
-		static const INT32 SAMPLES;
+        /*static const*/ INT32 SAMPLES;
 		INT32 frameCount;
 		char prevDialButton;
 		char permissionFlag;
@@ -69,6 +72,8 @@ protected:
 
 		/// frameSize_ - input frame size     
 		DtmfDetector(INT32 frameSize_);
+        DtmfDetector(INT32 frameSize_, INT32 smpls);
+
 		~DtmfDetector();
 
 		void dtmfDetecting(INT16 inputFrame[]); // The DTMF detection.

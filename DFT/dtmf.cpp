@@ -1,7 +1,8 @@
 #include "dtmf.h"
 
+#include <iostream>
 
-#define FRAME_SIZE 16
+#define FRAME_SIZE 320
 
 // local data for pressed buttons
 static char s_DialButtons[16] =
@@ -51,16 +52,22 @@ namespace plugin
     int Dtmf::put_data(void *data)
     {
         Dtmf* d = &Instance();
-        if (d->iface.nextPlugin != nullptr) {
-            d->iface.nextPlugin->put_data(data);
-        }
-
         QList<utils::sample_data_t>* ls = (QList<utils::sample_data_t>*)data;
+
+        // copy the data to local buffer
         d->m_lock.lock();
         for(int i=0; i < ls->count(); ++i) {
             d->m_sampleBuffer.append(ls->at(i));
         }
         d->m_lock.unlock();
+
+        // pass to next or cleanup
+        if (d->iface.nextPlugin != nullptr) {
+            d->iface.nextPlugin->put_data(data);
+        } else {
+            ls->clear();
+        }
+
     }
 
     ///@Unused
@@ -109,31 +116,41 @@ namespace plugin
                dbl.append(m_sampleBuffer.takeFirst());
            }
            m_lock.unlock();
+           if (dbl.count() >= FRAME_SIZE) {
            while(!dbl.isEmpty()) {
-               utils::sample_data_t s = dbl.takeFirst();
-               m_dtmfDetector.dtmfDetecting(s.samples);
-               if (m_dtmfDetector.getIndexDialButtons() != 16) {
-                   printf("Error in detecting number of buttons\n");
-               }
-
-               for(int i=0; i < 16; ++i) {
-                   if (m_dtmfDetector.getDialButtonsArray()[i] != s_DialButtons[i]) {
-                        printf("Error detecting button! \n");
-                   } else {
-                       printf("We got: %c\n", s_DialButtons[i]);
+                   utils::sample_data_t* s  = dbl.toVector().toStdVector().data();
+                   short* dtmf = new short[dbl.count()];
+                   int ii = 0;
+                   for(int i=0; i <dbl.count(); ++i) {
+                       dtmf[ii] = s[i].samples[ii % 16];
+                       ii++;
                    }
-               }
 
+                   m_dtmfDetector.dtmfDetecting(dtmf);
+                   if (m_dtmfDetector.getIndexDialButtons() != 16) {
+                       printf("Error in detecting number of buttons\n");
+                   }
+
+                   for(int i=0; i < 16; ++i) {
+                       if (m_dtmfDetector.getDialButtonsArray()[i] != s_DialButtons[i]) {
+                            printf("Error detecting button! \n");
+                       } else {
+                           printf("We got: %c\n", s_DialButtons[i]);
+                       }
+                   }
+                   delete [] dtmf;
+                   dbl.clear();
+               }
            }
            // algo is not so important so can sleep a bit
-           sleep(50);
+           usleep(10);
         } while (m_isRunning);
     }
 
     Dtmf::Dtmf(QThread *parent)
         : QThread(parent),
           m_isRunning(false),
-          m_dtmfDetector(FRAME_SIZE) // experimental!!!
+          m_dtmfDetector(FRAME_SIZE, 10) // experimental!!!
     {
 
     }

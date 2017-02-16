@@ -86,9 +86,11 @@ const INT16 DtmfDetector::CONSTANTS[COEFF_NUMBER] = {27860, 26745, 25529, 24216,
 INT32 DtmfDetector::powerThreshold = 328;
 INT32 DtmfDetector::dialTonesToOhersTones = 16;
 INT32 DtmfDetector::dialTonesToOhersDialTones = 6;
-const INT32 DtmfDetector::SAMPLES = 102;
+//const INT32 DtmfDetector::SAMPLES = 102 ;//102;
 //--------------------------------------------------------------------
-DtmfDetector::DtmfDetector(INT32 frameSize_): frameSize(frameSize_)
+DtmfDetector::DtmfDetector(INT32 frameSize_, INT32 smpls):
+    frameSize(frameSize_),
+    SAMPLES(smpls)
 {
  pArraySamples = new INT16 [frameSize + SAMPLES];
  internalArray = new INT16 [SAMPLES];
@@ -104,13 +106,13 @@ DtmfDetector::~DtmfDetector()
 }
 
 void DtmfDetector::dtmfDetecting(INT16 input_array[])
-{INT32 ii;
- char temp_dial_button;
+{
+    INT32 ii;
+    char temp_dial_button;
    
-   for(ii=0; ii < frameSize; ii++)
-    {
-     pArraySamples[ii + frameCount] = input_array[ii];
-    }
+   for(ii=0; ii < frameSize; ii++) {
+        pArraySamples[ii + frameCount] = input_array[ii];
+   }
     
    frameCount += frameSize;
    UINT32 temp_index = 0;

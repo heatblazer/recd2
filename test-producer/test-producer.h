@@ -34,6 +34,10 @@ private:
     struct interface_t s_iface;
     static Producer* s_instance;
     bool isRunning;
+    struct {
+        char hdr[44];
+        short data[320];
+    } samples;
 };
 
 } // plugin

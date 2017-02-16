@@ -3,7 +3,8 @@ TEMPLATE = subdirs
 DISTFILES += README.md \
              recorder-config.xml \  # the config file
              recd2.pri \
-             plugin-interface.h     # plugin iface
+             plugin-interface.h\
+             test.wav     # plugin iface
 
 
 SUBDIRS += \
