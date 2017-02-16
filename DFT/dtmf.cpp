@@ -2,9 +2,8 @@
 
 #include <iostream>
 
-#define FRAME_SIZE 320
+#define FRAME_SIZE 160
 
-// local data for pressed buttons
 static char s_DialButtons[16] =
     {'1' , '2', '3',
      'A', '4', '5',
@@ -56,16 +55,16 @@ namespace plugin
 
         // copy the data to local buffer
         d->m_lock.lock();
-        for(int i=0; i < ls->count(); ++i) {
-            d->m_sampleBuffer.append(ls->at(i));
+        if (!ls->isEmpty()) {
+            for(int i=0; i < ls->count(); ++i) {
+                d->m_sampleBuffer.data.append(ls->at(i));
+            }
         }
         d->m_lock.unlock();
 
         // pass to next or cleanup
         if (d->iface.nextPlugin != nullptr) {
             d->iface.nextPlugin->put_data(data);
-        } else {
-            ls->clear();
         }
 
     }
@@ -110,54 +109,68 @@ namespace plugin
     void Dtmf::run()
     {
         QList<utils::sample_data_t> dbl;
-        do {
+        int size = 0;
+        while(m_isRunning) {
+           while (size != FRAME_SIZE) {
            m_lock.lock();
-           while (!m_sampleBuffer.isEmpty()) {
-               dbl.append(m_sampleBuffer.takeFirst());
-           }
-           m_lock.unlock();
-           if (dbl.count() >= FRAME_SIZE) {
-           while(!dbl.isEmpty()) {
-                   utils::sample_data_t* s  = dbl.toVector().toStdVector().data();
-                   short* dtmf = new short[dbl.count()];
-                   int ii = 0;
-                   for(int i=0; i <dbl.count(); ++i) {
-                       dtmf[ii] = s[i].samples[ii % 16];
-                       ii++;
-                   }
-
-                   m_dtmfDetector.dtmfDetecting(dtmf);
-                   if (m_dtmfDetector.getIndexDialButtons() != 16) {
-                       printf("Error in detecting number of buttons\n");
-                   }
-
-                   for(int i=0; i < 16; ++i) {
-                       if (m_dtmfDetector.getDialButtonsArray()[i] != s_DialButtons[i]) {
-                            printf("Error detecting button! \n");
-                       } else {
-                           printf("We got: %c\n", s_DialButtons[i]);
-                       }
-                   }
-                   delete [] dtmf;
-                   dbl.clear();
+           for(int i=0; i < m_sampleBuffer.data.count(); ++i){
+               if (size == FRAME_SIZE) {
+                   break;
                }
+               dbl.append(m_sampleBuffer.data.takeAt(i));
+               size++;
            }
-           // algo is not so important so can sleep a bit
            usleep(10);
-        } while (m_isRunning);
+           m_lock.unlock();
+           }
+
+           if(size == FRAME_SIZE) {
+               size = 0;
+               short int dtmf[FRAME_SIZE];// = new short int[size];
+               for(int i=0; i < FRAME_SIZE; ) {
+                   utils::sample_data_t s = dbl.at(i);
+                   for(int j=0; j < s.size; ++j) {
+                        dtmf[i] = s.samples[j];
+                        i++;
+                   }
+               }
+               m_dtmfDetector.dtmfDetecting((INT16*)dtmf);
+               dbl.clear();
+
+               if (m_dtmfDetector.getIndexDialButtons() < 1) {
+                   printf("Error in detecting number of buttons\n");
+                   continue;
+               }
+               for(int ii = 0; ii < m_dtmfDetector.getIndexDialButtons(); ++ii)
+               {
+                   if(m_dtmfDetector.getDialButtonsArray()[ii] != s_DialButtons[ii])
+                   {
+                       printf("Error of a detecting button \n");
+                       continue;
+                   } else {
+                       printf("We got: [%c]\n", s_DialButtons[ii]);
+                   }
+               }
+
+           } // end if performing dtmf detection
+
+        }
+
     }
 
     Dtmf::Dtmf(QThread *parent)
         : QThread(parent),
           m_isRunning(false),
-          m_dtmfDetector(FRAME_SIZE, 10) // experimental!!!
+          m_dtmfDetector(FRAME_SIZE, 102) // experimental!!!
     {
-
+        m_sampleBuffer.is_busy = false;
     }
 
     Dtmf::~Dtmf()
     {
-
+        if (!m_sampleBuffer.data.isEmpty()) {
+            m_sampleBuffer.data.clear();
+        }
     }
 
     } // dtmf

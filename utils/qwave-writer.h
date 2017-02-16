@@ -39,7 +39,6 @@ public:
                            int fmt_len=16, short audio_fmt=1,  short chann_cnt=1);
     virtual void* read();
     virtual bool isOpened() const;
-
     const char*  getFileName();
     size_t  getFileSize();
     virtual int getSlot() const;

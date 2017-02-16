@@ -36,7 +36,10 @@ namespace plugin {
         static Dtmf* s_inst;
         bool m_isRunning;
         DtmfDetector m_dtmfDetector;
-        QList<utils::sample_data_t> m_sampleBuffer;
+        struct {
+            bool is_busy;
+            QList<utils::sample_data_t> data;
+        } m_sampleBuffer;
         QMutex m_lock;
         // plugin stuff
         struct interface_t iface;

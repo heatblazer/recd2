@@ -18,6 +18,9 @@ class Wav : public WavIface
 public:
     explicit Wav(const char* fname);
     virtual ~Wav();
+    void pause();
+    void resume();
+    bool isPaused();
     virtual bool open(unsigned slot);
     virtual void close();
     virtual bool isOpened() const ;
@@ -40,6 +43,7 @@ private:
     size_t get_size();
 
 protected:
+    bool        m_paused;
     FILE*       m_file;
     wav_hdr_t   m_header;
     char        m_filename[64];

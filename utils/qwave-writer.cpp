@@ -73,6 +73,8 @@ bool QWav::isOpened() const
     return m_wav.isOpen();
 }
 
+
+
 /// unimplemented
 /// \brief QWav::read
 /// \return

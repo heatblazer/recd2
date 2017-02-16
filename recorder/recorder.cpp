@@ -377,7 +377,9 @@ namespace plugin {
             }
             sample_data_t s = sd.at(i);
             if (m_wavs[i] != nullptr) {
-                m_wavs[i]->write(s.samples, s.size);
+                if (!m_wavs[i]->isPaused()) {
+                    m_wavs[i]->write(s.samples, s.size);
+                }
             }
         }
         sd.clear();

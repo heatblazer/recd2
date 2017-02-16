@@ -5,9 +5,12 @@
 #include "utils.h"
 
 namespace plugin {
-#if 0
 
-#endif
+#define SMPL_SIZE 100000
+struct SMPL {
+    char hdr[44];
+    short int data[SMPL_SIZE];
+};
 
 class Producer : utils::PThread
 {
@@ -34,10 +37,7 @@ private:
     struct interface_t s_iface;
     static Producer* s_instance;
     bool isRunning;
-    struct {
-        char hdr[44];
-        short data[320];
-    } samples;
+    SMPL samples;
 };
 
 } // plugin

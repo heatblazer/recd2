@@ -47,7 +47,8 @@ static inline int16_t flip16(int16_t val)
 
 namespace utils {
 Wav::Wav(const char *fname)
-    : m_file(NULL),
+    : m_paused(false),
+      m_file(nullptr),
       m_isSetup(false),
       m_isOpened(false),
       m_requiresFlip(false),
@@ -61,6 +62,21 @@ Wav::~Wav()
 {
 }
 
+void Wav::pause()
+{
+    m_paused = true;
+}
+
+void Wav::resume()
+{
+    m_paused = false;
+}
+
+bool Wav::isPaused()
+{
+    return m_paused;
+}
+
 /// open a wav file
 /// and write a wav header on it
 /// \brief Wav::open
@@ -72,7 +88,7 @@ bool Wav::open(unsigned slot)
 {
     m_slot = slot;
     m_file = fopen(m_filename, "wb");
-    if (m_file == NULL) {
+    if (m_file == nullptr) {
         return m_isOpened;
     }
 

@@ -23,6 +23,8 @@ namespace  plugin {
 
 Producer* Producer::s_instance = nullptr;
 
+
+
 void Producer::init()
 {
     Producer* p = &Instance();
@@ -32,10 +34,8 @@ void Producer::init()
     if (!fp) {
         return;
     }
-    uint8_t* t = (uint8_t*) &p->samples;
-    size_t r = fread(t, 1, sizeof(samples), fp);
+    size_t r = fread(&p->samples, 1, sizeof(SMPL), fp);
     fclose(fp);
-
 
     ((PThread*)p)->setName("producer-thread");
     p->isRunning = true;
@@ -141,18 +141,19 @@ Producer &Producer::Instance()
 void *Producer::worker(void *pArgs)
 {
     Producer* p = (Producer*) pArgs;
-    utils::frame_data_t err_udp = {0, {0}, {{0}}};
-    static int cnt = 0;
+
     while (p->isRunning) {
         QList<utils::sample_data_t> ls;
-        utils::sample_data_t s = {0, 0};
-        short smpl[16] = {0};
-        s.samples = smpl;
-        s.size = 16;
-        for(int j=0; j < 16; ++j) {
-            s.samples[j] = p->samples.data[cnt++ % sizeof(p->samples.data)];
+        for (int i=0;  i < SMPL_SIZE; ) {
+            utils::sample_data_t s = {0, 0};
+            short smpl[16] = {0};
+            s.samples = smpl;
+            s.size = 16;
+            for(int j=0; j < 16; ++j) {
+                s.samples[j] = p->samples.data[i++];
+            }
+            ls.append(s);
         }
-        ls.append(s);
 
         p->put_data((QList<utils::sample_data_t>*)&ls);
         p->suspend(0);

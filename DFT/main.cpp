@@ -25,7 +25,7 @@ struct samples {
 
 struct wav_file {
     char hdr[44];
-    INT16 samples2[100000];
+    INT16 samples2[320];
 };
 
 DtmfDetector dtmfDetector(FRAME_SIZE, 102);
@@ -36,10 +36,6 @@ int main()
 {
     wav_file* w = new wav_file;
     samples* s = new samples;
-    DtmfDetector** detectors = new DtmfDetector* [MAX_DETECTORS];
-    for(int i=0; i < MAX_DETECTORS; ++i) {
-        detectors[i] = new DtmfDetector(160, MAX_SAMPLES);
-    }
 
     dialButtons[0] = '1';
     dialButtons[1] = '2';
@@ -63,13 +59,9 @@ int main()
         if (!fp) {
             return 1;
         }
-        size_t r = fread(w, 1, 100000, fp);
+        size_t r = fread(w, 1, sizeof(wav_file), fp);
         fclose(fp);
     }
-
-
-
-
 
     while(true)
     {
@@ -106,39 +98,8 @@ int main()
         }
     }
 #endif
-#if 0
-
-        for(int i=0; i < MAX_DETECTORS; ++i) {
-            INT16* s = (INT16*) w->samples2;
-            detectors[i]->dtmfDetecting(s);
-            if(detectors[i]->getIndexDialButtons() != 16)
-            {
-                printf("Error of a number of detecting buttons \n");
-                continue;
-            }
-
-            for(int ii = 0; ii < detectors[i]->getIndexDialButtons(); ++ii)
-            {
-                if(detectors[i]->getDialButtonsArray()[ii] != dialButtons[ii])
-                {
-                    printf("Error of a detecting button \n");
-                    continue;
-                } else {
-                    printf("We got: [%c]\n", dialButtons[ii]);
-                }
-            }
-        }
-
-//        printf("Success in frame: %d \n", framenumber);
-    }
-#endif
-
     delete w;
-    for(int i=0; i < MAX_DETECTORS; ++i) {
-        delete detectors[i];
-    }
     delete s;
-    delete [] detectors;
     return 0;
 }
 
