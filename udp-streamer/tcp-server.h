@@ -39,7 +39,7 @@ namespace plugin {
         bool m_isRunning ;
         utils::frame_data_t m_frames;
         struct {
-            utils::RingBuffer data;
+            utils::RingBuffer<utils::frame_data_t> data;
             bool isBusy;
         } m_buffer;
         utils::PMutex m_lock;

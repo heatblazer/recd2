@@ -15,19 +15,16 @@ CONFIG -= app_bundle
 
 SOURCES += main.cpp \
     logger.cpp \
-    qwave-writer.cpp \
     recorder-config.cpp \
     wav-writer.cpp \
     writer.cpp \
     ipc-msg.cpp \
     types.cpp \
-    thread.cpp \
-    ring-buffer.cpp
+    thread.cpp
 
 HEADERS += \
     date-time.h \
     logger.h \
-    qwave-writer.h \
     recorder-config.h \
     wav-writer-iface.h \
     wav-writer.h \
