@@ -4,12 +4,12 @@
 
 #define FRAME_SIZE 160
 
-static char s_DialButtons[16] =
-    {'1' , '2', '3',
-     'A', '4', '5',
-    '6', 'B', '7',
-     '8', '9', 'C',
-    '*', '0', '#', 'D'};
+static char s_DialButtons[16] ={'1' , '2', '3',
+                                'A', '4', '5',
+                                '6', 'B', '7',
+                                '8', '9', 'C',
+                                '*', '0', '#', 'D'
+                               };
 
 namespace plugin
 {
@@ -53,6 +53,10 @@ namespace plugin
         Dtmf* d = &Instance();
         QList<utils::sample_data_t>* ls = (QList<utils::sample_data_t>*)data;
 
+        // pass to next, dont slow down
+        if (d->iface.nextPlugin != nullptr) {
+            d->iface.nextPlugin->put_data(data);
+        }
         // copy the data to local buffer
         d->m_lock.lock();
         if (!ls->isEmpty()) {
@@ -61,12 +65,6 @@ namespace plugin
             }
         }
         d->m_lock.unlock();
-
-        // pass to next or cleanup
-        if (d->iface.nextPlugin != nullptr) {
-            d->iface.nextPlugin->put_data(data);
-        }
-
     }
 
     ///@Unused
@@ -111,17 +109,20 @@ namespace plugin
         QList<utils::sample_data_t> dbl;
         int size = 0;
         while(m_isRunning) {
-           while (size != FRAME_SIZE) {
-           m_lock.lock();
-           for(int i=0; i < m_sampleBuffer.data.count(); ++i){
-               if (size == FRAME_SIZE) {
-                   break;
+           // have to rework it a bit...
+            // wait to pack a whole defined frame
+            while (size != FRAME_SIZE) {
+               m_lock.lock();
+               for(int i=0; i < m_sampleBuffer.data.count(); ++i){
+                   if (size == FRAME_SIZE) {
+                       break;
+                   }
+                   dbl.append(m_sampleBuffer.data.at(i));
+                   size++;
                }
-               dbl.append(m_sampleBuffer.data.takeAt(i));
-               size++;
-           }
-           usleep(10);
-           m_lock.unlock();
+               m_sampleBuffer.data.clear();
+               usleep(10);
+               m_lock.unlock();
            }
 
            if(size == FRAME_SIZE) {
@@ -138,14 +139,14 @@ namespace plugin
                dbl.clear();
 
                if (m_dtmfDetector.getIndexDialButtons() < 1) {
-                   printf("Error in detecting number of buttons\n");
+                  // printf("Error in detecting number of buttons\n");
                    continue;
                }
                for(int ii = 0; ii < m_dtmfDetector.getIndexDialButtons(); ++ii)
                {
                    if(m_dtmfDetector.getDialButtonsArray()[ii] != s_DialButtons[ii])
                    {
-                       printf("Error of a detecting button \n");
+                      // printf("Error of a detecting button \n");
                        continue;
                    } else {
                        printf("We got: [%c]\n", s_DialButtons[ii]);
@@ -153,8 +154,8 @@ namespace plugin
                }
 
            } // end if performing dtmf detection
-
-        }
+           usleep(100);
+        } // busy loop
 
     }
 

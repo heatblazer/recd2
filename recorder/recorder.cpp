@@ -247,6 +247,10 @@ namespace plugin {
         r->m_thread.mutex.lock();
         r->m_thread.buffer.enqueue(*ls);
         r->m_thread.mutex.unlock();
+
+        // I`ve forgot to purge the list... :( Bad things can happen
+        // recorder is usually last plugin so clean the list
+        ls->clear();
         return 0;
     }
 
@@ -377,7 +381,9 @@ namespace plugin {
             }
             sample_data_t s = sd.at(i);
             if (m_wavs[i] != nullptr) {
-                if (!m_wavs[i]->isPaused()) {
+                if (m_wavs[i]->isPaused()) {
+                    m_wavs[i]->close();
+                } else {
                     m_wavs[i]->write(s.samples, s.size);
                 }
             }

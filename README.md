@@ -178,6 +178,8 @@ A wav recorder over udp streams.
     2. See the main.cpp in the DFT plugin in the project for example detection.
 
 
+## TOOLS
+    1. topme - helper script to call "top -H -p" on a process name
 
 <ilian.zapryanov@balkantel.net>
 

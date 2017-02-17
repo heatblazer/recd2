@@ -10,7 +10,7 @@ InterfaceList::InterfaceList()
 
 InterfaceList::~InterfaceList()
 {
-    //clear();
+    clear();
 }
 
 void InterfaceList::put(interface_t* iface)

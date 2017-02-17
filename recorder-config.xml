@@ -57,7 +57,7 @@
     />
 
 <!-- done: setups transport from here -->
-<Network transport="udp"
+<Network transport="tcp"
          port="1234"
          />
 
@@ -106,7 +106,7 @@ mic, then passes down to the chain. -->
     name="udp-streamer"
     order="1"
     enabled="true"
-    path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/udp-streamer/libudp-streamer.so"
+    path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_8_0_GCC_64bit-Debug/udp-streamer/libudp-streamer.so"
     />
 -->
 <!-- this plugin does nothig, it`s mainly used for
@@ -120,12 +120,19 @@ be used to track the chaingin of the plugins -->
     enabled="true"
     path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_8_0_GCC_64bit-Debug/test-producer/libtest-producer.so"
     />
-
+<!--
 <Plugin
     name="null"
     order="1"
     enabled="true"
     path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_8_0_GCC_64bit-Debug/NULL/libNULL.so"
+    />
+-->
+<Plugin
+    name="dtmf"
+    order="1"
+    enabled="true"
+    path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_8_0_GCC_64bit-Debug/DFT/libDFT.so"
     />
 <!--
 <Plugin
@@ -133,17 +140,17 @@ be used to track the chaingin of the plugins -->
     order="1"
     enabled="true"
     path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_8_0_GCC_64bit-Debug/test-consumer/libtest-consumer.so"
-    />
+/>
 -->
 <!-- this is the typical recorder of wav files, it has nothing special here,
 collect samples and record them to wavs -->
-
+<!--
 <Plugin
     name="rec"
     order="1"
     enabled="true"
     path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_8_0_GCC_64bit-Debug/recorder/librecorder.so"
     />
-    
+-->
 </Config>
 
