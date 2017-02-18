@@ -340,10 +340,12 @@ namespace plugin {
             }
             r->m_thread.mutex.unlock();
 
-            while(!dblBuff.empty()) {
-                QList<sample_data_t> sd = dblBuff.dequeue();
+            for(int i=0; i < dblBuff.count(); ++i) {
+                QList<sample_data_t> sd = dblBuff.at(i);
                 r->record(sd);
             }
+
+            dblBuff.clear();
             r->m_thread.thread.suspend(0);
         } while (r->m_thread.running);
     }

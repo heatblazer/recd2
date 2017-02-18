@@ -170,10 +170,10 @@ void *TcpServer::Writer::worker(void *pArgs)
             printf("Cnt: %lu\r", t->counter);
             for(int i=0; i < 32; ++i) {
                 utils::sample_data_t sdata = {0, 0};
-                short samples[16] = {0};
-                sdata.samples = samples;
+                short smpl[16] = {0};
+                sdata.samples = smpl;
                 sdata.size = 16;
-                for (int j=0; j < 16; ++j) {
+                for (int j=0; j < sdata.size; ++j) {
                     sdata.samples[j] = t->data[i][j];
                 }
                 ls.append(sdata);

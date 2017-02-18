@@ -177,7 +177,7 @@ namespace plugin {
                                 short smpl[16] = {0};
                                 s.samples = smpl;
                                 s.size = 16;
-                                for(int j=0; j < 16; ++j) {
+                                for(int j=0; j < s.size; ++j) {
                                     s.samples[j] = err_udp.data[i][j];
                                 }
                                 err_ls.append(s);
@@ -187,10 +187,10 @@ namespace plugin {
                             for(int i=0; i < errs; ++i) {
                                for(int j=0; j < 32; ++j) {
                                    utils::sample_data_t sd = {0, 0};
-                                   short smpls[16]= {0};
-                                   sd.samples = smpls;
+                                   short smpl[16] = {0};
+                                   sd.samples = smpl;
                                    sd.size = 16;
-                                   for(int h=0; h < 16; ++h) {
+                                   for(int h=0; h < sd.size; ++h) {
                                        sd.samples[h] = err_udp.data[j][h];
                                    }
                                    err_ls.append(sd);
@@ -207,11 +207,11 @@ namespace plugin {
                         // copy all the data then send it to the plugins
                         for(int i=0; i < 32; ++i) {
                             utils::sample_data_t s = {0, 0};
-                            short smpls[16] ={0};
-                            s.samples = smpls;
+                            short smpl[16] = {0};
+                            s.samples = smpl;
                             s.size = 16;
                             // fill the list to be passed to other plugins
-                            for(int j=0; j < 16; ++j) {
+                            for(int j=0; j < s.size; ++j) {
                                 s.samples[j] = udp.data[i][j];
                             }
                             ls.append(s);

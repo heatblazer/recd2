@@ -43,6 +43,9 @@ public:
 
     void write(T& t)
     {
+        //if (rwDiff() < 0) {
+        //    return;
+        //}
         *wHead = t;
         advanceWriteHead();
     }

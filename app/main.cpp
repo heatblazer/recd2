@@ -104,26 +104,30 @@ int main(int argc, char *argv[])
 
     return app.exec();
 #else
-    utils::RingBuffer rb;
+    utils::RingBuffer<utils::frame_data_t> rb;
     rb.init();
 
-    for(int i=0; i < 1000; ++i) {
-        utils::frame_data_t d;
-        d.counter = i;
-        rb.write(d);
-        if (i > 300) {
-            printf("sssss");
+    reader:
+        while (1) {
+            for(int i=0 ; i < 3; ++i) {
+            utils::frame_data_t* f = rb.read();
+                if (f) {
+                    std::cout<< "reading: " << f->counter << std::endl;
+                }
+            }
+            goto writer;
         }
-    }
 
-    utils::frame_data_t *pd;
-    int r = rb.readAll(&pd);
-
-    for(int i=0; i < r; ++i) {
-        std::cout << pd[i].counter << std::endl;
-    }
-    delete [] pd;
-
+    writer:
+        while (1) {
+            static int cnt = 0;
+            for(int i=0; i < 10; ++i) {
+                utils::frame_data_t f ;
+                f.counter = cnt++;
+                rb.write(f);
+            }
+            goto reader;
+        }
     return 0;
 #endif
 }

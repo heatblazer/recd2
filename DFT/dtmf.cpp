@@ -11,6 +11,19 @@ static char s_DialButtons[16] ={'1' , '2', '3',
                                 '*', '0', '#', 'D'
                                };
 
+
+static inline bool beginDTMF(short int peek)
+{
+    bool res = false;
+    switch (peek) {
+    default:
+        res = false;
+        break;
+    }
+
+    return res;
+}
+
 namespace plugin
 {
 
@@ -139,14 +152,13 @@ namespace plugin
                dbl.clear();
 
                if (m_dtmfDetector.getIndexDialButtons() < 1) {
-                  // printf("Error in detecting number of buttons\n");
+                   printf("Error in detecting number of buttons\n");
                    continue;
                }
-               for(int ii = 0; ii < m_dtmfDetector.getIndexDialButtons(); ++ii)
-               {
+               for(int ii = 0; ii < m_dtmfDetector.getIndexDialButtons(); ++ii) {
                    if(m_dtmfDetector.getDialButtonsArray()[ii] != s_DialButtons[ii])
                    {
-                      // printf("Error of a detecting button \n");
+                       printf("Error of a detecting button \n");
                        continue;
                    } else {
                        printf("We got: [%c]\n", s_DialButtons[ii]);

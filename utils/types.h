@@ -5,9 +5,6 @@
 #include <stdio.h>
 
 namespace utils {
-// opacity
-struct frame_data_t;
-struct tcp_data_t;
 
 // I am having some troubles playing with bits...
 // now I am going to use a nice template structure
