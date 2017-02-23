@@ -5,7 +5,7 @@
 
 namespace utils {
 
-template <typename T, size_t SIZE=512> class RingBuffer
+template <typename T, size_t SIZE> class RingBuffer
 {
 
 public:
@@ -17,7 +17,6 @@ public:
 
     ~RingBuffer()
     {
-
     }
 
     void init()

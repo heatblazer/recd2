@@ -19,7 +19,6 @@ SOURCES += main.cpp \
     wav-writer.cpp \
     writer.cpp \
     ipc-msg.cpp \
-    types.cpp \
     thread.cpp
 
 HEADERS += \

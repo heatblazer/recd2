@@ -37,11 +37,12 @@ namespace plugin {
 
     private:
         bool m_isRunning ;
-        utils::frame_data_t m_frames;
+        // if we use other buffer data type...
         struct {
-            utils::RingBuffer<utils::frame_data_t> data;
+            utils::RingBuffer<utils::frame_data_t, 512> data;
             bool isBusy;
         } m_buffer;
+
         utils::PMutex m_lock;
         Server* p_server;
         int socket_fd;

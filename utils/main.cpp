@@ -11,9 +11,9 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
     utils::IPC::Instance().sendMessage("sjdsdsijdsidijsd");
     // test the ring buffer
-    utils::RingBuffer<utils::frame_data_t> rb;
+    utils::RingBuffer<utils::frame_data_t, 512> rb;
     rb.init();
-    utils::frame_data_t d = {1, {0}, {{0}}};
+    utils::frame_data_t d = {1, {0}, {0}};
 
     for(int i=0; i < 10; ++i) {
         rb.write(d);

@@ -16,182 +16,212 @@
 
 #define READ_BUFF_MULTIPLIER(A) ((A) * (sizeof(utils::frame_data_t)))
 
+static const char* THIS_FILE = "tcp-server.cpp";
+
 namespace plugin {
-namespace udp {
+
+    namespace udp {
+
+    void *TcpServer::worker(void *pArgs)
+    {
+        int port = (int) Server::Instance().m_port;
+        TcpServer* s = (TcpServer*) pArgs;
+
+        static const int SIZE = sizeof(utils::frame_data_t);
+        uint8_t* buffer = nullptr;
+        int client, newsocketfd;
+        size_t len;
+
+        static char msg[128] = {0};
+        struct sockaddr_in serv_addr, client_addr;
 
 
-void *TcpServer::worker(void *pArgs)
-{
-    TcpServer* s = (TcpServer*) pArgs;
-
-    static const int SIZE = sizeof(utils::frame_data_t);
-    uint8_t* buffer = nullptr;
-    int client, newsocketfd;
-    size_t len;
-
-    static char msg[128] = {0};
-    struct sockaddr_in serv_addr, client_addr;
-
-
-    if ((s->socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("Error opening socket!");
-        exit(1);
-    }
-
-    memset((char*)&serv_addr, 0, sizeof(serv_addr));
-
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
-    serv_addr.sin_port = htons(1234);
-
-    if (bind(s->socket_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
-        perror("BIND failed");
-        exit(1);
-    }
-
-    listen(s->socket_fd, 5);
-    client = sizeof(client_addr);
-
-    s->m_writer->init();
-
-
-    while(s->m_isRunning) {
-
-        newsocketfd = accept(s->socket_fd, (struct sockaddr*)&client_addr, (socklen_t*)&client);
-
-        if (newsocketfd < 0) {
-            perror("Error on accept");
+        if ((s->socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+            perror("Error opening socket!");
             exit(1);
         }
-        // select on socket filedesc + 1
-        int select_result = 0;
-        fd_set read_set;
-        struct timeval timeout;
 
-        timeout.tv_sec = 5;
-        timeout.tv_usec = 0;
+        memset((char*)&serv_addr, 0, sizeof(serv_addr));
 
-        FD_ZERO(&read_set);
-        FD_SET(newsocketfd, &read_set);
-        select_result = select(newsocketfd+1, &read_set, NULL, NULL, &timeout);
+        serv_addr.sin_family = AF_INET;
+        serv_addr.sin_addr.s_addr = INADDR_ANY;
+        serv_addr.sin_port = htons(port);
 
-        if (select_result < 0) {
-            printf("Error in select()\n");
-            //utils::IPC::Instance().sendMessage("Error in select()\n");
+        if (bind(s->socket_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+            perror("BIND failed");
             exit(1);
-        } else if (select_result == 0) {
-            printf("select() waited for 5 seconds\n");
-            //utils::IPC::Instance().sendMessage("select timed out after 20 sec\n");
-        } else {
+        }
 
-            while (select_result > 0) {
-                utils::frame_data_t frame = {0, {0}, {{0}}};
-                for(buffer = (uint8_t*)&frame, len = 0; len < SIZE; ) {
-                    int nn = read(newsocketfd, buffer, SIZE - len);
-                    len += nn;
-                    buffer += nn;
-                }
-                if (++s->p_server->m_conn_info.paketCounter != frame.counter) {
-                    s->p_server->m_conn_info.paketCounter = frame.counter;
-                    snprintf(msg, sizeof(msg), "Missed: %lu\n",
-                             (long unsigned int) s->p_server->m_conn_info.paketCounter+1);
-                    utils::IPC::Instance().sendMessage(msg);
-                } else {
-                    // do soemthin with the data
-                    s->m_lock.lock();
-                    s->m_buffer.data.write(frame);
-                    s->m_lock.unlock();
-                }
+        listen(s->socket_fd, 5);
+        client = sizeof(client_addr);
+
+        s->m_writer->init();
+
+
+        while(s->m_isRunning) {
+
+            newsocketfd = accept(s->socket_fd, (struct sockaddr*)&client_addr, (socklen_t*)&client);
+
+            if (newsocketfd < 0) {
+                perror("Error on accept");
+                exit(1);
             }
-            // close old conn - register a new one
-            close(newsocketfd);
-        }
+            // select on socket filedesc + 1
+            int select_result = 0;
+            fd_set read_set;
+            struct timeval timeout;
+
+            timeout.tv_sec = 5;
+            timeout.tv_usec = 0;
+
+            FD_ZERO(&read_set);
+            FD_SET(newsocketfd, &read_set);
+            select_result = select(newsocketfd+1, &read_set, NULL, NULL, &timeout);
+
+            if (select_result < 0) {
+                printf("%s: Error in select()\n",
+                       THIS_FILE);
+                exit(1);
+            } else if (select_result == 0) {
+                printf("%s: select() waited for 5 seconds\n",
+                       THIS_FILE);
+
+            } else {
+
+                while (select_result > 0) {
+                    utils::frame_data_t frame = {0, {0}, {0}};
+                    for(buffer = (uint8_t*)&frame, len = 0; len < SIZE; ) {
+                        int nn = read(newsocketfd, buffer, SIZE - len);
+                        len += nn;
+                        buffer += nn;
+                    }
+                    if (++s->p_server->m_conn_info.paketCounter != frame.counter) {
+                        s->p_server->m_conn_info.paketCounter = frame.counter;
+                        snprintf(msg, sizeof(msg), "Missed: %lu\n",
+                                 (long unsigned int) s->p_server->m_conn_info.paketCounter+1);
+                        utils::IPC::Instance().sendMessage(msg);
+                    } else {
+                        // do soemthin with the data
+                        s->m_lock.lock();
+                        s->m_buffer.data.write(frame);
+                        s->m_lock.unlock();
+                    }
+                }
+                // close old conn - register a new one
+                close(newsocketfd);
+            }
+        } // end forever loop
+
+        snprintf(msg, sizeof(msg), "%s: Stopping TCP server.\n", THIS_FILE);
+        utils::IPC::Instance().sendMessage(msg);
+
+        // stop writer thread
+        s->m_writer->m_isRunning = false;
+        s->m_writer->join();
+        s->m_writer->closeThread();
+
+        // finally close socket
+        close(s->socket_fd);
+
+        return (int*)0;
     }
-    utils::IPC::Instance().sendMessage("Stoppint TCP server...\n");
-    // finally close socket
-    s->m_writer->m_isRunning = false;
-    s->m_writer->join();
 
-    close(s->socket_fd);
-}
+    TcpServer::TcpServer()
+        :
+          m_isRunning(false),
+          p_server(nullptr),
+          socket_fd(-1)
+    {
+        p_server = &Server::Instance();
+        m_writer = new Writer(this);
+        m_buffer.data.init();
+    }
 
-TcpServer::TcpServer()
-    :
-      m_isRunning(false),
-      p_server(nullptr),
-      socket_fd(-1)
-{
-    p_server = &Server::Instance();
-    m_writer = new Writer(this);
-    m_buffer.data.init();
-}
+    TcpServer::~TcpServer()
+    {
+    }
 
-TcpServer::~TcpServer()
-{
-}
+    void TcpServer::init()
+    {
+        // start buffer thread
+        m_lock.init();
+        setThreadName("tcp-thread");
+        m_isRunning = true;
+        createThread(128 * 1024, 20, TcpServer::worker, this);
+    }
 
-void TcpServer::init()
-{
-    // start buffer thread
-    m_lock.init();
-    setName("tcp-thread");
-    m_isRunning = true;
-    create(128 * 1024, 20, TcpServer::worker, this);
-}
+    void TcpServer::deinit()
+    {
+        utils::IPC::Instance().sendMessage("TCP server deinit\n");
+        m_isRunning = false;
+        m_lock.deinit();
+        join();
+        closeThread();
+    }
 
-void TcpServer::deinit()
-{
-    utils::IPC::Instance().sendMessage("TCP server deinit\n");
-    m_isRunning = false;
-    join();
-    m_lock.deinit();
-}
+    TcpServer::Writer::Writer(TcpServer * const p)
+        : ref(p),
+          m_isRunning(false)
+    {
+    }
 
-TcpServer::Writer::Writer(TcpServer * const p)
-    : ref(p),
-      m_isRunning(false)
-{
-}
+    void *TcpServer::Writer::worker(void *pArgs)
+    {
+        Writer* w  = (Writer*) pArgs;
+        static const unsigned MAX = w->ref->p_server->m_channels * w->ref->p_server->m_smplPerChan;
+        for (;;) {
+            // perform the read stuff here
+            QList<utils::sample_data_t> ls;
+            utils::frame_data_t* t = nullptr;
+            w->lock.lock();
+            t = (w->ref->m_buffer.data).read();
+            w->lock.unlock();
+            if (t == nullptr) {
+                continue;
+            } else {
+                printf("Cnt: %u\r", t->counter);
+                for(unsigned i=0; i < MAX; ) {
+                    utils::sample_data_t sdata = {0, 0};
+                    short smpl[512] = {0};
+                    sdata.samples = smpl;
+                    sdata.size = w->ref->p_server->m_smplPerChan;
+                    for (uint32_t j=0; j < sdata.size; ++j) {
+                        sdata.samples[j] = t->data[i++];
+                    }
+                    ls.append(sdata);
+                }
+                Server::Instance().put_data((QList<utils::sample_data_t>*)&ls);
+            }
+        } // forever loop
 
-void *TcpServer::Writer::worker(void *pArgs)
-{
-    Writer* w  = (Writer*) pArgs;
-
-    for (;;) {
-        // perform the read stuff here
+        // at end read all from rbuffer
+        utils::frame_data_t* rem = nullptr;
         QList<utils::sample_data_t> ls;
-        utils::frame_data_t* t = nullptr;
-        w->lock.lock();
-        t = (w->ref->m_buffer.data).read();
-        w->lock.unlock();
-        if (t == nullptr) {
-            continue;
-        } else {
-            printf("Cnt: %lu\r", t->counter);
-            for(int i=0; i < 32; ++i) {
+        int s = w->ref->m_buffer.data.readAll(&rem);
+        for(int i=0; i < s; ++i) {
+            for(unsigned ii=0; ii < MAX; ) {
                 utils::sample_data_t sdata = {0, 0};
-                short smpl[16] = {0};
+                short smpl[512] = {0};
                 sdata.samples = smpl;
-                sdata.size = 16;
-                for (int j=0; j < sdata.size; ++j) {
-                    sdata.samples[j] = t->data[i][j];
+                sdata.size = w->ref->p_server->m_smplPerChan;;
+                for (uint32_t j=0; j < sdata.size; ++j) {
+                    sdata.samples[j] = rem[i].data[ii++];
                 }
                 ls.append(sdata);
             }
-            Server::Instance().put_data((QList<utils::sample_data_t>*)&ls);
         }
+        Server::Instance().put_data((QList<utils::sample_data_t>*)&ls);
+        delete [] rem;
+        return (int*)0;
     }
-}
 
-void TcpServer::Writer::init()
-{
-    lock.init();
-    setName("tcp-writer");
-    m_isRunning = true;
-    create(128 * 1024, 10, Writer::worker, this);
-}
+    void TcpServer::Writer::init()
+    {
+        lock.init();
+        setThreadName("tcp-writer");
+        m_isRunning = true;
+        createThread(128 * 1024, 10, Writer::worker, this);
+    }
 
-
-} // udp
-
+    } // udp
 } // plugin

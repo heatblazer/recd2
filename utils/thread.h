@@ -77,12 +77,12 @@ namespace utils {
         static pthread_t currentThread();
          explicit PThread(SchedAlgorithms algo = SchedRR);
         ~PThread();
-         int create(size_t stack_size, int priority, entryPoint cb, void* user_data);
-         void join();
-         void setName(const char* name);
-         void suspend(unsigned long msec);
+         virtual int createThread(size_t stack_size, int priority, entryPoint cb, void* user_data);
+         virtual void join();
+         virtual void setThreadName(const char* name);
+         virtual void suspend(unsigned long msec);
          bool compareTo(const pthread_t* const th);
-         void deinit();
+         virtual void closeThread();
 
     private:
          SchedAlgorithms    m_schedAlgo;
@@ -101,7 +101,6 @@ namespace utils {
     public:
         explicit BSemaphore();
         ~BSemaphore();
-        int create();
         void post();
         void wait();
 

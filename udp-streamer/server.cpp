@@ -13,35 +13,13 @@
 namespace plugin {
     namespace udp {
 
-    /// flip the bytes to match the logic of the program
-    /// \brief copy_and_flip
-    /// \param in
-    /// \return
-    ///
-    static inline utils::frame_data_t copy_and_flip(utils::frame_data_t2 in)
-    {
-        utils::frame_data_t out;
-        out.counter = in.counter;
-        for(int i=0; i < 32; ++i) {
-            out.null_bytes[i] = in.null_bytes[i];
-        }
-
-        for(int i=0; i < 16; ++i) {
-            for(int j=0; j < 32; ++j) {
-                out.data[j][i] = in.data[i][j];
-            }
-        }
-        return out;
-    }
-
-
     Server* Server::s_inst = nullptr;
     interface_t Server::iface = {0,0,0,
                                  0,0,0,
                                  0,0,0,
                                  0,{0},0};
     // the err udp packet
-    static struct utils::frame_data_t err_udp = {0,{0},{{0}}}; // warn fix
+    static struct utils::frame_data_t err_udp = {0,{0},{0}}; // warn fix
 ////////////////////////////////////////////////////////////////////////////////
 
     Server& Server::Instance()
@@ -56,7 +34,9 @@ namespace plugin {
         : QObject(parent),
           udp(nullptr),
           p_server(nullptr),
-          m_conn_info{0,0,0,false}
+          m_conn_info{0,0,0,false},
+          m_channels(0),
+          m_smplPerChan(0)
     {
     }
 
@@ -71,49 +51,115 @@ namespace plugin {
         Server* s = &Server::Instance();
         printf("Initializing server...\n");
         // the error packet to be sent on packet lost
-        static const int16_t max = 32111;
-        for(int i=0; i < 32; ++i) {
-            for(int j=0; j < 16; ++j) {
-                err_udp.data[i][j] = max;
+
+        // setup frame
+        if(1) {
+
+            // safety parse checks
+            bool bres = false;
+
+            const utils::MPair<QString, QString> chans =
+                    utils::RecorderConfig::Instance()
+                    .getAttribPairFromTag("FrameData", "channels");
+
+            const utils::MPair<QString, QString> smpls =
+                    utils::RecorderConfig::Instance()
+                    .getAttribPairFromTag("FrameData", "samplesPerChan");
+
+            const utils::MPair<QString, QString> msg_hdr =
+                    utils::RecorderConfig::Instance()
+                    .getAttribPairFromTag("FrameData", "header");
+
+            // TODO: to be used in the future
+            (void)msg_hdr;
+
+
+
+            if (smpls.m_type1 == "") {
+                s->m_smplPerChan = 16;
+            } else {
+                s->m_smplPerChan = smpls.m_type2.toInt(&bres);
+                if (!bres) {
+                    s->m_smplPerChan = 16;
+                }
+            }
+
+            if (chans.m_type1 == "") {
+                s->m_channels = 1;
+            } else {
+                s->m_channels = chans.m_type2.toInt(&bres);
+                if (!bres || s->m_channels > 127 || s->m_channels <= 0) {
+                    // precatuions !!!
+                    s->m_channels = 1;
+                }
+            }
+
+            static const int16_t max = 32111;
+            for(uint32_t i=0; i < s->m_channels;) {
+                for(int j=0; j < s->m_smplPerChan; ++j) {
+                    err_udp.data[i++] = max;
+                }
             }
         }
-        bool bres = false;
 
-        const utils::MPair<QString, QString> transport =
-                utils::RecorderConfig::Instance().
-                getAttribPairFromTag("Network", "transport");
-        if (transport.m_type2 == "udp") {
-                s->udp = new QUdpSocket;
-                bres = s->udp->bind(1234, QUdpSocket::ShareAddress);
+        // setup transport and server
+        {
+            bool bres = false;
+            // removing constnes for a bit ...
 
-                connect(s->udp, SIGNAL(readyRead()),
-                        s, SLOT(readyReadUdp())/*, Qt::DirectConnection*/);
+            utils::MPair<QString, QString>* transport =
+                    const_cast<utils::MPair<QString, QString>* >
+                    (&utils::RecorderConfig::Instance().
+                    getAttribPairFromTag("Network", "transport"));
 
-                connect(s, SIGNAL(dataReady(frame_data_t*)),
-                        s, SLOT(hDataReady(frame_data_t*)));
-                if (bres) {
-                    printf("Bind OK!\n");
-                    s->m_liveConnection.setInterval(1000);
-                    connect(&s->m_liveConnection, SIGNAL(timeout()),
-                            s, SLOT(checkConnection()));
-                    s->m_liveConnection.start();
-                } else {
-                        printf("Bind FAIL!\n");
-                        Instance().route(DISCONNECTED);
+            utils::MPair<QString, QString>* port =
+                    const_cast<utils::MPair<QString, QString>* >
+                    (&utils::RecorderConfig::Instance()
+                    .getAttribPairFromTag("Network", "port"));
+
+
+            if (port->m_type1 == "") {
+                port->m_type2 = "1234";
+            } else {
+                s->m_port = port->m_type2.toInt(&bres);
+                if (!bres) {
+                    s->m_port = 1234;
                 }
-            } else if (transport.m_type2 == "tcp") {
-                // give time to everithying to init
-                QTimer::singleShot(0,
-                                   [=]()
-                {
-                    s->initTcpServer();
-                });
+            }
 
-        } else {
-            std::cout << "Invalid xml attribute (" << transport.m_type2.toStdString()
-                      << ")" << " from Tag: ("  <<
-                         transport.m_type1.toStdString() << ")" << std::endl;
-            exit(1);
+
+            if (transport->m_type2 == "udp") {
+                    s->udp = new QUdpSocket;
+                    bres = s->udp->bind(s->m_port, QUdpSocket::ShareAddress);
+
+                    connect(s->udp, SIGNAL(readyRead()),
+                            s, SLOT(readyReadUdp())/*, Qt::DirectConnection*/);
+
+                    if (bres) {
+                        printf("Bind OK!\n");
+                        s->m_liveConnection.setInterval(1000);
+                        connect(&s->m_liveConnection, SIGNAL(timeout()),
+                                s, SLOT(checkConnection()));
+                        s->m_liveConnection.start();
+                    } else {
+                            printf("Bind FAIL!\n");
+                            Instance().route(DISCONNECTED);
+                    }
+                } else if (transport->m_type2 == "tcp") {
+                    // give time to everithying to init
+                    QTimer::singleShot(0,
+                                       [=]()
+                    {
+                        s->initTcpServer();
+                    });
+
+            } else {
+                std::cout << "Invalid xml attribute (" << transport->m_type2.toStdString()
+                          << ")" << " from Tag: ("  <<
+                             transport->m_type1.toStdString() << ")" << std::endl;
+                exit(1);
+            }
+
         }
 
     }
@@ -125,6 +171,7 @@ namespace plugin {
     void Server::readyReadUdp()
     {
         static char msg[512] = {0};
+        static const int SIZE = m_channels * m_smplPerChan;
 
         if (udp->hasPendingDatagrams()) {
             m_monitorData.append('.');
@@ -138,12 +185,7 @@ namespace plugin {
                                        &m_senderHost, &m_senderPort);
                 if (read > 0) {
                     // the udp structure from the device
-#ifdef REQ_FLIP
-                    utils::frame_data_t2* udp2 = (utils::frame_data_t2*) buff.data();
-                    utils::frame_data_t udp = copy_and_flip(*udp2);
-#else
-                    frame_data_t udp = *(frame_data_t*) buff.data();
-#endif
+                    utils::frame_data_t udp = *(utils::frame_data_t*) buff.data();
                     // one frame lost for synching with my counter
 
                     if (udp.counter != ++m_conn_info.paketCounter) {
@@ -172,26 +214,26 @@ namespace plugin {
 
                         if(!m_conn_info.onetimeSynch) {
                             m_conn_info.onetimeSynch = true;
-                            for(int i=0; i < 32; ++i) {
+                            for(uint32_t i=0; i < SIZE; ) {
                                 utils::sample_data_t s = {0, 0};
                                 short smpl[16] = {0};
                                 s.samples = smpl;
-                                s.size = 16;
-                                for(int j=0; j < s.size; ++j) {
-                                    s.samples[j] = err_udp.data[i][j];
+                                s.size = m_smplPerChan;
+                                for(uint32_t j=0; j < s.size; ++j) {
+                                    s.samples[j] = err_udp.data[i++];
                                 }
                                 err_ls.append(s);
                             }
                             put_data((QList<utils::sample_data_t>*) &err_ls);
                         } else {
                             for(int i=0; i < errs; ++i) {
-                               for(int j=0; j < 32; ++j) {
+                               for(uint32_t j=0; j < SIZE; ) {
                                    utils::sample_data_t sd = {0, 0};
-                                   short smpl[16] = {0};
+                                   short smpl[512] = {0};
                                    sd.samples = smpl;
-                                   sd.size = 16;
-                                   for(int h=0; h < sd.size; ++h) {
-                                       sd.samples[h] = err_udp.data[j][h];
+                                   sd.size = m_smplPerChan;
+                                   for(uint32_t h=0; h < sd.size; ++h) {
+                                       sd.samples[h] = err_udp.data[j++];
                                    }
                                    err_ls.append(sd);
                                }
@@ -205,14 +247,14 @@ namespace plugin {
                         //put_data((frame_data_t*) udp);
                         QList<utils::sample_data_t> ls;
                         // copy all the data then send it to the plugins
-                        for(int i=0; i < 32; ++i) {
+                        for(uint32_t i=0; i < SIZE; ) {
                             utils::sample_data_t s = {0, 0};
-                            short smpl[16] = {0};
+                            short smpl[512] = {0};
                             s.samples = smpl;
-                            s.size = 16;
+                            s.size = m_smplPerChan;
                             // fill the list to be passed to other plugins
-                            for(int j=0; j < s.size; ++j) {
-                                s.samples[j] = udp.data[i][j];
+                            for(uint32_t j=0; j < s.size; ++j) {
+                                s.samples[j] = udp.data[i++];
                             }
                             ls.append(s);
                         }
@@ -296,7 +338,11 @@ namespace plugin {
     void Server::deinit(void)
     {
         Server* s = &Instance();
-        s->p_server->deinit();
+        if (s->p_server != nullptr) {
+            s->p_server->deinit();
+            delete s->p_server;
+            s->p_server = nullptr;
+        }
 
         utils::IPC::Instance().sendMessage("Server: deinit\n");
     }
@@ -387,137 +433,6 @@ namespace plugin {
         utils::IPC::Instance().sendMessage("Socket disconnected...\n");
     }
 
-#if 0
-    // tpc server stuff
-    TcpServer::TcpServer()
-        :
-         m_packet{0},
-         socket_fd(-1)
-    {
-    }
-
-    TcpServer::~TcpServer()
-    {
-
-    }
-
-    void TcpServer::init()
-    {
-#if 0
-        tcp_server = new QTcpServer(this);
-        tcp_server->setMaxPendingConnections(1);
-
-        connect(tcp_server, SIGNAL(newConnection()),
-                this, SLOT(hConnection()));
-        if (!tcp_server->listen(QHostAddress::Any, 1234)) {
-            utils::IPC::Instance().sendMessage("Server failed to start!\n");
-        } else {
-            utils::IPC::Instance().sendMessage("Server started!\n");
-        }
-#endif
-
-    }
-
-    void TcpServer::hConnection()
-    {
-
-#if 0
-        QTcpSocket* sock = tcp_server->nextPendingConnection();
-        ((QAbstractSocket*) sock)->setSocketOption(QAbstractSocket::LowDelayOption, 1);
-        //((QAbstractSocket*) sock)->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption,
-        //                                           1060 * 10);
-
-        if (sock != nullptr) {
-            connect(sock, SIGNAL(readyRead()),
-                    this, SLOT(readyReadData()));
-
-            //connect(sock, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
-            //        this, SLOT(hState(QAbstractSocket::SocketState)));
-            //connect(sock, SIGNAL(disconnected()),
-            //        sock, SLOT(deleteLater()));
-
-        }
-#endif
-    }
-
-    void TcpServer::hDisconnect()
-    {
-        std::cout << "Disconnected from client..." << std::endl;
-        exit(1);
-    }
-
-    void TcpServer::hState(QAbstractSocket::SocketState state)
-    {
-        switch (state) {
-        case QAbstractSocket::ConnectedState:
-            utils::IPC::Instance().sendMessage("Connected\n");
-            break;
-        case QAbstractSocket::ConnectingState:
-            utils::IPC::Instance().sendMessage("Connecting\n");
-            break;
-        case QAbstractSocket::UnconnectedState:
-            utils::IPC::Instance().sendMessage("Not connected\n");
-            break;
-        default:
-            utils::IPC::Instance().sendMessage("Unknown \n");
-            break;
-        }
-    }
-
-
-    void TcpServer::readyReadData()
-    {
-        Server* s = &Server::Instance();
-
-        QTcpSocket* r = static_cast<QTcpSocket*>(sender());
-
-        if (r == nullptr) {
-            std::cout << "Failed to obtain a socket reference." << std::endl;
-            exit(0); // deleteme later
-        }
-
-        int drainBytes = sizeof(frame_data_t) - m_packet.size;
-        if (drainBytes != 0) {
-            QByteArray d = r->read(drainBytes);
-            m_packet.size += d.count();
-            m_packet.data.append(d.data(), d.count());
-        }
-
-        if ((drainBytes == 0) && (m_packet.size == sizeof(frame_data_t))) {
-
-            // the udp structure from the device
-            frame_data_t tcp = *(frame_data_t*) m_packet.data.data();
-            std::cout << tcp.counter << std::endl;
-
-            if (++s->m_conn_info.paketCounter != tcp.counter) {
-                s->m_conn_info.paketCounter = tcp.counter;
-                // missed a packet
-                static char buff[64] = {0};
-                snprintf(buff, sizeof(buff), "Missed:%lu\n", s->m_conn_info.paketCounter-1);
-                utils::IPC::Instance().sendMessage(buff);
-
-            }
-            QList<sample_data_t> ls;
-            // copy all the data then send it to the plugins
-            for(int i=0; i < 32; ++i) {
-                sample_data_t s = {0, 0};
-                short smpls[16] ={0};
-                s.samples = smpls;
-                s.size = 16;
-                // fill the list to be passed to other plugins
-                for(int j=0; j < 16; ++j) {
-                    s.samples[j] = tcp.data[i][j];
-                }
-                ls.append(s);
-            }
-            // finally send it
-            s->put_data((QList<sample_data_t>*) &ls);
-            m_packet.data.clear();
-            m_packet.size = 0;
-        }
-
-    }
-#endif
     } // udp
 } // plugin
 

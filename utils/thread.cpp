@@ -82,7 +82,7 @@ PThread::~PThread()
 /// \param cb
 /// \param user_data
 ///
-int PThread::create(size_t stack_size, int priority, entryPoint cb, void* user_data)
+int PThread::createThread(size_t stack_size, int priority, entryPoint cb, void* user_data)
 {
 
     size_t default_size ;
@@ -140,7 +140,7 @@ void PThread::join()
     pthread_join(m_thread, &ret);
 }
 
-void PThread::setName(const char *name)
+void PThread::setThreadName(const char *name)
 {
     //pthread_setname_np(m_thread, name);
     strncpy(m_name, name, 64);
@@ -168,7 +168,7 @@ bool PThread::compareTo(const pthread_t * const th)
     return (cmp > 0);
 }
 
-void PThread::deinit()
+void PThread::closeThread()
 {
     if (m_stack != nullptr) {
         delete [] m_stack;
@@ -200,9 +200,6 @@ BSemaphore::~BSemaphore()
     pthread_mutex_destroy(&m_lock);
 }
 
-int BSemaphore::create()
-{
-}
 
 void BSemaphore::post()
 {

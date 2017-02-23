@@ -1,9 +1,3 @@
-/** A C like interface
- * for what a simple plugin can look like
- * it`s totally independant from the other
- * world. This plugin is not a real program
- * it`s a dummy to just test the plugin interfaces.
-*/
 #include "test-producer.h"
 #include "plugin-iface.h"
 #include <stdio.h>
@@ -20,10 +14,7 @@
 
 namespace  plugin {
 
-
 Producer* Producer::s_instance = nullptr;
-
-
 
 void Producer::init()
 {
@@ -35,11 +26,12 @@ void Producer::init()
         return;
     }
     size_t r = fread(&p->samples, 1, sizeof(SMPL), fp);
+    (void) r;
     fclose(fp);
 
-    ((PThread*)p)->setName("producer-thread");
+    ((PThread*)p)->setThreadName("producer-thread");
     p->isRunning = true;
-    p->create(128 * 1024, 10, Producer::worker, p);
+    p->createThread(128 * 1024, 10, Producer::worker, p);
 
 }
 
@@ -82,6 +74,7 @@ void Producer::deinit()
 {
     Instance().isRunning = false;
     Instance().join();
+    Instance().closeThread();
     utils::IPC::Instance().sendMessage("Deinit Consumer\n");
 }
 
@@ -126,7 +119,6 @@ Producer::Producer()
 
 Producer::~Producer()
 {
-
 }
 
 Producer &Producer::Instance()
@@ -143,6 +135,7 @@ void *Producer::worker(void *pArgs)
     Producer* p = (Producer*) pArgs;
 
     while (p->isRunning) {
+        usleep(2);
         QList<utils::sample_data_t> ls;
         for (int i=0;  i < SMPL_SIZE; ) {
             utils::sample_data_t s = {0, 0};
@@ -156,8 +149,10 @@ void *Producer::worker(void *pArgs)
         }
 
         p->put_data((QList<utils::sample_data_t>*)&ls);
-        p->suspend(0);
+
     }
+
+    return (int*)0;
 }
 
 
@@ -179,6 +174,4 @@ const struct interface_t *get_interface()
     s_iface->getSelf = &p->getSelf;
     s_iface->nextPlugin = nullptr;
     return s_iface;
-
-
 }

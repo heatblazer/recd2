@@ -17,7 +17,8 @@ SUBDIRS += \
     alsa-rec \
     utils \
     test-producer \
-    test-consumer
+    test-consumer \
+    MD5
 
 app.depends = utils
 udp-streamer.depends = utils

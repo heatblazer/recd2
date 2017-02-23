@@ -8,7 +8,7 @@ CONFIG -= app_bundle
 
 TEMPLATE = lib # it`s a plugin
 
-SOURCES += main.cpp \
+SOURCES += \
     recorder.cpp
 
 HEADERS += \

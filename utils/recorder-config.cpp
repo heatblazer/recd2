@@ -52,10 +52,10 @@ bool RecorderConfig::loadFile(const QString &fname)
                                                          attribs.at(i).name().toString(),
                                                           attribs.at(i).value().toString()));
                         }
-                    } else if (reader.name() == "Channels") {
+                    } else if (reader.name() == "FrameData") {
                         QXmlStreamAttributes attribs = reader.attributes();
                         for(int i=0; i < attribs.count(); ++i) {
-                            m_tags["Channels"].append(MPair<QString, QString>
+                            m_tags["FrameData"].append(MPair<QString, QString>
                                                       (attribs.at(i).name().toString(),
                                                            attribs.at(i).value().toString()));
                         }

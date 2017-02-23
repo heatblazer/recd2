@@ -15,9 +15,12 @@
 <!-- now using this tag to specify max channels -->
 <!-- by default recorder support up to 128 channels with min of 1 -->
 <!-- impacts the UDP streamer for now... -->
-<Channels
-    count="32"
-    />
+<!-- new version -->
+<FrameData
+    header="32"
+    channels="32"
+    samplesPerChan="16"
+/>
 
 <HotSwap
     timeBased="disabled"
@@ -142,8 +145,18 @@ be used to track the chaingin of the plugins -->
     path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_8_0_GCC_64bit-Debug/test-consumer/libtest-consumer.so"
 />
 -->
+
+<!-- checksum generator -->
+<Plugin
+    name="md5-checksum"
+    order="1"
+    enabled="true"
+    path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_8_0_GCC_64bit-Debug/MD5/libMD5Generator.so"
+/>
+
 <!-- this is the typical recorder of wav files, it has nothing special here,
 collect samples and record them to wavs -->
+
 <!--
 <Plugin
     name="rec"

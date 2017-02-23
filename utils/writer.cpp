@@ -73,18 +73,19 @@ void Writer::write(const QByteArray &data)
 void Writer::startWriter()
 {
     m_isRunning = true;
-    m_thread.create(64 * 1024, 10, Writer::worker, this);
+    m_thread.createThread(64 * 1024, 10, Writer::worker, this);
 }
 
 void Writer::stopWriter()
 {
     m_isRunning = false;
     m_thread.join();
+    m_thread.closeThread();
 }
 
 void Writer::setObjectName(const QString &name)
 {
-    m_thread.setName(name.toStdString().data());
+    m_thread.setThreadName(name.toStdString().data());
 }
 
 } // utils

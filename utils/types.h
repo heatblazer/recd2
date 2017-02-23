@@ -29,15 +29,16 @@ template <typename T> union bytes_t
 };
 
 
+/// TODO: for future it will be setup dynamically
+/// from the config file
 /// postimplemented struct for udp header
 /// \brief The frame_data_t struct
 ///
 struct frame_data_t
 {
-    uint32_t    counter;
-    uint8_t     null_bytes[32];
-    int16_t     data[32][16];
-
+    uint32_t counter;
+    uint8_t null_bytes[64];
+    int16_t data[32 * 16]; // the new concpet - max is 1024 bytes
 };
 
 // required for flippingp_server

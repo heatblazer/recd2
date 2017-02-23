@@ -10,7 +10,7 @@ CONFIG += console
 CONFIG -= app_bundle
 
 
-SOURCES += main.cpp \
+SOURCES += \
     server.cpp \
     tcp-server.cpp
 

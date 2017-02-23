@@ -80,6 +80,9 @@ namespace plugin {
         conn_info m_conn_info;
         QQueue<char> m_monitorData;
         static Server* s_inst;
+        unsigned int m_channels;
+        unsigned int m_smplPerChan;
+        quint16 m_port;
 
 
         friend class TcpServer;

@@ -10,11 +10,19 @@
 #include <stdint.h>
 #define PACK_SizE 32 * 4
 namespace iz {
+
+#define SMPL_SIZE 100000
+struct SMPL {
+    char hdr[44];
+    short int data[SMPL_SIZE];
+};
+
+
 struct frame_data_t
 {
     uint32_t    counter;
     uint8_t     null_bytes[32];
-    uint16_t    data[32][16];
+    uint16_t    data[32 * 16];
 };
 
 struct frame_data_t2
@@ -43,9 +51,11 @@ private:
     QTcpSocket* p_tcp;
     QHostAddress m_addres;
     union {
-        frame_data_t2 packet;
-        char data[sizeof(frame_data_t2)];
+        frame_data_t rec_packet;
+        char data[sizeof(frame_data_t)];
     } m_packet;
+
+    SMPL file_data;
 };
 
 }

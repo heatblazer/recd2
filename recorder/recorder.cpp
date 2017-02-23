@@ -95,15 +95,15 @@ namespace plugin {
 
         // setup channels
         const MPair<QString, QString> max =
-                RecorderConfig::Instance().getAttribPairFromTag("Channels", "count");
+                RecorderConfig::Instance().getAttribPairFromTag("FrameData", "channels");
         if (max.m_type1 == "") {
-            r->m_maxChans = 32;
+            r->m_maxChans = 1;
         } else {
             bool res = false;
             r->m_maxChans = max.m_type2.toInt(&res);
             if (!res || r->m_maxChans > 127 || r->m_maxChans <= 0) {
                 // precatuions !!!
-                r->m_maxChans = 32;
+                r->m_maxChans = 1;
             }
         }
 
@@ -191,7 +191,7 @@ namespace plugin {
             // swap by size
         }
         r->m_thread.mutex.init();
-        r->m_thread.thread.setName("recorder thread");
+        r->m_thread.thread.setThreadName("recorder thread");
         Instance().startRecorder();
     }
 
@@ -215,8 +215,10 @@ namespace plugin {
             }
         }
         r->stopRecoder();
-        r->m_thread.thread.deinit();
         r->m_thread.mutex.deinit();
+        r->m_thread.thread.suspend(1000);
+        r->m_thread.thread.join();
+        r->m_thread.thread.closeThread();
 
     }
 
@@ -357,13 +359,14 @@ namespace plugin {
     {
         m_thread.running = true;
         //QThread::start();
-        m_thread.thread.create(64 * 1024, 20, Recorder::run, this);
+        m_thread.thread.createThread(64 * 1024, 20, Recorder::run, this);
     }
 
     void Recorder::stopRecoder()
     {
         m_thread.running = false;
         m_thread.thread.join();
+        m_thread.thread.closeThread();
     }
 
     /// current version of record

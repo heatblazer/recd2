@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
 
     return app.exec();
 #else
-    utils::RingBuffer<utils::frame_data_t> rb;
+    utils::RingBuffer<utils::frame_data_t, 256> rb;
     rb.init();
 
     reader:
