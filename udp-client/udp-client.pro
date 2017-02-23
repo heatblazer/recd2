@@ -18,3 +18,4 @@ SOURCES += main.cpp \
 HEADERS += \
     client.h
 
+DISTFILES += "test.wav"

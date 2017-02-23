@@ -142,7 +142,7 @@ namespace plugin
            m_sampleBuffer.data.clear();
            m_lock.unlock();
            for(int it=0; it < dbl.count(); ++it) {
-               short int dtmf[FRAME_SIZE];// = new short int[size];
+               int16_t dtmf[FRAME_SIZE];// = new short int[size];
 
                for(int i=0; i < FRAME_SIZE; ) {
                    if (dbl.isEmpty()) {
@@ -153,6 +153,12 @@ namespace plugin
                        dtmf[i++] = smpl.samples[j];
                    }
                }
+
+               for(int i=0; i < FRAME_SIZE; ++i) {
+                   printf("Peek: [%d]\n", hwm(dtmf[i]));
+               }
+               m_peek = 0;
+
 
                m_dtmfDetector.dtmfDetecting((INT16*)dtmf);
 
@@ -166,7 +172,7 @@ namespace plugin
                    //    printf("Error of a detecting button \n");
                        continue;
                    } else {
-                       printf("We got: [%c]\n", s_DialButtons[ii]);
+                    //   printf("We got: [%c]\n", s_DialButtons[ii]);
                    }
                }
                 // clear the double buffer
@@ -174,8 +180,17 @@ namespace plugin
         } // busy loop
     }
 
+    int16_t Dtmf::hwm(int16_t val)
+    {
+        int16_t a = abs(val);
+        if (m_peek < a) {
+            m_peek = a;
+        }
+    }
+
     Dtmf::Dtmf(QThread *parent)
         : QThread(parent),
+          m_peek(0),
           m_isRunning(false),
           m_dtmfDetector(FRAME_SIZE, 102) // experimental!!!
     {

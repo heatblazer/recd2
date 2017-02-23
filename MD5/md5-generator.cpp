@@ -8,6 +8,9 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <math.h>
+
+#include <iostream>
 
 // md5 crypto //
 #include <openssl/md5.h>
@@ -20,6 +23,9 @@
 
 static const char* THIS_FILE = "md5-generator.cpp";
 
+#define FRAME_SIZE 16
+
+
 namespace plugin {
     namespace md5 {
 
@@ -30,7 +36,7 @@ namespace plugin {
             MD5Generator* md5 = (MD5Generator*) pArgs;
 
             while (md5->isRunning) {
-                md5->suspend(1000);
+
             }
 
             return (int*)0;
@@ -48,6 +54,7 @@ namespace plugin {
         {
             utils::IPC::Instance().sendMessage(THIS_FILE, "Init MD5 hasing plugin\n");
             MD5Generator* md5 = &Instance();
+            md5->m_lock.init();
             md5->setThreadName("md5-worker");
             md5->createThread(128 * 1024, 20, MD5Generator::worker, md5);
         }
@@ -61,11 +68,12 @@ namespace plugin {
         int MD5Generator::put_data(void *data)
         {
             MD5Generator* md = &Instance();
+            QList<utils::sample_data_t>* ls =
+                    (QList<utils::sample_data_t>*) data;
+
             if (md->s_iface.nextPlugin != nullptr) {
                 md->s_iface.put_data(data);
             } else {
-                QList<utils::sample_data_t>* ls =
-                        (QList<utils::sample_data_t>*) data;
                 ls->clear();
             }
             return 0;
@@ -123,6 +131,14 @@ namespace plugin {
         struct interface_t* MD5Generator::getSelf(void)
         {
             return &Instance().s_iface;
+        }
+
+        uint16_t MD5Generator::hwm(uint16_t vin)
+        {
+            uint16_t a = abs(vin);
+            if (peekVal < a) {
+                peekVal = a;
+            }
         }
 
         MD5Generator::MD5Generator()

@@ -3,6 +3,8 @@
 #include "plugin-iface.h"
 #include "utils.h"
 
+#include <QList>
+
 namespace plugin {
 
     namespace md5 {
@@ -23,12 +25,15 @@ namespace plugin {
         static int main_proxy(int argc, char** argv);
         static struct interface_t* getSelf(void);
 
+
     private:
+
         MD5Generator();
         ~MD5Generator();
         static MD5Generator* s_isntance;
         bool isRunning;
         struct interface_t s_iface;
+
     };
 
     } // md5
