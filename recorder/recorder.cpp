@@ -11,7 +11,7 @@
 
 using namespace utils;
 
-//static const char* THIS_FILE = "recorder.cpp";
+static const char* THIS_FILE = "recorder.cpp";
 
 // helpers
 ///////////////////////////////////////////////////////////////////////////////////
@@ -82,7 +82,7 @@ namespace plugin {
 
         // hardcoded for now
 
-        utils::IPC::Instance().sendMessage("Initializing recorder...\n");
+        utils::IPC::Instance().sendMessage(THIS_FILE, "Initializing recorder...\n");
         const MPair<QString, QString>& dir =
                 RecorderConfig::Instance()
                 .getAttribPairFromTag("Paths", "records");
@@ -142,7 +142,7 @@ namespace plugin {
             if (hot_swap.m_type2 == "enabled" ||
                     hot_swap.m_type2 == "true") {
                 // setup timer based
-                IPC::Instance().sendMessage("HotSwap is set to time based!\n");
+                IPC::Instance().sendMessage(THIS_FILE, "HotSwap is set to time based!\n");
                 ulong time = 60000; // 1 min minumum
                 ulong time_modifier = 1;
                 if (interval.m_type1 != "") {
@@ -154,7 +154,7 @@ namespace plugin {
                     }
                     time = time * time_modifier;
                     snprintf(init_msg, sizeof(init_msg),"Time interval is: (%ld)\n", time);
-                    IPC::Instance().sendMessage(init_msg);
+                    IPC::Instance().sendMessage(THIS_FILE, init_msg);
                 }
                 // set the timer
                 r->m_hotswap.setInterval(time);
@@ -162,7 +162,7 @@ namespace plugin {
                 r->m_hotswap.start();
             } else {
                 // setup filesize change
-                IPC::Instance().sendMessage("HotSwap is set to file size changed!\n");
+                IPC::Instance().sendMessage(THIS_FILE, "HotSwap is set to file size changed!\n");
                 if (max_size.m_type1 != "") {
                     bool res = false;
                     ulong max_size_modifier = 1;
@@ -183,7 +183,7 @@ namespace plugin {
                 }
                 snprintf(init_msg, sizeof(init_msg),
                          "File size limit is: (%d) bytes\n", r->m_maxFileSize);
-                IPC::Instance().sendMessage(init_msg);
+                IPC::Instance().sendMessage(THIS_FILE, init_msg);
                 r->m_sizeBased = true;
             }
         } else {
@@ -198,8 +198,8 @@ namespace plugin {
     void Recorder::deinit()
     {
         Recorder* r = &Instance();
-        IPC::Instance().sendMessage("Deinitializing recorder...\n");
-        IPC::Instance().sendMessage("Closing all opened records...\n");
+        IPC::Instance().sendMessage(THIS_FILE, "Deinitializing recorder...\n");
+        IPC::Instance().sendMessage(THIS_FILE, "Closing all opened records...\n");
 
         for(int i=0; i < Chans::Count; ++i) {
             if (r->m_wavs[i] != nullptr) {
@@ -207,7 +207,7 @@ namespace plugin {
                     static char msg[256] = {0};
                     snprintf(msg, 256, "Closing file: (%s)\n",
                              r->m_wavs[i]->getFileName());
-                    IPC::Instance().sendMessage(msg);
+                    IPC::Instance().sendMessage(THIS_FILE, msg);
                     r->m_wavs[i]->close();
                     delete r->m_wavs[i];
                     r->m_wavs[i] = nullptr;

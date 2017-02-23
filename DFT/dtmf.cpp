@@ -2,7 +2,9 @@
 
 #include <iostream>
 
-#define FRAME_SIZE 160
+static const char* THIS_FILE = "dtmf.cpp";
+
+#define FRAME_SIZE 512
 
 static char s_DialButtons[16] ={'1' , '2', '3',
                                 'A', '4', '5',
@@ -51,7 +53,7 @@ namespace plugin
     void Dtmf::deinit()
     {
         Dtmf* d = &Instance();
-        utils::IPC::Instance().sendMessage("deinit dtmf detector...\n");
+        utils::IPC::Instance().sendMessage(THIS_FILE, "deinit dtmf detector...\n");
         d->wait(1000);
     }
 

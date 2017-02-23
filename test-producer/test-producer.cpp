@@ -12,6 +12,8 @@
 #include "recorder-config.h"
 #include "utils.h"
 
+static const char* THIS_FILE = "test-producer.cpp";
+
 namespace  plugin {
 
 Producer* Producer::s_instance = nullptr;
@@ -19,7 +21,7 @@ Producer* Producer::s_instance = nullptr;
 void Producer::init()
 {
     Producer* p = &Instance();
-    utils::IPC::Instance().sendMessage("Init Producer...\n");
+    utils::IPC::Instance().sendMessage(THIS_FILE, "Init Producer...\n");
 
     FILE* fp = fopen("test.wav", "rb");
     if (!fp) {
@@ -75,7 +77,7 @@ void Producer::deinit()
     Instance().isRunning = false;
     Instance().join();
     Instance().closeThread();
-    utils::IPC::Instance().sendMessage("Deinit Consumer\n");
+    utils::IPC::Instance().sendMessage(THIS_FILE, "Deinit Producer test\n");
 }
 
 int Producer::main_proxy(int argc, char** argv)

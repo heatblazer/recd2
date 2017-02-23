@@ -266,6 +266,7 @@ void SApplication::initAllPlugins()
 {
     interface_t* it = RecPluginMngr::getPluginList().getFront();
     if (it == nullptr) {
+        utils::Logger::Instance().logMessage(THIS_FILE, "No plugins loaded.\n");
         return;
     }
     while (it != nullptr) {

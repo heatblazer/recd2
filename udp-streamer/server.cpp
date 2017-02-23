@@ -1,14 +1,14 @@
 #include "server.h"
 
 #include <iostream>
-
-
 #include <QCoreApplication>
 
 #include "ipc-msg.h"
 #include "date-time.h"
 #include "recorder-config.h"
 #include "types.h"
+
+static const char* THIS_FILE = "server.cpp";
 
 namespace plugin {
     namespace udp {
@@ -202,7 +202,7 @@ namespace plugin {
                                  (udp.counter - m_conn_info.paketCounter),  // lost
                                  m_conn_info.totalLost);               // total lost
 
-                        utils::IPC::Instance().sendMessage(msg);
+                        utils::IPC::Instance().sendMessage(THIS_FILE, msg);
                         m_conn_info.desynchCounter++;
                         int errs = udp.counter - m_conn_info.paketCounter;
                         m_conn_info.totalLost += errs;
@@ -216,7 +216,7 @@ namespace plugin {
                             m_conn_info.onetimeSynch = true;
                             for(uint32_t i=0; i < SIZE; ) {
                                 utils::sample_data_t s = {0, 0};
-                                short smpl[16] = {0};
+                                short smpl[MaxSampleSize] = {0};
                                 s.samples = smpl;
                                 s.size = m_smplPerChan;
                                 for(uint32_t j=0; j < s.size; ++j) {
@@ -229,7 +229,7 @@ namespace plugin {
                             for(int i=0; i < errs; ++i) {
                                for(uint32_t j=0; j < SIZE; ) {
                                    utils::sample_data_t sd = {0, 0};
-                                   short smpl[512] = {0};
+                                   short smpl[MaxSampleSize] = {0};
                                    sd.samples = smpl;
                                    sd.size = m_smplPerChan;
                                    for(uint32_t h=0; h < sd.size; ++h) {
@@ -249,7 +249,7 @@ namespace plugin {
                         // copy all the data then send it to the plugins
                         for(uint32_t i=0; i < SIZE; ) {
                             utils::sample_data_t s = {0, 0};
-                            short smpl[512] = {0};
+                            short smpl[MaxSampleSize] = {0};
                             s.samples = smpl;
                             s.size = m_smplPerChan;
                             // fill the list to be passed to other plugins
@@ -263,7 +263,7 @@ namespace plugin {
                     }
                  } else {
                     snprintf(msg, sizeof(msg), "Missed an UDP\n");
-                    utils::IPC::Instance().sendMessage(msg);
+                    utils::IPC::Instance().sendMessage(THIS_FILE, msg);
                 }
             }
         } else {
@@ -282,7 +282,7 @@ namespace plugin {
         if (m_monitorData.isEmpty()) {
             // not ok!
             Instance().disconnected();
-            utils::IPC::Instance().sendMessage("Lost connection!\n");
+            utils::IPC::Instance().sendMessage(THIS_FILE, "Lost connection!\n");
         } else {
             // make sure you purge the list
             m_monitorData.clear();
@@ -344,7 +344,7 @@ namespace plugin {
             s->p_server = nullptr;
         }
 
-        utils::IPC::Instance().sendMessage("Server: deinit\n");
+        utils::IPC::Instance().sendMessage(THIS_FILE, "Server: deinit\n");
     }
 
     void Server::copy(const void *src, void *dst, int len)
@@ -430,7 +430,7 @@ namespace plugin {
     ///
     void Server::tcpDisconnected()
     {
-        utils::IPC::Instance().sendMessage("Socket disconnected...\n");
+        utils::IPC::Instance().sendMessage(THIS_FILE, "Socket disconnected...\n");
     }
 
     } // udp

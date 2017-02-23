@@ -19,6 +19,9 @@
 #include "ipc-msg.h"
 #include "utils.h"
 
+
+static const char* THIS_FILE = "qcapdev.cpp";
+
 namespace plugin {
     namespace qrec {
     using namespace utils;
@@ -199,7 +202,7 @@ namespace plugin {
 
             QAudioDeviceInfo info = QAudioDeviceInfo::defaultInputDevice();
             if (!info.isFormatSupported(format)) {
-                utils::IPC::Instance().sendMessage("default format not supported"
+                utils::IPC::Instance().sendMessage(THIS_FILE, "default format not supported"
                                                    ", trying to use nearest\n");
                 format = info.nearestFormat(format);
             }

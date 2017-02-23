@@ -162,7 +162,7 @@ void MsgServer::init()
 void MsgServer::deinit()
 {
  // nothing for now... maybe message later
-    utils::IPC::Instance().sendMessage("Deinit udp server\n");
+    utils::IPC::Instance().sendMessage(THIS_FILE, "Deinit udp server\n");
 }
 
 void MsgServer::readyRead()

@@ -99,7 +99,7 @@ namespace plugin {
                         s->p_server->m_conn_info.paketCounter = frame.counter;
                         snprintf(msg, sizeof(msg), "Missed: %lu\n",
                                  (long unsigned int) s->p_server->m_conn_info.paketCounter+1);
-                        utils::IPC::Instance().sendMessage(msg);
+                        utils::IPC::Instance().sendMessage(THIS_FILE, msg);
                     } else {
                         // do soemthin with the data
                         s->m_lock.lock();
@@ -113,7 +113,7 @@ namespace plugin {
         } // end forever loop
 
         snprintf(msg, sizeof(msg), "%s: Stopping TCP server.\n", THIS_FILE);
-        utils::IPC::Instance().sendMessage(msg);
+        utils::IPC::Instance().sendMessage(THIS_FILE, msg);
 
         // stop writer thread
         s->m_writer->m_isRunning = false;
@@ -152,7 +152,7 @@ namespace plugin {
 
     void TcpServer::deinit()
     {
-        utils::IPC::Instance().sendMessage("TCP server deinit\n");
+        utils::IPC::Instance().sendMessage(THIS_FILE, "TCP server deinit\n");
         m_isRunning = false;
         m_lock.deinit();
         join();

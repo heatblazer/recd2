@@ -30,6 +30,12 @@ namespace plugin {
         Q_OBJECT
     // interface implementation
     public:
+        enum Sizes
+        {
+            MaxSampleSize = 512,
+            MinChanSize = 1
+        };
+
         static Server& Instance();
         static void init();
         static void deinit(void);

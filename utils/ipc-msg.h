@@ -19,7 +19,7 @@ class IPC : public QObject
 {
 public:
     static IPC& Instance();
-    int sendMessage(const char* msg);
+    int sendMessage(const char* module, const char* msg);
 private:
     explicit IPC(QObject* parent=nullptr);
     virtual ~IPC();

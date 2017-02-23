@@ -18,6 +18,8 @@
 #include "ipc-msg.h"
 #include "recorder-config.h"
 
+static const char* THIS_FILE = "md5-generator.cpp";
+
 namespace plugin {
     namespace md5 {
 
@@ -31,6 +33,7 @@ namespace plugin {
                 md5->suspend(1000);
             }
 
+            return (int*)0;
         }
 
         MD5Generator &MD5Generator::Instance()
@@ -43,7 +46,7 @@ namespace plugin {
 
         void MD5Generator::init()
         {
-            utils::IPC::Instance().sendMessage("Init MD5 hasing plugin\n");
+            utils::IPC::Instance().sendMessage(THIS_FILE, "Init MD5 hasing plugin\n");
             MD5Generator* md5 = &Instance();
             md5->setThreadName("md5-worker");
             md5->createThread(128 * 1024, 20, MD5Generator::worker, md5);
@@ -86,7 +89,7 @@ namespace plugin {
 
         void MD5Generator::deinit()
         {
-            utils::IPC::Instance().sendMessage("Deinit Md5 hashing  plugin\n");
+            utils::IPC::Instance().sendMessage(THIS_FILE, "Deinit Md5 hashing  plugin\n");
             Instance().isRunning = false;
             Instance().suspend(1000);
             Instance().join();

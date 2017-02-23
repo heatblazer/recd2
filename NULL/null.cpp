@@ -15,6 +15,8 @@
 #include "recorder-config.h"
 #include "utils.h"
 
+static const char* THIS_FILE = "null.cpp";
+
 // explicitly null everything
 static struct interface_t s_iface = {0,0,0,
                                      0,0,0,
@@ -24,7 +26,7 @@ static struct interface_t s_iface = {0,0,0,
 
 static void init()
 {
-    utils::IPC::Instance().sendMessage("Init null plugin\n");
+    utils::IPC::Instance().sendMessage(THIS_FILE, "Init null plugin\n");
 }
 
 static int put_ndata(void *data, int len)
@@ -64,7 +66,7 @@ static void *get_data()
 
 static void deinit()
 {
-    utils::IPC::Instance().sendMessage("Deinit null plugin\n");
+    utils::IPC::Instance().sendMessage(THIS_FILE, "Deinit null plugin\n");
 }
 
 static int main_proxy(int argc, char** argv)

@@ -17,6 +17,11 @@ class SApplication : public QCoreApplication
     Q_OBJECT
 public:
 
+    enum ErrCodes
+    {
+
+    };
+
     static void writeToSocket(const char* data);
 
     explicit SApplication(int& argc, char** argv);

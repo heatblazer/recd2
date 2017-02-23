@@ -22,9 +22,11 @@ IPC &IPC::Instance()
 /// \param msg - message to be sent
 /// \return bytes written
 ///
-int IPC::sendMessage(const char *msg)
+int IPC::sendMessage(const char *module, const char *msg)
 {
-    int wr = p_socket->writeDatagram(QByteArray(msg), QHostAddress::LocalHost, 6666);
+    char module_msg[512] = {0};
+    snprintf(module_msg, sizeof(module_msg), "[%s]:%s", module, msg);
+    int wr = p_socket->writeDatagram(QByteArray(module_msg), QHostAddress::LocalHost, 6666);
     return wr;
 }
 

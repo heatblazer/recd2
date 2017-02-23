@@ -8,31 +8,25 @@
 #include <QTcpSocket>
 
 #include <stdint.h>
-#define PACK_SizE 32 * 4
+#include <stdint.h>
+
+#define FRAME_DATA_SIZE 32 * 16
+
 namespace iz {
 
 #define SMPL_SIZE 100000
 struct SMPL {
-    char hdr[44];
-    short int data[SMPL_SIZE];
+    char hdr[44]; // discard the header
+    int16_t data[SMPL_SIZE];
 };
 
 
 struct frame_data_t
 {
     uint32_t    counter;
-    uint8_t     null_bytes[32];
-    uint16_t    data[32 * 16];
+    uint8_t     null_bytes[64];
+    uint16_t    data[FRAME_DATA_SIZE];
 };
-
-struct frame_data_t2
-{
-    uint32_t    counter;
-    uint8_t     null_bytes[32];
-    uint16_t    data[16][32];
-};
-
-
 
 class Client : public QObject
 {
@@ -55,10 +49,10 @@ private:
         char data[sizeof(frame_data_t)];
     } m_packet;
 
+    // streaming file data over udp socket
     SMPL file_data;
 };
 
 }
-
 
 #endif // CLIENT_H

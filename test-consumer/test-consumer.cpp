@@ -17,15 +17,17 @@
 #include "recorder-config.h"
 #include "utils.h"
 
-namespace  plugin {
 
+static const char* THIS_FILE = "test-consumer.cpp";
+
+namespace  plugin {
 
 Consumer* Consumer::s_instance = nullptr;
 
 void Consumer::init()
 {
     Consumer* c = &Instance();
-    utils::IPC::Instance().sendMessage("Init Consumer...\n");
+    utils::IPC::Instance().sendMessage(THIS_FILE, "Init Consumer...\n");
     ((PThread*)c)->setThreadName("consumer-thread");
     c->createThread(128 * 1024, 10, Consumer::worker, c);
 }
@@ -69,7 +71,7 @@ void Consumer::deinit()
 {
     Instance().join();
     Instance().closeThread();
-    utils::IPC::Instance().sendMessage("Deinit Consumer \n");
+    utils::IPC::Instance().sendMessage(THIS_FILE, "Deinit Consumer \n");
 }
 
 int Consumer::main_proxy(int argc, char** argv)

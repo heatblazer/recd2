@@ -172,11 +172,14 @@ A wav recorder over udp streams.
     2. Use test-consumer to obtain the data
     3. You can perf-test the recorder if set the recorder plugin last and
     produce som data from test-producer
+    4. udp-client project now streams file to the program for more testing.
 
 ## DTMF DETECTOR
     1. Dtmf detector plugin made by: Plyashkevich Viatcheslav <plyashkevich@yandex.ru>
     2. See the main.cpp in the DFT plugin in the project for example detection.
 
+## MD5 CHECKSUM (Pending)
+    1. Checksum generator.
 
 ## TOOLS
     1. topme - helper script to call "top -H -p" on a process name

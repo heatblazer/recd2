@@ -9,7 +9,7 @@
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
-    utils::IPC::Instance().sendMessage("sjdsdsijdsidijsd");
+    utils::IPC::Instance().sendMessage("111", "sjdsdsijdsidijsd");
     // test the ring buffer
     utils::RingBuffer<utils::frame_data_t, 512> rb;
     rb.init();
