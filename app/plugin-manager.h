@@ -19,6 +19,7 @@ public:
     static const interface_t *getInterface(const QString& iface);
     static void unloadLibrary(const QString& lib);
     static InterfaceList &getPluginList();
+    static void* getPluginByName(const char* fname);
 
 private:
     RecPluginMngr();

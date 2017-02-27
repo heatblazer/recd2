@@ -101,6 +101,7 @@ mic, then passes down to the chain. -->
     order="1"
     enabled="true"
     path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_7_0_GCC_64bit-Debug/alsa-rec/libalsa-rec.so"
+    conf=""
     />
 -->
 <!-- this plugin is based on the udp server written for the device -->
@@ -110,6 +111,7 @@ mic, then passes down to the chain. -->
     order="1"
     enabled="true"
     path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_8_0_GCC_64bit-Debug/udp-streamer/libudp-streamer.so"
+    conf=""
     />
 -->
 <!-- this plugin does nothig, it`s mainly used for
@@ -122,6 +124,7 @@ be used to track the chaingin of the plugins -->
     order="1"
     enabled="true"
     path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_8_0_GCC_64bit-Debug/test-producer/libtest-producer.so"
+    conf=""
     />
 <!--
 <Plugin
@@ -129,6 +132,7 @@ be used to track the chaingin of the plugins -->
     order="1"
     enabled="true"
     path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_8_0_GCC_64bit-Debug/NULL/libNULL.so"
+    conf=""
     />
 -->
 <Plugin
@@ -136,6 +140,7 @@ be used to track the chaingin of the plugins -->
     order="1"
     enabled="true"
     path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_8_0_GCC_64bit-Debug/DFT/libDFT.so"
+    conf="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_8_0_GCC_64bit-Debug/DFT/dft-config.xml"
     />
 <!--
 <Plugin
@@ -163,6 +168,7 @@ collect samples and record them to wavs -->
     order="1"
     enabled="true"
     path="/home/ilian/btel-repo/build-recd2-Desktop_Qt_5_8_0_GCC_64bit-Debug/recorder/librecorder.so"
+    conf=""
     />
 -->
 </Config>

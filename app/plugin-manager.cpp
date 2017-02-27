@@ -2,6 +2,7 @@
 #include "defs.h"
 
 #include <stdio.h>
+#include <string.h>
 #include "utils.h"
 
 static const char* THIS_FILE = "plugin-manager.cpp";
@@ -105,6 +106,17 @@ void RecPluginMngr::unloadLibrary(const QString &lib)
 InterfaceList &RecPluginMngr::getPluginList()
 {
     return m_pluginLinks;
+}
+
+void *RecPluginMngr::getPluginByName(const char *fname)
+{
+    interface_t* it = m_pluginLinks.getFront();
+    while (it != nullptr) {
+        if (!strcmp(it->getName(), fname)) {
+            return it->get_data();
+        }
+        it = it->nextPlugin;
+    }
 }
 
 /// nothing by default

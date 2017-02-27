@@ -276,7 +276,7 @@ namespace plugin {
     ///
     void *Recorder::get_data()
     {
-        return nullptr;
+        return &Instance();
     }
 
     void Recorder::setName(const char *name)

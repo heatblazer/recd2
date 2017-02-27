@@ -21,7 +21,8 @@ SOURCES += main.cpp \
     plugin-manager.cpp \
     utils/json-writer.cpp \
     defs.cpp \
-    server.cpp
+    server.cpp \
+    utils/stack-tracer.cpp
 
 HEADERS += \
     sapplication.h \
@@ -31,7 +32,8 @@ HEADERS += \
     protocols.h \
     defs.h \
     utils/json-writer.h \
-    server.h
+    server.h \
+    utils/stack-tracer.h
 
 
 QMAKE_CFLAGS += \

@@ -30,18 +30,24 @@ namespace plugin {
         virtual void run() Q_DECL_OVERRIDE;
 
         int16_t hwm(int16_t val);
-        int16_t m_peek ;
+        int16_t m_peek;
+
     private:
+        static int s_freq;
+        static int s_frameSize;
+
         explicit Dtmf(QThread* parent = nullptr);
         ~Dtmf();
 
         static Dtmf* s_inst;
         bool m_isRunning;
-        DtmfDetector m_dtmfDetector;
+        DtmfDetector* m_dtmfDetector;
+
         struct {
             bool is_busy;
             QList<utils::sample_data_t> data;
         } m_sampleBuffer;
+
         QMutex m_lock;
         // plugin stuff
         struct interface_t iface;

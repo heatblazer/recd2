@@ -23,6 +23,7 @@ public:
     bool loadDefaults();
     PairList& getTagPairs(const QString& tag);
     const MPair<QString, QString> &getAttribPairFromTag(const QString &tag, const QString& attrib);
+
 private:
     explicit RecorderConfig(QObject* parent=nullptr);
     ~RecorderConfig();

@@ -63,8 +63,7 @@ const char* Consumer::getName(void)
 
 void *Consumer::get_data()
 {
-    printf("NULL: Dummy get data!\n");
-    return NULL;
+    return &Instance();
 }
 
 void Consumer::deinit()

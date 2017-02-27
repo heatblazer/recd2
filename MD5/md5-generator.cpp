@@ -54,7 +54,6 @@ namespace plugin {
         {
             utils::IPC::Instance().sendMessage(THIS_FILE, "Init MD5 hasing plugin\n");
             MD5Generator* md5 = &Instance();
-            md5->m_lock.init();
             md5->setThreadName("md5-worker");
             md5->createThread(128 * 1024, 20, MD5Generator::worker, md5);
         }
@@ -133,13 +132,7 @@ namespace plugin {
             return &Instance().s_iface;
         }
 
-        uint16_t MD5Generator::hwm(uint16_t vin)
-        {
-            uint16_t a = abs(vin);
-            if (peekVal < a) {
-                peekVal = a;
-            }
-        }
+
 
         MD5Generator::MD5Generator()
         {

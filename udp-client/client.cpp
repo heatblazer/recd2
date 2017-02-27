@@ -5,7 +5,8 @@
 #include <time.h>
 #include <stdio.h>
 
-
+#define CHANS 32
+#define SAMPLES 16
 static short* test_gen(int len)
 {
     short* s = new short[len];
@@ -67,16 +68,13 @@ void Client::disconnected()
 void Client::transmit()
 {
     static uint32_t counter = 0;
+    std::cout << "Transmitting...\n";
     static unsigned int file_cnt = 0;
-
-    for (int i=0; i < 1; ) {
-        for(int j=0; j < 512; ++j) {
-            m_packet.rec_packet.data[i] = file_data.data[file_cnt++ % 100000];
-            i++;
+    for (int i=0; i < CHANS * SAMPLES; ) {
+        for(int j=0; j < SAMPLES; ++j) {
+            m_packet.rec_packet.data[i++] = file_data.data[file_cnt++ % 100000];
         }
     }
-
-
 
     memset(m_packet.rec_packet.null_bytes, 0, sizeof(m_packet.rec_packet.null_bytes)
                                              / sizeof(m_packet.rec_packet.null_bytes[0]));

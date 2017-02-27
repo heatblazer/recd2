@@ -127,6 +127,7 @@ bool RecorderConfig::fastLoadFile(const QString &fname)
     if (fname == "") {
         return res;
     }
+
     m_tags.clear();
     QFile file(fname);
     if (file.open(QIODevice::ReadOnly)) {
@@ -141,6 +142,7 @@ bool RecorderConfig::fastLoadFile(const QString &fname)
                             .append(MPair<QString, QString>
                                               (attribs.at(i).name().toString(),
                                                attribs.at(i).value().toString()));
+
                 }
             }
         }
@@ -252,6 +254,7 @@ const MPair<QString, QString>
     static MPair<QString, QString> none("", "");
     return none;
 }
+
 
 RecorderConfig &RecorderConfig::Instance()
 {

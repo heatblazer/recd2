@@ -377,7 +377,7 @@ namespace plugin {
 
     void *Server::get_data()
     {
-        return nullptr; // dummy for now
+        return &Instance();
     }
 
     void Server::setName(const char *name)

@@ -8,6 +8,7 @@
 #include "types.h"
 #include "sapplication.h"
 #include "unix/daemon.h"
+#include "utils/stack-tracer.h"
 
 // help message //
 static const char* help_message = "This is a recording server over udp streams.\n"
@@ -45,6 +46,8 @@ static int getOpts(char* str)
 int main(int argc, char *argv[])
 {
 #if 1
+
+    (void) recd::StackTrace::Instance().init();
 
     // if no args - run in lab mode to test
     // and debug , later we`ll be sure
