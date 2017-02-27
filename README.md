@@ -1,188 +1,316 @@
-Recorder
-========
+# recd2
+=======
 
-A wav recorder over udp streams.
+32-64 канална записвачка върху UPD поток.
+
+***
+
+## Contributing
+
+За да се започне работа по проекта, първо клонирай ранилището на кода локално.
+
+    # Клонирай
+    $ cd /path to my project/
+    $ git clone ssh://git@git.balkantel.net/repo/git/recd2.git
+
+Проекта е Qt5.8.0 базиран към момента, но няма тясна зависимост с новостите от
+API 5.8.0, тестван и работещ с Qt5.6.0, Qt5.7.0, Qt5.8.0, разработен върху
+qtcreator 4.2.1
 
 
-## Build
-   Added the dummy project for the gui interface of the recorder.
+### Development cycle
 
-## Usage
+[PC]
+Сървъра е UDP сокет базиран. Закача се на конфигурируем порт и започва да чака
+входящ стрийм от сокета. Има пробна поддръжка на TCP сокет стрийм. Има помощен
+инфо сървъ, чийто адрес и порт са конфигурират. UDP месидж сървър и демонизиращ
+помощен инструмент, който може да се използва с опция `-d` или `--daemon` като
+вариращ аргумент след името на програмата.
 
-    $ ./recd2 -d -c <path-to-conf-file>        # as daemon
-    $ ./recd2 -c <path-to-conf-file>           # as normal app
-    $ ./recd2 --config <path-to-conf-file>     # as normal app
+[HARDWARE]
+Основния пордуцер на данни е 32 / 64 канална платка с АЦП, която хвърля фрейм на
+определен клок интервал към PC сървъра. Текущия фрейм е не по-голям от от описаното:
 
-## Config File
-    Channels: count - number of channels up to 128
-    HotSwap: maxSize in bytes or interval with timer.
-    Wave: setup wav file - see the config file.
-    Record: setup directories and other stuff for the recorder.
-    Network: transport - can be udp or tcp, port to bind to.
-    Log: name and path to log - unused for now.
-    HeartBeat: send a keep alive packet to client if needed or to port.
-    Plugin: name of the plugin, order - priority, enabled - disabled, path - fullpath.
+```
+   uint32_t counter
+   uint8_t null[64]
+   int16_t samples[512]
+```
 
-    See the recorder-config.xml for example.
-    The release will be preloaded with default settings if no options are given, or
-    not proper setup is detected.
-## Plugin API
+[PLUGIN]
 
-    The program supports plugable programs, that can be loaded by describing them in the
-    config file. When a programmer wants to support the program with a plugin, she must
-    provide that interface:
-        #ifdef __cplusplus
-        extern "C"{
-        #endif
-        struct interface_t
-        {
-            void    (*init)(); // init the lib
-            void    (*copy)(const void* src, void* dst, int len); // copy data
-            int     (*put_ndata)(void* data, int len); // put N long data
-            int     (*put_data)(void* data);           // put raw data
-            void*   (*get_data)(void);                 // get worked data
-            void    (*deinit)();                       // deinit lib
-            int     (*main_proxy)(int, char**);        // pass caller args to lib
-            void    (*setName)(const char*);           // sets the plugin name
-            const char* (*getName)(void);              // gets the plugin name
-            struct interface_t* getSelf();             // get this interface
-            char name[256];                            // plugin name
-            struct interface_t* nextPlugin;            // next loaded plugin
-        };
+Програмата поддържа гъвкаво плъгин апи, което не се интересува от броя на плъгини
+заредени, засега се интересува от адекватен ред на подреждане на плъгините. Конвенцията
+е, че първия плъгин е основен продусър като последния е основен консумър. Обикновенно
+плъгините имат собствена нишка с цел да се избегне изчакването на обработката на данни.
+Плъгините могат да правят копие на данните. Плъгините могат да модифицират данните също.
+Плъгините могат да имат собствена конфигурация. Плъгините са класичекси `.so` обект,
+който се зарежда на рънтайм.
+Програмиста е отговорен за плъгина, който имплементира. Длъжен е да имплементира следния
+интерфейс:
+```
+    #ifdef __cplusplus
+    extern "C"{
+    #endif
+    struct interface_t
+    {
+        void    (*init)();                          // init the lib
+        void    (*copy)(const void* src, void* dst, int len); // copy data
+        int     (*put_ndata)(void* data, int len); // put N long data
+        int     (*put_data)(void* data);           // put raw data
+        void*   (*get_data)(void);                 // get worked data
+        void    (*deinit)();                       // deinit lib
+        int     (*main_proxy)(int, char**);        // pass caller args to lib
+        void    (*setName)(const char*);           // sets the plugin name
+        const char* (*getName)(void);              // gets the plugin name
+        struct interface_t* getSelf();             // get this interface
+        char name[256];                            // plugin name
+        struct interface_t* nextPlugin;            // next loaded plugin
+    };
 
-        const struct interface_t* get_interface();
-        #ifdef __cplusplus
+    const struct interface_t* get_interface();
+    #ifdef __cplusplus
+    }
+#endif
+```
+
+`init` - задължителна функция за всеки плъгин, викана от плъгин мениджъра. Сетъпва плъгина.
+Вика се автоматично.
+
+`deinit` - задължителна функция за всеки плъгин, викана от плъгин мениджъра. Почиства плъгина.
+Вика се автоматично.
+
+`copy_data` - неизползвана все още функция.
+
+`put_data` - функция нужда от всеки продюсър плъгин, ненужа от финалния консюмър. Все пак
+трябва да се знае, че последния плъгин е длъжен да прочисти датата ако няма да я праща на никого
+след като свърши работа с нея. Обикновенно тази функция се вика от отделен тред, така, че повечето
+плъгини имат междинни буфери за данните предадени през нея.
+
+`put_ndata` - идентична на горната, но неизползвана, тъй като, примитива подаван обикновенно е
+`QList<>` , чийто размер е известен чрез `count()` или `size()`. Може да се каже `unused`, но логиката
+и е същата като на `put_data()`.
+
+`get_data` - доскоро неизползвана, тази функция към момента връща инстанция на плъгина имплементирал
+интерфейса, което може да се окаже ползено за външен конртол. Пример:
+```
+    Recorder* r = pmanager.getInterfaceByName("recorder").get_data();
+    ...
+    void* Recorder::get_data()
+    {
+        return &Instance();
+    }
+```
+
+`main_proxy` - прокси функция към `main` на основния `app`. Ползва се да подаде аргументите
+на отделните плъгини. Обикновенно ако плъгините зависят от конфиг файл или имат екстра опции.
+Вика се автоматично.
+
+`setName` - сетъпва името на плъгина. Не е задължителна но препоръчителна.
+
+`getName` - взима името на плъгина. Не е задължитена но е препоръчителна.
+
+### Build
+
+    `qmake-qt5`
+    `make -j4`
+
+### Deploy
+
+Все още няма концепция за деплоймънт.
+
+
+### Usage
+
+Употребата е следната:
+
+`$ ./recd2 -d -c <path-to-conf-file>` - демонизирана и със заредена конфигурация
+
+`$ ./recd2 -c <path-to-conf-file>`  - не демонизирана със заредена конфигурация
+
+`$ ./recd2` - недемонизирана без заредена конфигурация, ще ползва хардкодната конфигурация,
+строго непрепръчително, ползва се замо в девелопмънт.
+
+
+### Config File
+
+Минимална конфигурация за порграмата няма. Валиден конфиг файл е:
+```
+<Config />
+```
+Това е строго непрепоръчително. Все пак това ще извика фейлсейф конфиг.
+
+Опционална конфигурация:
+
+`<FrameData>` - таг описващ UDP пакета, който разменя HARDWARE и PC. Конфигуруруем. Ниво на
+важност - Много важен! Има фейлсейф при липса.
+Атрибутите му са следните:
+`header` - 64 bytes. Месъдж хедър. Тук се очакват съобщения за обработка от желязото.
+
+`channels` - брой канали за запис, обикновенно 32 или 64 но може и да са повече, както и
+по-малко.
+
+`samples` - семпли в канал. Колко 16 битови семпли има в канала. Максимума е 512 16 битови
+числа (1024 байта). Конфигурацията се грижи за офсета и страйда кое от къде до къде е. Важно е
+да се знае, че тотала `НЕ ТРЯБВА` да минава 1024 байта. Ще добавя превантивна логика.
+
+
+`<HotSwap>` - таг описващ възможността да се спира записа след достигана не определен размер на файла
+или след като е минало определено време. Важност - голяма. Основна логика. Има фейлсейф при липса.
+`timeBased=enabled` - ако е определен като `enabled`, тага `maxSize` се омитва и се взима под внимание
+тага `interval`. Описва след колко време да спре записа.
+
+`timeBased=disabled` - определен като `disabled`, тага `maxSize` се взима под внимание и тага
+
+`interval` става безсмилсен. Определя след какъв размер ще се извърши `hotSwap` на записите.
+
+`maxSize` - виж по-горе. Приема аргумент в `MB` (case insensitive).
+
+`interval` - виж по-горе. Приема времеви аргумент в `минути`.
+
+
+`<Wave>` - таг описващ `wav` файла хедъра. Важност - голяма, без него записите са невъзможни.
+Има фейлсейф конфиг при липсата му. `Знам какво правя` употреба, ако не знаете, по-добре не го
+декларирайте а ползвайте фейлсейфа.
+`samplesPerFrame` - известен като `SPF` - честота на семплирте `8Khz - 44khz`.
+
+`bitsPerSec` - битове в секунда.
+
+`fmtLenght` - дължина на формата, обикновенно `16`.
+
+`audioFormat` - аудио формат. `1` е стандарт. Класически `wav`.
+
+`channels` - канали за файл. В текущия случай са един. Но може и да са повече. Отново помислете
+върху `Знам какво правя`.
+
+`endiness` - байтово нареждане. Голям или малък байтов ред. Дали има нужда да сменим реда на байтовете
+или не. Не го ползвам засега.
+
+
+`<Paths>` - пътища и директории. Малка значимост за порграмата. Описва кое къде отива, ако нямаме таг,
+ще се ползва основната директория за всичко, което не е добра идея.
+`records="name"` - добава в основната директория `name` поддиректория в която ще се записват аудио
+записите.
+
+`logs="name"` - добаяв в основната директория `name` поддиректория за лог системата.
+
+
+`<Network>` - Вид комункиация между истройствата. Много голяма важност. Има файлсейф режим.
+
+`transport` - вид транспорт, `udp` или `tcp`. Онсовната ни поддръжка е `udp` протоколизиране, но
+като експериментална опция добавих и `tcp`.
+
+`port` - порт на който слушаме за входящи стриимове.
+
+
+`<Log>` - Лог файла на основната програма. Важна конфигурация. Има фейлсейф режим.
+
+`name` - име на лог файла.
+
+`timestamp` - да добави таймстамп към името на лога.
+
+`speed` - колко често да се вика нишката на писането в лога, тъй-като не целя 100% риъл тайм,
+логгинг мога да си позволя да го забавя, за де се обработват други неща. Ако не е достатъчно, може
+да се сложи `speed=0` което ще го пусне в риъл тайм. От програмно ниво, това е времето в милисекунди,
+в което спи логер нишката.
+
+
+`<LogServer>` - Месъдж сървъра, интерпроцесната комункиация и сървър към който всеки логва съобщенията
+си. Не голяма важност, но поддържа фейлсефт.
+
+`port` - на кой порт е сървъра.
+
+
+`<HeartBeat>` - Периодична сигнализация на живота. Не важен и неизползван към момента.
+
+`timepout` - интервал на изшращане на `hearbeat`.
+
+`port` - на кой порт да пращаме `heartbeat`.
+
+`host` - на кой хост да пращаме `heartbeat`. Примерен е `localdomain`.
+
+`enabled` - включен или изключен. Може хоста да поиска динамично включване. По дефолт - спрян.
+
+
+`<Plugin>` - Плъгин концепция. Незадължителна. Неизвестен брой. `Знам какво правя` е задължителна
+концепция при нареждане на плъгините. `WebConfig` ще е отговорен да проведе потребителя към конфигурация,
+писане на ръка е `СТРОГО НЕЖЕЛАТЕЛНО`, освен ако `Знам какво правя` е на лице. Може програмиста, да добави
+дебъг плъгин например за да засече евентуална грешка, но краен потребител трябва да има фиксиран избор
+от плъгини през `WebConfig` -a.
+
+`name` - име на плъгина. Нека имената бъдат уникални за плъгин. Може да са еднакви но ефектите ще са
+странични.
+
+`oreder` - ред на зареждане. Неизползван засега.
+
+`enabled` - неизползван засега. Идеята е да се каже дали менидъжра да извика `init` при стартиране или
+може би след това.
+
+`path` - локация на плъгина (`.so`). Пълен път.
+
+`conf` - път към специфичние конфиг файл на плъгина. Може да се види примера в проекта. `DFT`.
+
+Боря на заредени плъгини не е важен, но последователността е важна. От програмистка гледа точка,
+плъгина е длъжен да работи с локални данни за по-добър перформънс и сигурност. Прост пример:
+
+Примерна употреба:
+Плъгин рънър на нишка - основен продюсър:
+```
+    while(1) {
+        // do something with local data
+        put_data(local_data); // pass to other.
+    }
+```
+
+Плъгин `put_frame` - типичен плъгин:
+
+```
+    put_data(void* data) {
+        LOCK();
+        // copy to local_data - копирай локална дата в собствен буфер.
+        UNLOCK();
+        if (m_iface.next != nullptr) {
+            m_iface.next->put_data(data); // виж има ли селдващ и подай нататък
+        } else { // ако сме последни - почисти или финализирал.
+            // clean data
+            QList<int>* ls = (QList<int>*) data;
+            ls->clear();
         }
-        #endif
+   }
+```
 
-    In brief, I expect the plugin to be able to init and deinit itself, and for now to
-    be able to put and get some unknown data, and also to be able to support the C main
-    function as the proxy I`ve preserved. So the main can be passed to the plugin. When
-    I decide to change the interface, the contributors will be informed.
-
-## TODO
-    1. I have to remove the udp-client project when I am done with tests.
-    2. I have to encrypt or add a check sum to the samples.
-    3. I have to provide install options and "install howto" in build section.
-    4. Crypto project and lib for hashing or crypting is still a stub.
-    5. GUI for the recorder is stub yet.
-    6. I have to add Build/Install instructions and options to the BUILD section.
-    7. Daemon logging must support sys/log functionality. Not done yet.
-    8. GUI must perform Goertzl algorithm for DTM and filtering the sample data.
-    9. Meta info file.
-    10. [DONE] Improve the log system`s messages.
-    11. Add a binding/glue/shell like script support (qscript) to make things simple.
-    12. [DONE] Remove plugin`s interface pritn messages.
-    13. [DONE] Fix all warnings in all subprojects, please.
-    14. [DONE] Most plugins depend on utils library. Organize project so everything is set and
-    ready to use.
-    15. Working on the ALSA lib. Now using QAudioRecorder.
-    16. Now using QAudioInput: a class that can read directly from QIODevice and handle the
-    data stream via a connection. The best approach so far. It needs a proper setup from the
-    config file.
-    17. I have to fix a bit the plugin interface API, some things are not to my liking, and
-    a refractory is pending from this day: 24.01.2017!!!
 
 ## BUGS
-    [Bug1] Strange bug as for 16.11.2016, when the program gives 100% cpu load on my other Fedora computer.
-    [Fix Bug1] I've forgot a timer into server that has 10ms tick.
-    [Bug2] Alsarec crashesh recorder when hotswap needs to happen. Possible problem is
-    the unstoppable stream from the sounddevice, a buffering must be applied, probably.
-    [Partial fix Bug2] The bug is from the size based hotswap. Timebased hotswap works fine.
-    [Partial fix Bug2] I`ve fixed the nasty bug, and replaced fswatcher by a observer logic in QT api,
-    by emmiting filechanged everytime QWav writes something. However the hotswap size based
-    is still broken as f***!
-    [Fix Bug2] Fixed the bug with the hotswap. Tested 24h size based hotswap, written over
-    90Gb files over 50 000 files.
-    [Bug3] Something happened to QWav class. I`ll fix it ASAP. Will revert it soon.
-    [Bug4] Don`t know if it`s bug or inproper ALSA config for the rec. Now I configure it outside,
-    so I expect to be fixed soon.
+(fill in later)
 
 
-## NOTES
-    31.10.2016: now correctly records the samples from the incomming device.
-    31.10.2016: added libary project for crypting files or adding checksums.
-    01.11.2016: added recorder-config.xml for more complex configure.
-    01.11.2016: changed the logic and connection between `recorder` and `server`.
-    02.11.2016: more WIP and concept fixes to the recorder and server.
-    02.11.2016: improved configure of the application.
-    02.11.2016: added QWav class based on QFile for writing WAV, unimplemented.
-    02.11.2016: fixed a bug with the daemon recorder. But still more to be done.
-    03.11.2016: added 24 hour test to the server, with custom client.
-    03.11.2016: passed an 1 hour record test with packet sent at 1000 msec.
-    08.11.2016: passed 24 and 72 h tests from my client program.
-    08.11.2016: passed sine wave test from the device.
-    08.11.2016: have a packet loss per random second or two.
-    08.11.2016: added new concept for swapping files when size or time reach limit.
-    08.11.2016: refractory and good coding practices added.
-    08.11.2016: started implementation of QWav based on Qt and QFile
-    08.11.2016: implemented and tested QWav. Will use it in the future.
-    10.11.2016: fixed a small bug for the size of files read from XML file
-    11.11.2016: added udp error packet with samples filled to max
-    11.11.2016: started implementing the gui context for displaying wav samples.
-    11.11.2016: animation frame of the pointerof the data.
-    11.11.2016: simple concepts for gui`s context.
-    11.11.2016: changed the name of the executable binary.
-    11.11.2016: added test plugin architecture.
-    11.11.2016: added UID to file: <channel-UID-timestamp.wav>
-    11.11.2016: plugin manager test: must pass the full path to .so
-    12.11.2016: tested loading few test plugins to the application. OK.
-    12.11.2016: now loading 2 different plugins.. had some name mangling problems. Solved.
-    13.11.2016: tested on windows host machine, besides unix daemon everything works fine.
-    13.11.2016: project cleanup and file organizing.
-    14.11.2016: now can configure paths for logging and recording
-    14.11.2016: now records wavs to a directory specified.
-    14.11.2016: log writer will be configured for speed of logging.
-    15.11.2016: fixed the bug with the hotswap, now testFileWatcher() is pending deprecation.
-    15.11.2016: old hotswap logic moved to the timer based hotswap.
-    15.11.2016: config support time based hotswaps and the size based.
-    16.11.2016: Now we have a Logger class accessible form everywhere.
-    16.11.2016: I have to test in lab env. the QWavWriter.
-    16.11.2016: Signals to be handled by sockstreams via IPC.
-    16.11.2016: Added more messages to logs.
-    16.11.2016: Tested time based hotswap and configuration from xml.
-    17.11.2016: Testing time based hotswap in lab environment and also a simple filter as plugin.
-    17.11.2016: Improved user menu and startup options aswell more friendly messages.
-    18.11.2016: config improved: takes time in minutes and size in MB/GB.
-    18.11.2016: pending test to sniffer port to test program packet loss counter.
-    18.11.2016: Added WAV files with embeded META info for further research.
-    21.11.2016: Added user server for further use.
-    23.11.2016: Added GITHASH to the project to track versions.
-    23.11.2016: Wav library has rename functionality and endian swaps.
-    24.11.2016: Added a timer based transmission monitoring to the server.
-    25.11.2016: Configurable channel count.
-    27.11.2016: Tested flippin 32x16 sample data to 16x32... working ax expected.
-    30.11.2016: Started to implement a firstclass plugin architecture.
-    01.12.2016: Changed the plugin api to successfully chain multiple plugins.
-    03.12.2016: Now program is plugin based. Recorder and server are separate.
-    06.12.2016: Granulated project to smaller and added another to mailing list.
-    09.12.2016: Now using IPC for messaging between plugins. Fast and simple.
-    15.12.2016: Now plugins have get and set Name functions to find them later.
-    24.01.2017: A lot of bugfixes and memory leaks fixes.
-    24.01.2017: A partially working (still not configured well) ALSA recorder.
-    24.01.2017: A FFT plugin tested, still for now a memory crash is preset, but
-    will fix it ASAP.
-    24.01.2017: Yet more leaks and fixes are being made...
-    24.01.2017: Some fixes: Now I don`t use QThread, rather I use pthreads.
-    09.02.2017: Added test-producer and test-consumer plugins that are separate
-    threads, for unit testing, perf testing and benchmarks.
+## Builtin PLUGINS:
 
-## TESTING
-    1. Use test-prducer to generate test data
-    2. Use test-consumer to obtain the data
-    3. You can perf-test the recorder if set the recorder plugin last and
-    produce som data from test-producer
-    4. udp-client project now streams file to the program for more testing.
+### TESTING
 
-## DTMF DETECTOR
-    1. Dtmf detector plugin made by: Plyashkevich Viatcheslav <plyashkevich@yandex.ru>
-    2. See the main.cpp in the DFT plugin in the project for example detection.
+Тестови плъгини за експерименти.
+1. Ползвай `test-prducer` да генерираш тестова дата.
+2. Ползвай `test-consumer` да цонсумираш и рабтиш върху дата.
+3. `udp-client` - рефкексна външна пограма на `HARDWARE DEV`, която може да генерира
+`udp` пакети, чете от файл и го стриимва.
+4. `NULL` - нулев плъгин, той не прави нищо, просто доказа концепцията за подаване на
+данните.
 
-## MD5 CHECKSUM (Pending)
-    1. Checksum generator.
+
+### DTMF DETECTOR
+Dtmf плъгин. Засича DTMF сигнали. Автор: `Plyashkevich Viatcheslav <plyashkevich@yandex.ru>`.
+Разширена функционалост и конфигуруруеми опции от мен. Също така и собствен конфиг файл.
+Може да се види теста на автора в `DFT/main.cpp`
+
+### MD5 CHECKSUM (Pending)
+[Pending]
+
 
 ## TOOLS
-    1. topme - helper script to call "top -H -p" on a process name
+`topme` - мой питон скрипт, който вика `top -H -p <proc name>`, за да следя порграмата си.
+Ex.: `topme recd2`
+
+
 
 <ilian.zapryanov@balkantel.net>
 
