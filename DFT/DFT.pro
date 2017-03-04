@@ -23,3 +23,7 @@ HEADERS += \
     DtmfGenerator.hpp \
     types_cpp.hpp
 
+DISTFILES += \
+    dft-config.xml \
+    README.md
+

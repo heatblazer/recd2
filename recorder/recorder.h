@@ -9,8 +9,8 @@
 #include <QMutex>
 #include <QQueue>
 
-#include "utils.h"
 #include "plugin-iface.h"
+#include "utils.h"
 #include "wav-writer-iface.h"
 
 namespace plugin {

@@ -25,6 +25,11 @@ public:
         wHead = &m_buffer[0];
     }
 
+    ///
+    /// \brief read everything to the write head
+    /// \param returns a dyaimc allocated data (make sure you free the data outside)
+    /// \return number of items read
+    ///
     int readAll(T** ret)
     {
         int diff = rwDiff();
@@ -66,11 +71,16 @@ public:
         memset(&m_buffer, 0, sizeof(m_buffer));
     }
 
+    size_t getSize() const
+    {
+        return (size_t)(end() - begin());
+    }
+
 private:
 
     void advanceWriteHead()
     {
-        if (wHead == end() ) {
+        if (wHead == end()) {
             wHead = &m_buffer[0];
         } else {
             wHead++;
@@ -91,12 +101,9 @@ private:
         return wHead - rHead;
     }
 
-    T* rHead;
-    T* wHead;
-
     const T* begin() const
     {
-        return &m_buffer[SIZE-1];
+        return &m_buffer[0];
 
     }
 
@@ -105,6 +112,8 @@ private:
         return &m_buffer[SIZE-1];
     }
 
+    T* rHead;
+    T* wHead;
     T m_buffer[SIZE];
 };
 

@@ -57,6 +57,7 @@
 <Record
     timestamp="enabled"
     hasNumericConvention="true"
+    files="1"
     />
 
 <!-- done: setups transport from here -->

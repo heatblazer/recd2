@@ -38,15 +38,18 @@ public:
         }
 
 		/// Address of array, where store detected push buttons
-		char *getDialButtonsArray() 
-			const {return pDialButtons;}
+        char *getDialButtonsArray() const
+        {
+            return pDialButtons;
+        }
 
 		// Zeros of a detected button array
-		void zerosIndexDialButton() 
-			const {indexForDialButtons = 0;}
+        void zerosIndexDialButton() const
+        {
+            indexForDialButtons = 0;
+        }
 
 		DtmfDetectorInterface():indexForDialButtons(0), pDialButtons(dialButtons){dialButtons[0] = 0;}
-
 };
 
 class DtmfDetector : public DtmfDetectorInterface

@@ -117,6 +117,8 @@ void *RecPluginMngr::getPluginByName(const char *fname)
         }
         it = it->nextPlugin;
     }
+
+    return nullptr; // not found
 }
 
 /// nothing by default

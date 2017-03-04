@@ -10,7 +10,6 @@
 
 namespace utils {
 
-// C++ "using" keyword to replace typedef
 using PairList = QList<MPair<QString, QString> > ;
 
 class RecorderConfig : public QObject
@@ -31,7 +30,7 @@ private:
     static RecorderConfig* s_inst;
     QString m_filename;
     // tag name, attributes
-    QHash<QString, QList<MPair<QString, QString> > > m_tags;
+    QHash<QString, PairList> m_tags;
 };
 
 } // utils

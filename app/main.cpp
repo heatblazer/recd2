@@ -109,7 +109,9 @@ int main(int argc, char *argv[])
 #else
     utils::RingBuffer<utils::frame_data_t, 256> rb;
     rb.init();
-
+    std::cout << "SIZE: " << rb.getSize() << std::endl;
+    int i;
+    std::cin >> i;
     reader:
         while (1) {
             for(int i=0 ; i < 3; ++i) {

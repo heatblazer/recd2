@@ -2,9 +2,6 @@
 
 #include <QDir>
 
-// remove it after tests passed //
-#include <iostream>
-
 #include "date-time.h"
 #include "ipc-msg.h"
 #include "wav-writer.h"
@@ -95,7 +92,7 @@ namespace plugin {
 
         // setup channels
         const MPair<QString, QString> max =
-                RecorderConfig::Instance().getAttribPairFromTag("FrameData", "channels");
+                RecorderConfig::Instance().getAttribPairFromTag("Record", "files");
         if (max.m_type1 == "") {
             r->m_maxChans = 1;
         } else {
@@ -137,6 +134,7 @@ namespace plugin {
                 .getAttribPairFromTag("HotSwap", "maxSize");
         const MPair<QString, QString>& interval = RecorderConfig::Instance()
                 .getAttribPairFromTag("HotSwap", "interval");
+
 
         if (hot_swap.m_type1 != "") {
             if (hot_swap.m_type2 == "enabled" ||
@@ -350,6 +348,8 @@ namespace plugin {
             dblBuff.clear();
             r->m_thread.thread.suspend(0);
         } while (r->m_thread.running);
+
+        return (int*)0;
     }
 
     /// starts recorder thread
@@ -385,6 +385,7 @@ namespace plugin {
                 pollHotSwap();
             }
             sample_data_t s = sd.at(i);
+
             if (m_wavs[i] != nullptr) {
                 if (m_wavs[i]->isPaused()) {
                     m_wavs[i]->close();

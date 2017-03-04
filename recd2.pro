@@ -4,8 +4,8 @@ DISTFILES += README.md \
              recorder-config.xml \  # the config file
              recd2.pri \
              plugin-interface.h\
-             test.wav     # plugin iface
-
+             test.wav \    # plugin iface
+            graphics.png
 
 SUBDIRS += \
     app \           # original program

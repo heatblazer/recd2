@@ -15,6 +15,8 @@
 #include "tcp-server.h"
 #include "utils.h"
 
+#include "helper.h"
+
 namespace plugin {
     namespace udp {
 
@@ -76,6 +78,10 @@ namespace plugin {
 
     private:
         explicit Server(QObject* parent=nullptr);
+        virtual ~Server();
+
+        Helper* m_helper;
+
 
         QUdpSocket* udp;
         TcpServer*  p_server;
@@ -93,32 +99,8 @@ namespace plugin {
 
         friend class TcpServer;
         friend class ServerThread;
+        friend class Helper;
     };
-#if 0
-    class TcpServer
-    {
-
-    public:
-        explicit TcpServer();
-        virtual ~TcpServer();
-        void init(); // todo fill in later
-        void deinit(); // todo fill in later
-
-    public slots:
-        void hConnection();
-        void hDisconnect();
-        void hState(QAbstractSocket::SocketState state);
-        void readyReadData();
-
-    private:
-        struct {
-            size_t size;
-            QByteArray data;
-        } m_packet;
-
-        int socket_fd;
-    };
-#endif
     } // udp
 } // plugin
 

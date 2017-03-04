@@ -29,9 +29,6 @@ namespace plugin {
         // QThread overriding
         virtual void run() Q_DECL_OVERRIDE;
 
-        int16_t hwm(int16_t val);
-        int16_t m_peek;
-
     private:
         static int s_freq;
         static int s_frameSize;

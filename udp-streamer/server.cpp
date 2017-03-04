@@ -32,12 +32,22 @@ namespace plugin {
 
     Server::Server(QObject *parent)
         : QObject(parent),
+          m_helper(nullptr),
           udp(nullptr),
           p_server(nullptr),
           m_conn_info{0,0,0,false},
           m_channels(0),
           m_smplPerChan(0)
     {
+        m_helper = new Helper(1);
+    }
+
+    Server::~Server()
+    {
+        if (m_helper != nullptr) {
+            delete m_helper;
+            m_helper = nullptr;
+        }
     }
 
     /// simple init function
@@ -136,11 +146,20 @@ namespace plugin {
                             s, SLOT(readyReadUdp())/*, Qt::DirectConnection*/);
 
                     if (bres) {
+                        s->m_liveConnection.start();
+
+                        s->m_helper->setThreadName("peek-meter");
+                        s->m_helper->m_isRunning = true;
+                        s->m_helper->createThread(64 * 1024,
+                                                  15,
+                                                  Helper::worker,
+                                                  s->m_helper);
+
                         printf("Bind OK!\n");
                         s->m_liveConnection.setInterval(1000);
                         connect(&s->m_liveConnection, SIGNAL(timeout()),
                                 s, SLOT(checkConnection()));
-                        s->m_liveConnection.start();
+
                     } else {
                             printf("Bind FAIL!\n");
                             Instance().route(DISCONNECTED);
@@ -159,9 +178,7 @@ namespace plugin {
                              transport->m_type1.toStdString() << ")" << std::endl;
                 exit(1);
             }
-
         }
-
     }
 
     /// ready read datagrams, send to other plugins
@@ -184,10 +201,13 @@ namespace plugin {
                 qint64 read = udp->readDatagram(buff.data(), buff.size(),
                                        &m_senderHost, &m_senderPort);
                 if (read > 0) {
-                    // the udp structure from the device
                     utils::frame_data_t udp = *(utils::frame_data_t*) buff.data();
-                    // one frame lost for synching with my counter
 
+                    m_helper->m_lock.lock();
+                    m_helper->m_buffer.append(udp);
+                    m_helper->m_lock.unlock();
+
+                    // one frame lost for synching with my counter
                     if (udp.counter != ++m_conn_info.paketCounter) {
                         snprintf(msg, sizeof(msg),
                                  "Last synch packet:(%u)\t at: [%s]\n"
@@ -214,26 +234,26 @@ namespace plugin {
 
                         if(!m_conn_info.onetimeSynch) {
                             m_conn_info.onetimeSynch = true;
-                            for(uint32_t i=0; i < SIZE; ) {
+                            for(uint32_t i=0; i < m_smplPerChan; ++i) {
                                 utils::sample_data_t s = {0, 0};
                                 short smpl[MaxSampleSize] = {0};
                                 s.samples = smpl;
                                 s.size = m_smplPerChan;
-                                for(uint32_t j=0; j < s.size; ++j) {
-                                    s.samples[j] = err_udp.data[i++];
+                                for(uint32_t j=0; j < m_channels; ++j) {
+                                    s.samples[j] = err_udp.data[i * m_channels + j];
                                 }
                                 err_ls.append(s);
                             }
                             put_data((QList<utils::sample_data_t>*) &err_ls);
                         } else {
                             for(int i=0; i < errs; ++i) {
-                               for(uint32_t j=0; j < SIZE; ) {
+                               for(uint32_t j=0; j < m_smplPerChan; ++j) {
                                    utils::sample_data_t sd = {0, 0};
                                    short smpl[MaxSampleSize] = {0};
                                    sd.samples = smpl;
                                    sd.size = m_smplPerChan;
-                                   for(uint32_t h=0; h < sd.size; ++h) {
-                                       sd.samples[h] = err_udp.data[j++];
+                                   for(uint32_t h=0; h < m_channels; ++h) {
+                                       sd.samples[h] = err_udp.data[j * m_channels + h];
                                    }
                                    err_ls.append(sd);
                                }
@@ -247,14 +267,16 @@ namespace plugin {
                         //put_data((frame_data_t*) udp);
                         QList<utils::sample_data_t> ls;
                         // copy all the data then send it to the plugins
-                        for(uint32_t i=0; i < SIZE; ) {
-                            utils::sample_data_t s = {0, 0};
+
+                        for(uint32_t i=0; i < m_smplPerChan; ++i) {
+                            utils::sample_data_t s = {0, 0};                            
                             short smpl[MaxSampleSize] = {0};
                             s.samples = smpl;
-                            s.size = m_smplPerChan;
+                            s.size = m_channels;
                             // fill the list to be passed to other plugins
-                            for(uint32_t j=0; j < s.size; ++j) {
-                                s.samples[j] = udp.data[i++];
+                            for(uint32_t j=0; j < m_channels; ++j) {
+                                int index = i * m_channels + j;
+                                s.samples[j] = udp.data[index];
                             }
                             ls.append(s);
                         }
@@ -270,7 +292,6 @@ namespace plugin {
             Instance().disconnected();
         }
     }
-
 
     /// check if the device is sending data
     /// send some statistics each 1 second
@@ -342,6 +363,11 @@ namespace plugin {
             s->p_server->deinit();
             delete s->p_server;
             s->p_server = nullptr;
+        }
+
+        if (s->m_helper != nullptr) {
+            s->m_helper->m_isRunning = false;
+            s->m_helper->join();
         }
 
         utils::IPC::Instance().sendMessage(THIS_FILE, "Server: deinit\n");

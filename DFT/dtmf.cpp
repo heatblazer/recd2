@@ -6,7 +6,6 @@
 
 static const char* THIS_FILE = "dtmf.cpp";
 
-#define FRAME_SIZE 160
 
 static char s_DialButtons[] ={
                                 '1' , '2', '3',
@@ -34,7 +33,6 @@ namespace plugin
 
     namespace dtmf
     {
-
 
     int Dtmf::s_freq = 0;
     int Dtmf::s_frameSize = 0;
@@ -94,12 +92,14 @@ namespace plugin
             d->iface.nextPlugin->put_data(data);
         }
         // copy the data to local buffer
+        return 0;
     }
 
     ///@Unused
     int Dtmf::put_ndata(void *data, int len)
     {
         (void) data; (void) len;
+        return 0;
     }
 
     void *Dtmf::get_data()
@@ -118,6 +118,13 @@ namespace plugin
         return Instance().getName();
     }
 
+    /// configure the dtmf here from external xml file which
+    /// path is in the 'conf' attribyte of the main xml
+    /// \brief Dtmf::p_main
+    /// \param main`s argc
+    /// \param main`s argv
+    /// \return 0/1
+    ///
     int Dtmf::p_main(int argc, char **argv)
     {
         if (argc < 2) {
@@ -199,7 +206,7 @@ namespace plugin
            buffSize = m_sampleBuffer.data.count();
            m_lock.unlock();
 
-           if (buffSize < FRAME_SIZE) {
+           if (buffSize < Dtmf::s_frameSize) {
                continue;
            }
            m_lock.lock();
@@ -210,30 +217,24 @@ namespace plugin
            m_sampleBuffer.data.clear();
            m_lock.unlock();
            if (dbl.isEmpty()) {
-               printf("Buffer empty\n");
                continue;
            }
-           for(int it=0; it < dbl.count(); ++it) {
-               int16_t dtmf[FRAME_SIZE];// = new short int[size];
+           int16_t* dtmf= new int16_t[Dtmf::s_frameSize];
 
-               for(int ii=0; ii < FRAME_SIZE; ) {
+           for(int it=0; it < dbl.count(); ++it) {
+
+               for(int ii=0; ii < Dtmf::s_frameSize; ) {
                    if (dbl.isEmpty()) {
                        break;
                    }
                    utils::sample_data_t smpl = dbl.at(it);
-                   for(int j=0; j < smpl.size; ++j) {
+                   for(uint32_t j=0; j < smpl.size; ++j) {
                        dtmf[ii++] = smpl.samples[j];
                    }
                }
 
                m_dtmfDetector->dtmfDetecting((INT16*)dtmf);
 
-               int16_t p = 0;
-               for(int i=0; i < FRAME_SIZE; ++i) {
-                   p = hwm(dtmf[i]);
-               }
-               printf("PEEK: [%d]\n", p);
-               m_peek = 0;
                dbl.clear();
 
                if (m_dtmfDetector->getIndexDialButtons() < 1) {
@@ -252,25 +253,17 @@ namespace plugin
                    }
                }
                 // clear the double buffer
+
+
            } // end if performing dtmf detection
+           delete [] dtmf;
 
         } // busy loop
     }
 
-    int16_t Dtmf::hwm(int16_t val)
-    {
-        int16_t a = abs(val);
-        if (m_peek < a) {
-            m_peek = a;
-        }
-        return m_peek;
-    }
-
-
 
     Dtmf::Dtmf(QThread *parent)
         : QThread(parent),
-          m_peek(0),
           m_isRunning(false),
           m_dtmfDetector(nullptr)
     {

@@ -4,8 +4,8 @@
         xsi:noNamespaceSchemaLocation="../schema/recorder-config.xsd"
         version="1.0" 
         
-        freq=102
-        frameSize=160
+        freq="102"
+        frameSize="160"
 />
 
 

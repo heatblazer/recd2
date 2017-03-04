@@ -47,11 +47,13 @@ void InterfaceList::clear()
 {
     while (head != nullptr) {
         interface_t* tmp  = head;
-        (void) tmp;
+
         head = head->nextPlugin;
         // BUGFIX!
         // shall not be called on that pointer
-        // delete tmp;
+        if (tmp == nullptr) {
+            delete tmp;
+        }
     }
 }
 
