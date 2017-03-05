@@ -72,6 +72,10 @@ PThread::PThread(SchedAlgorithms algo)
 
 PThread::~PThread()
 {
+    if (m_stack != nullptr) {
+        delete [] m_stack;
+        m_stack = nullptr;
+    }
 }
 
 /// this is quite unsafe and simple

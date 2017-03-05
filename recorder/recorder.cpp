@@ -19,12 +19,10 @@ static const char* THIS_FILE = "recorder.cpp";
 ///
 static inline const char* is_digit(const char* str) {
 #define DIGIT(c) ((c >= '0') && (c <= '9'))
-    static char digit[10] = {0};
+    static char digit[16] = {0};
     int size = 0;
-    while (DIGIT(*str) && size < 10) {
-        digit[size] = *str;
-        size++;
-        str++;
+    while (DIGIT(*str) && size < 16) {
+        digit[size++] = *str++;
     }
 #undef DIGIT
     return digit;
@@ -279,7 +277,7 @@ namespace plugin {
 
     void Recorder::setName(const char *name)
     {
-        strncpy(iface.name, name, 256);
+        strncpy(iface.name, name, sizeof(iface.name));
     }
 
     const char *Recorder::getName()

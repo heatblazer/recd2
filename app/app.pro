@@ -26,7 +26,6 @@ SOURCES += main.cpp \
 
 HEADERS += \
     sapplication.h \
-    types.h \
     unix/daemon.h \
     plugin-manager.h \
     protocols.h \

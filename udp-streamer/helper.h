@@ -18,20 +18,19 @@ namespace plugin {
         public:
             static void* worker(void* pArgs);
             Helper(size_t packSize);
-            ~Helper();
+            virtual ~Helper();
 
             int16_t peek(int16_t val);
 
         private:
-            size_t m_packSize;
+            int m_packSize;
             bool m_isRunning;
             int16_t m_peek;
             QList<utils::frame_data_t> m_buffer;
             utils::PMutex m_lock;
             friend class Server;
         };
-    }
-
-}
+    } // udp
+} // plugin
 
 #endif // HELPER_H

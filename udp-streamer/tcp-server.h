@@ -12,7 +12,6 @@ namespace plugin {
 
     class Server;
 
-
     class TcpServer : public utils::PThread
     {
         class Writer : utils::PThread

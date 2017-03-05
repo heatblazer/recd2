@@ -3,7 +3,6 @@
 
 // C assert //
 #include <assert.h>
-
 #ifdef iz_DEBUG
 #define ASSERT_MACRO(EXPR) assert(EXPR)
 #else

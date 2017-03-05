@@ -35,18 +35,20 @@ namespace plugin {
 
                 for(int i=0; i < dbl.count(); ++i) {
                     utils::frame_data_t frame = dbl.at(i);
-                    for(int j=0; j < s->m_channels; ++j) {
-                        for(int h=0; h < s->m_smplPerChan; ++h) {
+                    for(uint32_t j=0; j < s->m_channels; ++j) {
+                        for(uint32_t h=0; h < s->m_smplPerChan; ++h) {
                             smpls[index++] = frame.data[j * s->m_smplPerChan + h];
                         }
                     }
                 }
 
-                for(int j=0; j < s->m_smplPerChan; ++j) {
-                    for(int k=0; k < s->m_channels; ++k) {
+                for(uint32_t j=0; j < s->m_smplPerChan; ++j) {
+                    for(uint32_t k=0; k < s->m_channels; ++k) {
                         h->peek(smpls[j * s->m_channels + k]);
+                        if(h->m_peek > 0) {
                         printf("Chan: (%d) <====> peek: (%d)\n", k,
                                h->m_peek);
+                        }
                    }
                 }
                 h->m_peek = 0;
@@ -65,8 +67,8 @@ namespace plugin {
 
     Helper::Helper(size_t packSize)
         : m_packSize(packSize),
-          m_peek(0),
-          m_isRunning(false)
+          m_isRunning(false),
+          m_peek(0)
     {
         m_lock.init();
     }

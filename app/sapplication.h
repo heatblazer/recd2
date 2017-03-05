@@ -37,8 +37,10 @@ public:
 
     static int s_argc;
     static char** s_argv;
+
 private slots:
     void hEvLoop();
+
 private:
     void loadPlugins();
     void initAllPlugins();

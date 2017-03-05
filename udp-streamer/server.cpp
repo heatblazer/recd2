@@ -106,7 +106,7 @@ namespace plugin {
 
             static const int16_t max = 32111;
             for(uint32_t i=0; i < s->m_channels;) {
-                for(int j=0; j < s->m_smplPerChan; ++j) {
+                for(uint32_t j=0; j < s->m_smplPerChan; ++j) {
                     err_udp.data[i++] = max;
                 }
             }
@@ -188,7 +188,6 @@ namespace plugin {
     void Server::readyReadUdp()
     {
         static char msg[512] = {0};
-        static const int SIZE = m_channels * m_smplPerChan;
 
         if (udp->hasPendingDatagrams()) {
             m_monitorData.append('.');
