@@ -236,10 +236,8 @@ namespace plugin {
         if (data == nullptr) {
             return 1;
         }
+
         Recorder* r = &Instance();
-        if (iface.nextPlugin != nullptr) {
-            iface.nextPlugin->put_data(data);
-        }
 
         QList<sample_data_t>* ls = (QList<sample_data_t>*)data;
         r->m_thread.mutex.lock();
@@ -249,6 +247,11 @@ namespace plugin {
         // I`ve forgot to purge the list... :( Bad things can happen
         // recorder is usually last plugin so clean the list
         ls->clear();
+
+        if (iface.nextPlugin != nullptr) {
+            iface.nextPlugin->put_data(data);
+        }
+
         return 0;
     }
 
@@ -389,6 +392,10 @@ namespace plugin {
                     m_wavs[i]->close();
                 } else {
                     m_wavs[i]->write(s.samples, s.size);
+                    if (s.samples != nullptr) {
+                        delete [] s.samples;
+                        s.samples = nullptr;
+                    }
                 }
             }
         }

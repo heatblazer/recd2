@@ -84,7 +84,8 @@ namespace utils {
          bool compareTo(const pthread_t* const th);
          virtual void closeThread();
 
-    private:
+         // for the inheritance
+    protected:
          SchedAlgorithms    m_schedAlgo;
          pthread_t m_thread;        // pthread
          pthread_attr_t m_attr;     // ptrhead attributes

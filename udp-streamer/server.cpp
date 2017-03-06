@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <QCoreApplication>
+#include <QTextStream>
 
 #include "ipc-msg.h"
 #include "date-time.h"
@@ -19,7 +20,7 @@ namespace plugin {
                                  0,0,0,
                                  0,{0},0};
     // the err udp packet
-    static struct utils::frame_data_t err_udp = {0,{0},{0}}; // warn fix
+    struct utils::frame_data_t Server::err_udp = {0,{0},{0}}; // warn fix
 ////////////////////////////////////////////////////////////////////////////////
 
     Server& Server::Instance()
@@ -104,10 +105,9 @@ namespace plugin {
                 }
             }
 
-            static const int16_t max = 32111;
-            for(uint32_t i=0; i < s->m_channels;) {
-                for(uint32_t j=0; j < s->m_smplPerChan; ++j) {
-                    err_udp.data[i++] = max;
+            for(int i=0; i < s->m_smplPerChan; ++i) {
+                for(int j=0; j < s->m_channels; ++j) {
+                    s->err_udp.u.data[i * s->m_channels + j] = 32000;
                 }
             }
         }
@@ -187,6 +187,7 @@ namespace plugin {
     ///
     void Server::readyReadUdp()
     {
+
         static char msg[512] = {0};
 
         if (udp->hasPendingDatagrams()) {
@@ -199,7 +200,7 @@ namespace plugin {
 
                 qint64 read = udp->readDatagram(buff.data(), buff.size(),
                                        &m_senderHost, &m_senderPort);
-                if (read > 0) {
+                if (read == sizeof(utils::frame_data_t)) {
                     utils::frame_data_t udp = *(utils::frame_data_t*) buff.data();
 
                     m_helper->m_lock.lock();
@@ -207,7 +208,7 @@ namespace plugin {
                     m_helper->m_lock.unlock();
 
                     // one frame lost for synching with my counter
-                    if (udp.counter != ++m_conn_info.paketCounter) {
+                    if (0/*udp.counter != ++m_conn_info.paketCounter*/) {
                         snprintf(msg, sizeof(msg),
                                  "Last synch packet:(%u)\t at: [%s]\n"
                                  "Total desynch:(%u)\n"
@@ -239,7 +240,7 @@ namespace plugin {
                                 s.samples = smpl;
                                 s.size = m_smplPerChan;
                                 for(uint32_t j=0; j < m_channels; ++j) {
-                                    s.samples[j] = err_udp.data[i * m_channels + j];
+                                    s.samples[j] = err_udp.u.data[i * m_channels + j];
                                 }
                                 err_ls.append(s);
                             }
@@ -250,9 +251,9 @@ namespace plugin {
                                    utils::sample_data_t sd = {0, 0};
                                    short smpl[MaxSampleSize] = {0};
                                    sd.samples = smpl;
-                                   sd.size = m_smplPerChan;
+                                   sd.size = m_channels;
                                    for(uint32_t h=0; h < m_channels; ++h) {
-                                       sd.samples[h] = err_udp.data[j * m_channels + h];
+                                       sd.samples[h] = err_udp.u.data[j * m_channels + h];
                                    }
                                    err_ls.append(sd);
                                }
@@ -263,23 +264,31 @@ namespace plugin {
                     // will use a new logic emit the udp struct
                     // to the recorder, so now we don`t need
                     // to depend each other
-                        //put_data((frame_data_t*) udp);
                         QList<utils::sample_data_t> ls;
                         // copy all the data then send it to the plugins
-
-                        for(uint32_t i=0; i < m_smplPerChan; ++i) {
-                            utils::sample_data_t s = {0, 0};                            
-                            short smpl[MaxSampleSize] = {0};
+#if 1
+                        for(uint32_t i=0; i < m_channels; ++i) {
+                            utils::sample_data_t s = {0, 0};
+                            short* smpl = new short[m_smplPerChan];//[MaxSampleSize] = {0};
                             s.samples = smpl;
-                            s.size = m_channels;
+                            s.size = m_smplPerChan;
                             // fill the list to be passed to other plugins
-                            for(uint32_t j=0; j < m_channels; ++j) {
-                                int index = i * m_channels + j;
-                                s.samples[j] = udp.data[index];
+                            for(uint32_t j=0; j < m_smplPerChan; ++j) {
+                                int index = j * m_channels + i;
+                                s.samples[j] = udp.u.data[index];
                             }
+
                             ls.append(s);
                         }
+
+#else
+                        utils::sample_data_t s = {0, 0};
+                        s.samples = (short*) &udp.u.data[0];
+                        s.size = 512;
+                        ls.append(s);
                         // finally send it
+
+#endif
                         put_data((QList<utils::sample_data_t>*) &ls);
                     }
                  } else {
@@ -290,6 +299,7 @@ namespace plugin {
         } else {
             Instance().disconnected();
         }
+
     }
 
     /// check if the device is sending data

@@ -17,7 +17,6 @@ namespace plugin {
         QList<utils::frame_data_t> dbl;
 
         do {
-
             h->m_lock.lock();
             while (!h->m_buffer.isEmpty()) {
                 dbl.append(h->m_buffer.takeFirst());
@@ -35,23 +34,35 @@ namespace plugin {
 
                 for(int i=0; i < dbl.count(); ++i) {
                     utils::frame_data_t frame = dbl.at(i);
-                    for(uint32_t j=0; j < s->m_channels; ++j) {
-                        for(uint32_t h=0; h < s->m_smplPerChan; ++h) {
-                            smpls[index++] = frame.data[j * s->m_smplPerChan + h];
+                    for(uint32_t j=0; j < s->m_smplPerChan; ++j) {
+                        for(uint32_t h=0; h < s->m_channels; ++h) {
+                            smpls[index++] = frame.u.data[j * s->m_channels+ h];
                         }
                     }
                 }
-
+#if 0
                 for(uint32_t j=0; j < s->m_smplPerChan; ++j) {
                     for(uint32_t k=0; k < s->m_channels; ++k) {
-                        h->peek(smpls[j * s->m_channels + k]);
+                        int16_t p  = h->peek(smpls[j * s->m_channels + k]);
                         if(h->m_peek > 0) {
                         printf("Chan: (%d) <====> peek: (%d)\n", k,
-                               h->m_peek);
+                               p);
                         }
                    }
                 }
-                h->m_peek = 0;
+#else
+                 if(0) {
+                    for(uint32_t i=0; i < s->m_smplPerChan; ++i) {
+                        for(uint32_t j=0; j < s->m_channels; ++j) {
+                            int16_t p = h->peek(smpls[i * s->m_channels + j]);
+                            printf("Chan:[%2d] <-----> Peek:[%2d]\n",
+                                   j, p);
+                        }
+                    }
+                    h->m_peek = 0;
+                }
+
+#endif
                 // don`t forget!
                 delete [] smpls;
                 smpls = nullptr;

@@ -71,7 +71,7 @@ void Client::transmit()
     std::cout << "Transmitting...\n";
     static unsigned int file_cnt = 0;
     for (int i=0; i < SAMPLES ; ++i) {
-        for(int j=0; j < CHANS / 2; ++j) {
+        for(int j=0; j < 1; ++j) {
             m_packet.rec_packet.data[i * CHANS + j] = file_data.data[file_cnt++ % 100000];
         }
     }

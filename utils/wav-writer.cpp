@@ -164,13 +164,8 @@ bool Wav::isOpened() const
 ///
 int Wav::write(short data[], int len)
 {
-    fwrite(data, sizeof(short), len, m_file);
-
-    // this will avoid checking the file size each time in
-    // the system watcher, losing a bit of precision in bytes tho
-    // in the final I`ll make sure ftell is called periodicly
-
-    m_maxSize += (len * sizeof(short));
+    size_t written = fwrite(data, sizeof(short), len, m_file);
+    m_maxSize += written;
     return m_maxSize;
 }
 
@@ -225,8 +220,8 @@ void Wav::setupWave(int samples_per_sec, int bits_per_sec, int riff_len,
     m_header.block_align = bits_per_sec / 8;
     m_header.bits_per_sample = bits_per_sec;
     m_header.data_len = 0;
-
     m_isSetup = true;
+
 }
 
 /// write the needed header to

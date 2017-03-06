@@ -32,6 +32,7 @@ namespace plugin {
         Q_OBJECT
     // interface implementation
     public:
+
         enum Sizes
         {
             MaxSampleSize = 512,
@@ -77,6 +78,7 @@ namespace plugin {
         void initTcpServer();
 
     private:
+        static utils::frame_data_t err_udp;
         explicit Server(QObject* parent=nullptr);
         virtual ~Server();
 
