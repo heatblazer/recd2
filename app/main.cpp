@@ -38,14 +38,13 @@ static int getOpts(char* str)
         // reserved for future preloading of configuations!!!
         opts = 0;
     } else {
-        opts = 3;
+        opts = 4;
     }
     return opts;
 }
 
 int main(int argc, char *argv[])
 {
-#if 1
 
     (void) recd::StackTrace::Instance().init();
 
@@ -74,6 +73,7 @@ int main(int argc, char *argv[])
                std::cout << "Stub!!! Preloading configuration!" << std::endl;
                break;
            case 3:
+           case 4:
            default:
                std::cout << "No arguments!" << std::endl;
                break;
@@ -86,6 +86,7 @@ int main(int argc, char *argv[])
                   << "Print help and exit: recd2 -h\n"
                   << "Print help and exit: recd2 --help\n"
                   << "Daemonize: recd2 -d\n"
+                  << "Peek meter: -p <size>\n"
                   << std::endl;
         std::cout << "You will be entering a failsafe mode with defaults."
                   << std::endl;
@@ -106,35 +107,5 @@ int main(int argc, char *argv[])
     }
 
     return app.exec();
-#else
-    utils::RingBuffer<utils::frame_data_t, 256> rb;
-    rb.init();
-    std::cout << "SIZE: " << rb.getSize() << std::endl;
-    int i;
-    std::cin >> i;
-    reader:
-        while (1) {
-            for(int i=0 ; i < 3; ++i) {
-            utils::frame_data_t* f = rb.read();
-                if (f) {
-                    std::cout<< "reading: " << f->counter << std::endl;
-                }
-            }
-            goto writer;
-        }
-
-    writer:
-        while (1) {
-            static int cnt = 0;
-            for(int i=0; i < 10; ++i) {
-                utils::frame_data_t f ;
-                f.counter = cnt++;
-                rb.write(f);
-            }
-            goto reader;
-        }
-    return 0;
-
-#endif
 }
 

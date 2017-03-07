@@ -38,22 +38,12 @@ struct frame_data_t
 {
     uint32_t counter;
     uint8_t null_bytes[64];
-    union {
     int16_t data[32 * 16]; // the new concpet - max is 1024 bytes
-    int16_t data2d[16][32];
-    } u;
-};
-
-// required for flippingp_server
-struct frame_data_t2
-{
-    uint32_t    counter;
-    uint8_t     null_bytes[32];
-    int16_t     data[16][32];
 };
 
 struct sample_data_t
 {
+    uint8_t signal[1];
     short* samples;
     uint32_t size;
 };

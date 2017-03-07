@@ -23,52 +23,44 @@ namespace plugin {
             }
             h->m_lock.unlock();
             // do the peek check of N frames
-
+#if 1
+#else
             if (dbl.count() < h->m_packSize) {
                 continue;
             } else {
+                int size = dbl.count();
+                int peek_samples = size * s->m_smplPerChan;
                 // how much frames we`ve buffered so far
-                int max_samples = s->m_channels * s->m_smplPerChan * dbl.count();
-                int16_t* smpls = new int16_t[max_samples];
-                int index = 0;
+                int16_t** smpls = new int16_t *[s->m_channels];
+                for(int i=0; i < s->m_channels; ++i) {
+                    smpls[i] = new int16_t[peek_samples];
+                }
 
-                for(int i=0; i < dbl.count(); ++i) {
-                    utils::frame_data_t frame = dbl.at(i);
-                    for(uint32_t j=0; j < s->m_smplPerChan; ++j) {
-                        for(uint32_t h=0; h < s->m_channels; ++h) {
-                            smpls[index++] = frame.u.data[j * s->m_channels+ h];
+                int p = 0;
+                for(int i=0; i < size; ++i) {
+                    utils::frame_data_t frame = dbl.takeAt(i);
+                    for(uint32_t j=0; j < s->m_channels; ++j) {
+                        for(uint32_t k=0; k < s->m_smplPerChan; ++k) {
+                            smpls[j][p++ % peek_samples] = frame.data[k * s->m_channels + j];
                         }
                     }
                 }
-#if 0
-                for(uint32_t j=0; j < s->m_smplPerChan; ++j) {
-                    for(uint32_t k=0; k < s->m_channels; ++k) {
-                        int16_t p  = h->peek(smpls[j * s->m_channels + k]);
-                        if(h->m_peek > 0) {
-                        printf("Chan: (%d) <====> peek: (%d)\n", k,
-                               p);
-                        }
-                   }
-                }
-#else
-                 if(0) {
-                    for(uint32_t i=0; i < s->m_smplPerChan; ++i) {
-                        for(uint32_t j=0; j < s->m_channels; ++j) {
-                            int16_t p = h->peek(smpls[i * s->m_channels + j]);
-                            printf("Chan:[%2d] <-----> Peek:[%2d]\n",
-                                   j, p);
-                        }
-                    }
+
+                for(uint32_t i=0; i < s->m_channels; ++i) {
+                    int16_t p = h->peek(smpls[i], size);
+                    printf("Channel: [%2d] ------ Peek: [%2d]\n",
+                           i, p);
                     h->m_peek = 0;
                 }
 
-#endif
                 // don`t forget!
-                delete [] smpls;
-                smpls = nullptr;
-                dbl.clear();
+             //   for(int i=0; i < s->m_channels; ++i) {
+             //       delete [] &smpls[i];
+             //   }
+             //   delete [] smpls;
             }
-
+            dbl.clear();
+#endif
             h->suspend(100);
 
         } while (h->m_isRunning);
@@ -90,11 +82,15 @@ namespace plugin {
         m_lock.deinit();
     }
 
-    int16_t Helper::peek(int16_t val)
+    int16_t Helper::peek(int16_t *samples, int size)
     {
-        int16_t v = abs(val);
-        if (m_peek < v) {
-            m_peek = v;
+        if (samples == nullptr || size == 0) {
+            return -1;
+        }
+        for(int i=0; i < size; ++i) {
+            if (m_peek < abs(samples[i])) {
+                m_peek = abs(samples[i]);
+            }
         }
         return m_peek;
     }

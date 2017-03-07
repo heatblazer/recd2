@@ -27,11 +27,20 @@ namespace plugin {
         bool     onetimeSynch;
     } ;
 
+
+    struct PeekOptions
+    {
+        bool peekOnOff;
+        int peekSize;
+    } ;
+
     class Server : public QObject
     {
         Q_OBJECT
     // interface implementation
     public:
+
+        static PeekOptions s_peekOptions;
 
         enum Sizes
         {
@@ -97,6 +106,7 @@ namespace plugin {
         unsigned int m_channels;
         unsigned int m_smplPerChan;
         quint16 m_port;
+
 
 
         friend class TcpServer;

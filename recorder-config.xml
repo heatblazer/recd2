@@ -48,6 +48,10 @@
 
 <!-- must not insert leading slashes / -->
 
+<Peek
+    enabled="true"
+    size="10"
+/>
 <Paths
     records="records"
     logs="logs"

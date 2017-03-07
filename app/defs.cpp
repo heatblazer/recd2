@@ -51,7 +51,7 @@ void InterfaceList::clear()
         head = head->nextPlugin;
         // BUGFIX!
         // shall not be called on that pointer
-        if (tmp == nullptr) {
+        if (tmp != nullptr) {
             delete tmp;
         }
     }

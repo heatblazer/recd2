@@ -16,13 +16,6 @@
 namespace plugin {
     namespace rec {
 
-    struct frame_data_t
-    {
-        uint32_t    counter;
-        uint8_t     null_bytes[32];
-        int16_t    data[32][16];
-    };
-
 
    /// threadable
     /// \brief The Recorder class
@@ -62,6 +55,7 @@ namespace plugin {
         virtual ~Recorder(); // we may inherit it too
         bool setupWavFiles();
 
+        void reopenWavFile(unsigned slot);
     signals:
         void recordedBytes(uint32_t bytes);
 
@@ -71,6 +65,7 @@ namespace plugin {
 
         // try swap on size based
         void pollHotSwap();
+
 
     private:
         // 128  chans max - I can use Wav** m_wavs but

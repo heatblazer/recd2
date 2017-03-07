@@ -19,6 +19,9 @@ namespace plugin {
                                  0,0,0,
                                  0,0,0,
                                  0,{0},0};
+
+    PeekOptions Server::s_peekOptions = {false, 0};
+
     // the err udp packet
     struct utils::frame_data_t Server::err_udp = {0,{0},{0}}; // warn fix
 ////////////////////////////////////////////////////////////////////////////////
@@ -40,7 +43,7 @@ namespace plugin {
           m_channels(0),
           m_smplPerChan(0)
     {
-        m_helper = new Helper(1);
+        m_helper = new Helper(Server::s_peekOptions.peekSize);
     }
 
     Server::~Server()
@@ -107,10 +110,34 @@ namespace plugin {
 
             for(int i=0; i < s->m_smplPerChan; ++i) {
                 for(int j=0; j < s->m_channels; ++j) {
-                    s->err_udp.u.data[i * s->m_channels + j] = 32000;
+                    s->err_udp.data[i * s->m_channels + j] = 32000;
                 }
             }
         }
+
+        // setup peek
+        {
+            const utils::MPair<QString, QString> peekOn =
+                    utils::RecorderConfig::Instance().getAttribPairFromTag("Peek", "enabled");
+            const utils::MPair<QString, QString> size =
+                    utils::RecorderConfig::Instance().getAttribPairFromTag("Peek", "size");
+
+            bool parseRes = false;
+            if (peekOn.m_type1 != "") {
+                if (peekOn.m_type2 == "true") {
+                    Server::s_peekOptions.peekOnOff = true;
+                }
+            }
+
+            if (size.m_type1 != "") {
+                Server::s_peekOptions.peekSize = size.m_type2.toInt(&parseRes);
+                if (!parseRes) {
+                    Server::s_peekOptions.peekSize = 10; // defaults
+                }
+            }
+
+        }
+
 
         // setup transport and server
         {
@@ -203,12 +230,14 @@ namespace plugin {
                 if (read == sizeof(utils::frame_data_t)) {
                     utils::frame_data_t udp = *(utils::frame_data_t*) buff.data();
 
-                    m_helper->m_lock.lock();
-                    m_helper->m_buffer.append(udp);
-                    m_helper->m_lock.unlock();
+                    if (Server::s_peekOptions.peekOnOff) {
+                        m_helper->m_lock.lock();
+                        m_helper->m_buffer.append(udp);
+                        m_helper->m_lock.unlock();
+                    }
 
                     // one frame lost for synching with my counter
-                    if (0/*udp.counter != ++m_conn_info.paketCounter*/) {
+                    if (udp.counter != ++m_conn_info.paketCounter) {
                         snprintf(msg, sizeof(msg),
                                  "Last synch packet:(%u)\t at: [%s]\n"
                                  "Total desynch:(%u)\n"
@@ -234,26 +263,26 @@ namespace plugin {
 
                         if(!m_conn_info.onetimeSynch) {
                             m_conn_info.onetimeSynch = true;
-                            for(uint32_t i=0; i < m_smplPerChan; ++i) {
+                            for(uint32_t i=0; i < m_channels; ++i) {
                                 utils::sample_data_t s = {0, 0};
-                                short smpl[MaxSampleSize] = {0};
+                                short* smpl = new short[m_smplPerChan];
                                 s.samples = smpl;
                                 s.size = m_smplPerChan;
-                                for(uint32_t j=0; j < m_channels; ++j) {
-                                    s.samples[j] = err_udp.u.data[i * m_channels + j];
+                                for(uint32_t j=0; j < m_smplPerChan; ++j) {
+                                    s.samples[j] = err_udp.data[j * m_channels + i];
                                 }
                                 err_ls.append(s);
                             }
                             put_data((QList<utils::sample_data_t>*) &err_ls);
                         } else {
                             for(int i=0; i < errs; ++i) {
-                               for(uint32_t j=0; j < m_smplPerChan; ++j) {
+                               for(uint32_t j=0; j < m_channels; ++j) {
                                    utils::sample_data_t sd = {0, 0};
-                                   short smpl[MaxSampleSize] = {0};
+                                   short* smpl = new short[m_smplPerChan];
                                    sd.samples = smpl;
-                                   sd.size = m_channels;
-                                   for(uint32_t h=0; h < m_channels; ++h) {
-                                       sd.samples[h] = err_udp.u.data[j * m_channels + h];
+                                   sd.size = m_smplPerChan;
+                                   for(uint32_t h=0; h < m_smplPerChan; ++h) {
+                                       sd.samples[h] = err_udp.data[h * m_channels + j];
                                    }
                                    err_ls.append(sd);
                                }
@@ -272,10 +301,11 @@ namespace plugin {
                             short* smpl = new short[m_smplPerChan];//[MaxSampleSize] = {0};
                             s.samples = smpl;
                             s.size = m_smplPerChan;
+                            s.signal[0] = udp.null_bytes[i];
                             // fill the list to be passed to other plugins
                             for(uint32_t j=0; j < m_smplPerChan; ++j) {
                                 int index = j * m_channels + i;
-                                s.samples[j] = udp.u.data[index];
+                                s.samples[j] = udp.data[index];
                             }
 
                             ls.append(s);
@@ -432,10 +462,11 @@ namespace plugin {
             return -1;
         } else {
             for(int i=0; i < argc; ++i) {
-                if ((strcmp(argv[i], "-c") == 0) ||
-                    (strcmp(argv[i], "--config"))) {
+                if ((strcmp(argv[i], "-c")) == 0 ||
+                    (strcmp(argv[i], "--config")) == 0) {
                     if (argv[i+1] != nullptr) {
                         utils::RecorderConfig::Instance().fastLoadFile(argv[i+1]);
+                        break;
                     }
                 }
             }

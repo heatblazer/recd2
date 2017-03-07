@@ -186,7 +186,7 @@ namespace plugin {
                     sdata.samples = smpl;
                     sdata.size = w->ref->p_server->m_smplPerChan;
                     for (uint32_t j=0; j < sdata.size; ++j) {
-                        sdata.samples[j] = t->u.data[i++];
+                        sdata.samples[j] = t->data[i++];
                     }
                     ls.append(sdata);
                 }
@@ -205,7 +205,7 @@ namespace plugin {
                 sdata.samples = smpl;
                 sdata.size = w->ref->p_server->m_smplPerChan;;
                 for (uint32_t j=0; j < sdata.size; ++j) {
-                    sdata.samples[j] = rem[i].u.data[ii++];
+                    sdata.samples[j] = rem[i].data[ii++];
                 }
                 ls.append(sdata);
             }

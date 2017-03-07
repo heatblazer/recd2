@@ -20,7 +20,7 @@ namespace plugin {
             Helper(size_t packSize);
             virtual ~Helper();
 
-            int16_t peek(int16_t val);
+            int16_t peek(int16_t* samples, int size);
 
         private:
             int m_packSize;

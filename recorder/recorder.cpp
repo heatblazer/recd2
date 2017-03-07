@@ -121,11 +121,11 @@ namespace plugin {
         }
         // open files when everything is ok and setup
         res &= r->setupWavFiles();
-
+#if 0
         for(int i=0; i < r->m_maxChans; ++i) {
             res &= r->m_wavs[i]->open(i);
         }
-
+#endif
         const MPair<QString, QString>& hot_swap = RecorderConfig::Instance()
                 .getAttribPairFromTag("HotSwap", "timeBased");
         const MPair<QString, QString>& max_size = RecorderConfig::Instance()
@@ -381,25 +381,72 @@ namespace plugin {
         if (sd.count() <= 0) {
             return ;
         }
-        for(int i=0; i < sd.count(); ++i) {
-            if (m_sizeBased) {
-                pollHotSwap();
-            }
-            sample_data_t s = sd.at(i);
 
-            if (m_wavs[i] != nullptr) {
-                if (m_wavs[i]->isPaused()) {
+        if (m_sizeBased) {
+            pollHotSwap();
+        }
+
+        for(int i=0; i < sd.count(); ++i) {
+            utils::sample_data_t s = sd.at(i);
+            uint8_t c = s.signal[0];
+
+            if (c == 0) {
+                if (m_wavs[i] != nullptr) {
                     m_wavs[i]->close();
-                } else {
+                    //delete m_wavs[i];
+                    //m_wavs[i] = nullptr;
+                }
+            } else {
+                if (m_wavs[i]->isOpened()) {
                     m_wavs[i]->write(s.samples, s.size);
                     if (s.samples != nullptr) {
                         delete [] s.samples;
                         s.samples = nullptr;
                     }
+                } else {
+                    reopenWavFile(i);
+                }
+            }
+        }
+#if 0
+        for(int i=0; i < sd.count(); ++i) {
+            if (m_sizeBased) {
+                pollHotSwap();
+            }
+            sample_data_t s = sd.at(i);
+            uint8_t c = s.signal[0];
+            if (m_wavs[i] != nullptr) {
+                if (c == 0) {
+                    m_wavs[c]->close();
+                } else {
+                    const char* buff = m_wavs[c]->getFileName();
+                    delete m_wavs[c];
+                    m_wavs[c] = nullptr;
+
+                    // open a new file in the same slot
+                    m_wavs[c] = new Wav(buff);
+                    m_wavs[c]->setupWave(m_wavParams.samples_per_sec,
+                                         m_wavParams.bits_per_sec,
+                                         m_wavParams.riff_len,
+                                         m_wavParams.fmt_len,
+                                         m_wavParams.audio_fmt,
+                                         m_wavParams.chann_cnt);
+                    m_wavs[c]->open(i);
+                }
+
+                if (m_wavs[c]->isPaused()) {
+                    m_wavs[c]->close();
+                } else {
+                    m_wavs[c]->write(s.samples, s.size);
+                    //if (s.samples != nullptr) {
+                    //    delete [] s.samples;
+                    //    s.samples = nullptr;
+                    //}
                 }
             }
         }
         sd.clear();
+#endif
     }
 
     /// setup all wav files for writing
@@ -474,6 +521,43 @@ namespace plugin {
         m_wavParams.chann_cnt = chann_cnt;
 
         return res;
+    }
+
+    void Recorder::reopenWavFile(unsigned slot)
+    {
+        if (m_wavs[slot] != nullptr) {
+            if (!m_wavs[slot]->isOpened()) {
+                s_UID++;
+                char buff[256] = {0};
+                if (m_directory != "") {
+                    snprintf(buff, sizeof(buff), "%s/%d-%d-%s.wav",
+                            m_directory.toStdString().data(),
+                            slot, s_UID, DateTime::getTimeString());
+
+                } else {
+                    snprintf(buff, sizeof(buff), "%d-%d-%s.wav",
+                                slot,
+                                s_UID, DateTime::getTimeString());
+
+                }
+                m_wavs[slot]->close();
+                // TODO: rename after a name pattern is set
+                //m_wavs[i]->renameFile(m_wavs[i]->getFileName(), buff);
+
+                delete m_wavs[slot];
+                m_wavs[slot] = nullptr;
+
+                // open a new file in the same slot
+                m_wavs[slot] = new Wav(buff);
+                m_wavs[slot]->setupWave(m_wavParams.samples_per_sec,
+                                     m_wavParams.bits_per_sec,
+                                     m_wavParams.riff_len,
+                                     m_wavParams.fmt_len,
+                                     m_wavParams.audio_fmt,
+                                     m_wavParams.chann_cnt);
+                m_wavs[slot]->open(slot);
+            }
+        }
     }
 
     /// Timer based hotswap, if time elapses
