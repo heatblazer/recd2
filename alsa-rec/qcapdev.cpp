@@ -217,7 +217,7 @@ namespace plugin {
         {
             QByteArray samples = io_handle->readAll();
             QList<utils::sample_data_t> ls;
-            utils::sample_data_t sdata = {0, 0};
+            utils::sample_data_t sdata = {{0},0, 0};
             sdata.samples = (short*) samples.data();
             sdata.size = (uint32_t) samples.size();
             ls.append(sdata);

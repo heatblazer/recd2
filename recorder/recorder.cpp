@@ -399,15 +399,16 @@ namespace plugin {
             } else {
                 if (m_wavs[i]->isOpened()) {
                     m_wavs[i]->write(s.samples, s.size);
-                    if (s.samples != nullptr) {
-                        delete [] s.samples;
-                        s.samples = nullptr;
-                    }
                 } else {
                     reopenWavFile(i);
                 }
             }
+            if (s.samples != nullptr) {
+                delete [] s.samples;
+                s.samples = nullptr;
+            }
         }
+        sd.clear();
 #if 0
         for(int i=0; i < sd.count(); ++i) {
             if (m_sizeBased) {

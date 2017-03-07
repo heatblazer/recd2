@@ -140,7 +140,7 @@ void *Producer::worker(void *pArgs)
         usleep(2);
         QList<utils::sample_data_t> ls;
         for (int i=0;  i < SMPL_SIZE; ) {
-            utils::sample_data_t s = {0, 0};
+            utils::sample_data_t s = {{0}, 0, 0};
             short smpl[16] = {0};
             s.samples = smpl;
             s.size = 16;

@@ -108,8 +108,8 @@ namespace plugin {
                 }
             }
 
-            for(int i=0; i < s->m_smplPerChan; ++i) {
-                for(int j=0; j < s->m_channels; ++j) {
+            for(unsigned i=0; i < s->m_smplPerChan; ++i) {
+                for(unsigned j=0; j < s->m_channels; ++j) {
                     s->err_udp.data[i * s->m_channels + j] = 32000;
                 }
             }
@@ -264,7 +264,7 @@ namespace plugin {
                         if(!m_conn_info.onetimeSynch) {
                             m_conn_info.onetimeSynch = true;
                             for(uint32_t i=0; i < m_channels; ++i) {
-                                utils::sample_data_t s = {0, 0};
+                                utils::sample_data_t s = {{0},0, 0};
                                 short* smpl = new short[m_smplPerChan];
                                 s.samples = smpl;
                                 s.size = m_smplPerChan;
@@ -277,7 +277,7 @@ namespace plugin {
                         } else {
                             for(int i=0; i < errs; ++i) {
                                for(uint32_t j=0; j < m_channels; ++j) {
-                                   utils::sample_data_t sd = {0, 0};
+                                   utils::sample_data_t sd = {{0},0, 0};
                                    short* smpl = new short[m_smplPerChan];
                                    sd.samples = smpl;
                                    sd.size = m_smplPerChan;
@@ -297,7 +297,7 @@ namespace plugin {
                         // copy all the data then send it to the plugins
 #if 1
                         for(uint32_t i=0; i < m_channels; ++i) {
-                            utils::sample_data_t s = {0, 0};
+                            utils::sample_data_t s = {{0},0, 0};
                             short* smpl = new short[m_smplPerChan];//[MaxSampleSize] = {0};
                             s.samples = smpl;
                             s.size = m_smplPerChan;

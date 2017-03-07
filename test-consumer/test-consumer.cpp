@@ -132,6 +132,7 @@ void *Consumer::worker(void *pArgs)
     for(;;) {
         c->suspend(1);
     }
+    return (int*)0;
 }
 
 
