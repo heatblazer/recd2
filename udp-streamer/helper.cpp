@@ -13,6 +13,7 @@ namespace plugin {
     {
         Helper* h = (Helper*) pArgs;
         Server* s = &Server::Instance();
+        (void) s;
 
         QList<utils::frame_data_t> dbl;
 

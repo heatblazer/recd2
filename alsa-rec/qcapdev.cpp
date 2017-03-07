@@ -78,6 +78,7 @@ namespace plugin {
             QList<utils::sample_data_t>* ls = (QList<utils::sample_data_t>*)data;
             ls->clear();
         }
+        return 0;
     }
 
     int QCapDevice::put_ndata(void *data, int len)
@@ -86,6 +87,7 @@ namespace plugin {
         if (r->iface.nextPlugin != nullptr) {
             r->iface.nextPlugin->put_ndata(data, len);
         }
+        return 0;
     }
 
     void *QCapDevice::get_data()
@@ -123,7 +125,8 @@ namespace plugin {
                             // write some msg
                         }
                         RecorderConfig* r = &RecorderConfig::Instance();
-                        int i = 0;
+                        (void) r;
+
                     }
                 }
                 if (strcmp(argv[i], "-l") ==  0 ||
@@ -180,6 +183,11 @@ namespace plugin {
 
             const MPair<QString, QString>& quality =
                     RecorderConfig::Instance().getAttribPairFromTag("QAudioCapture", "quality");
+
+            (void) quality;
+            (void) bit_rate;
+            (void) device;
+            (void) brate;
 
             srate = s_rate.m_type2.toInt(&parse_res);
             if (!parse_res) {

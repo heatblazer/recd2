@@ -60,6 +60,7 @@ int main()
             return 1;
         }
         size_t r = fread(w, 1, sizeof(wav_file), fp);
+        (void) r;
         fclose(fp);
     }
 

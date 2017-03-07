@@ -9,6 +9,7 @@
 #define SAMPLES 16
 static short* test_gen(int len)
 {
+    (void) test_gen;
     short* s = new short[len];
     if (!s) {
         return nullptr;
@@ -44,6 +45,7 @@ void Client::init()
             return;
         }
         size_t r = fread(&file_data, 1, sizeof(SMPL), fp);
+        (void) r;
         fclose(fp);
     }
 

@@ -181,7 +181,7 @@ namespace plugin {
             } else {
                 printf("Cnt: %u\r", t->counter);
                 for(unsigned i=0; i < MAX; ) {
-                    utils::sample_data_t sdata = {0, 0};
+                    utils::sample_data_t sdata = {{0}, 0, 0};
                     short smpl[512] = {0};
                     sdata.samples = smpl;
                     sdata.size = w->ref->p_server->m_smplPerChan;
@@ -200,7 +200,7 @@ namespace plugin {
         int s = w->ref->m_buffer.data.readAll(&rem);
         for(int i=0; i < s; ++i) {
             for(unsigned ii=0; ii < MAX; ) {
-                utils::sample_data_t sdata = {0, 0};
+                utils::sample_data_t sdata = {{0}, 0, 0};
                 short smpl[512] = {0};
                 sdata.samples = smpl;
                 sdata.size = w->ref->p_server->m_smplPerChan;;
