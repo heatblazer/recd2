@@ -17,9 +17,9 @@ namespace plugin {
         {
         public:
             static void* worker(void* pArgs);
-            Helper(size_t packSize);
+            Helper();
             virtual ~Helper();
-
+            void setPacketSize(int s);
             int16_t peek(int16_t* samples, int size);
 
         private:

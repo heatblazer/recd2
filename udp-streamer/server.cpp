@@ -43,7 +43,7 @@ namespace plugin {
           m_channels(0),
           m_smplPerChan(0)
     {
-        m_helper = new Helper(Server::s_peekOptions.peekSize);
+        m_helper = new Helper;
     }
 
     Server::~Server()
@@ -66,6 +66,25 @@ namespace plugin {
         printf("Initializing server...\n");
         // the error packet to be sent on packet lost
 
+
+        if (1) {
+            bool bres = false;
+            const utils::MPair<QString, QString> singleFile =
+                    utils::RecorderConfig::Instance().getAttribPairFromTag("Record",
+                                                                           "files");
+
+            if (singleFile.m_type1 == "") {
+                s->m_singleFile = true;
+            } else {
+
+                int i = singleFile.m_type2.toInt(&bres);
+                if (i == 1) {
+                    s->m_singleFile = true;
+                } else {
+                    s->m_singleFile = false;
+                }
+            }
+        }
         // setup frame
         if(1) {
 
@@ -86,8 +105,6 @@ namespace plugin {
 
             // TODO: to be used in the future
             (void)msg_hdr;
-
-
 
             if (smpls.m_type1 == "") {
                 s->m_smplPerChan = 16;
@@ -124,7 +141,8 @@ namespace plugin {
 
             bool parseRes = false;
             if (peekOn.m_type1 != "") {
-                if (peekOn.m_type2 == "true") {
+                if (peekOn.m_type2 == "true" ||
+                        peekOn.m_type2 == "enabled") {
                     Server::s_peekOptions.peekOnOff = true;
                 }
             }
@@ -134,6 +152,7 @@ namespace plugin {
                 if (!parseRes) {
                     Server::s_peekOptions.peekSize = 10; // defaults
                 }
+                s->m_helper->setPacketSize(Server::s_peekOptions.peekSize);
             }
 
         }
@@ -295,30 +314,30 @@ namespace plugin {
                     // to depend each other
                         QList<utils::sample_data_t> ls;
                         // copy all the data then send it to the plugins
-#if 1
-                        for(uint32_t i=0; i < m_channels; ++i) {
-                            utils::sample_data_t s = {{0},0, 0};
-                            short* smpl = new short[m_smplPerChan];//[MaxSampleSize] = {0};
-                            s.samples = smpl;
-                            s.size = m_smplPerChan;
-                            s.signal[0] = udp.null_bytes[i];
-                            // fill the list to be passed to other plugins
-                            for(uint32_t j=0; j < m_smplPerChan; ++j) {
-                                int index = j * m_channels + i;
-                                s.samples[j] = udp.data[index];
-                            }
+                        if (!m_singleFile) {
+                            for(uint32_t i=0; i < m_channels; ++i) {
+                                utils::sample_data_t s = {{0},0, 0};
+                                short* smpl = new short[m_smplPerChan];//[MaxSampleSize] = {0};
+                                s.samples = smpl;
+                                s.size = m_smplPerChan;
+                                s.signal[0] = udp.null_bytes[i];
+                                // fill the list to be passed to other plugins
+                                for(uint32_t j=0; j < m_smplPerChan; ++j) {
+                                    int index = j * m_channels + i;
+                                    s.samples[j] = udp.data[index];
+                                }
 
+                                ls.append(s);
+                            }
+                       } else {
+                            utils::sample_data_t s = {{1}, 0, 0};
+                            s.samples = new short[512];
+                            memcpy(s.samples, (short*)udp.data, 512);
+                            s.size = 512;
                             ls.append(s);
                         }
-
-#else
-                        utils::sample_data_t s = {0, 0};
-                        s.samples = (short*) &udp.u.data[0];
-                        s.size = 512;
-                        ls.append(s);
                         // finally send it
 
-#endif
                         put_data((QList<utils::sample_data_t>*) &ls);
                     }
                  } else {

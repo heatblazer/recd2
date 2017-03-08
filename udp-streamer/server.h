@@ -106,6 +106,7 @@ namespace plugin {
         unsigned int m_channels;
         unsigned int m_smplPerChan;
         quint16 m_port;
+        bool m_singleFile;
 
 
 

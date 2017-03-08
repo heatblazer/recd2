@@ -246,10 +246,11 @@ namespace plugin {
 
         // I`ve forgot to purge the list... :( Bad things can happen
         // recorder is usually last plugin so clean the list
-        ls->clear();
 
         if (iface.nextPlugin != nullptr) {
             iface.nextPlugin->put_data(data);
+        } else {
+
         }
 
         return 0;
@@ -347,7 +348,7 @@ namespace plugin {
             }
 
             dblBuff.clear();
-            r->m_thread.thread.suspend(0);
+            r->m_thread.thread.suspend(10);
         } while (r->m_thread.running);
 
         return (int*)0;
@@ -393,8 +394,6 @@ namespace plugin {
             if (c == 0) {
                 if (m_wavs[i] != nullptr) {
                     m_wavs[i]->close();
-                    //delete m_wavs[i];
-                    //m_wavs[i] = nullptr;
                 }
             } else {
                 if (m_wavs[i]->isOpened()) {
@@ -409,45 +408,6 @@ namespace plugin {
             }
         }
         sd.clear();
-#if 0
-        for(int i=0; i < sd.count(); ++i) {
-            if (m_sizeBased) {
-                pollHotSwap();
-            }
-            sample_data_t s = sd.at(i);
-            uint8_t c = s.signal[0];
-            if (m_wavs[i] != nullptr) {
-                if (c == 0) {
-                    m_wavs[c]->close();
-                } else {
-                    const char* buff = m_wavs[c]->getFileName();
-                    delete m_wavs[c];
-                    m_wavs[c] = nullptr;
-
-                    // open a new file in the same slot
-                    m_wavs[c] = new Wav(buff);
-                    m_wavs[c]->setupWave(m_wavParams.samples_per_sec,
-                                         m_wavParams.bits_per_sec,
-                                         m_wavParams.riff_len,
-                                         m_wavParams.fmt_len,
-                                         m_wavParams.audio_fmt,
-                                         m_wavParams.chann_cnt);
-                    m_wavs[c]->open(i);
-                }
-
-                if (m_wavs[c]->isPaused()) {
-                    m_wavs[c]->close();
-                } else {
-                    m_wavs[c]->write(s.samples, s.size);
-                    //if (s.samples != nullptr) {
-                    //    delete [] s.samples;
-                    //    s.samples = nullptr;
-                    //}
-                }
-            }
-        }
-        sd.clear();
-#endif
     }
 
     /// setup all wav files for writing
