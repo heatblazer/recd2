@@ -89,7 +89,7 @@ PThread::~PThread()
 int PThread::createThread(size_t stack_size, int priority, entryPoint cb, void* user_data)
 {
 
-    size_t default_size ;
+    size_t default_size = 128 * 1024;
     int ret = -1;
     ret = pthread_attr_init(&m_attr);
 
