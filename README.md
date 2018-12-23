@@ -16,6 +16,11 @@ To start working over the project:
 The project is over Qt5.8.0 LTS but is backward compatible and tested against
 5.7.X and 5.6.X
 
+### Warning!
+QtScriptEngine is not supported in Qt5.11 and above. For simplicity, I've removed 
+the ability to script the application. If you need a binding language,I will add
+PySide support in the future.
+Appy polly logies :)
 
 ### Development cycle
 
