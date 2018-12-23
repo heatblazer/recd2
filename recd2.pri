@@ -3,7 +3,6 @@
 # You must inclue this in all .pro files.
 #
 QT += core
-QT += script
 QT += xml
 QT += network
 QT -= gui

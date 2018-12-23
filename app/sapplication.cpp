@@ -47,6 +47,7 @@ SApplication::SApplication(int &argc, char **argv)
     // proxy them to the plugins if needed
     s_argc = argc;
     s_argv = argv;
+#if 0
     if (temp_test_enable) {
         QScriptEngine engine;
         QTranslator translator;
@@ -63,7 +64,7 @@ SApplication::SApplication(int &argc, char **argv)
             exit(-1);
         }
     }
-
+#endif
     // just program name
     if (argc == 1) {
         // initializing with default setting
