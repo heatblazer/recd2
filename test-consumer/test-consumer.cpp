@@ -28,8 +28,6 @@ void Consumer::init()
 {
     Consumer* c = &Instance();
     utils::IPC::Instance().sendMessage(THIS_FILE, "Init Consumer...\n");
-    ((PThread*)c)->setThreadName("consumer-thread");
-    c->createThread(128 * 1024, 10, Consumer::worker, c);
 }
 
 int Consumer::put_ndata(void *data, int len)
@@ -68,8 +66,6 @@ void *Consumer::get_data()
 
 void Consumer::deinit()
 {
-    Instance().join();
-    Instance().closeThread();
     utils::IPC::Instance().sendMessage(THIS_FILE, "Deinit Consumer \n");
 }
 
@@ -127,12 +123,9 @@ Consumer &Consumer::Instance()
 
 void *Consumer::worker(void *pArgs)
 {
-    Consumer* c = (Consumer*) pArgs;
-
-    for(;;) {
-        c->suspend(1);
-    }
-    return (int*)0;
+    Consumer* c = static_cast<Consumer*>(pArgs);
+    (void)c;
+    return nullptr;
 }
 
 

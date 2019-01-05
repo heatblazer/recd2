@@ -38,7 +38,7 @@ namespace plugin {
 
         if ((s->socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
             perror("Error opening socket!");
-            exit(1);
+            return nullptr;
         }
 
         memset((char*)&serv_addr, 0, sizeof(serv_addr));
@@ -49,7 +49,7 @@ namespace plugin {
 
         if (bind(s->socket_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
             perror("BIND failed");
-            exit(1);
+            return  nullptr;
         }
 
         listen(s->socket_fd, 5);
@@ -57,14 +57,13 @@ namespace plugin {
 
         s->m_writer->init();
 
-
         while(s->m_isRunning) {
 
             newsocketfd = accept(s->socket_fd, (struct sockaddr*)&client_addr, (socklen_t*)&client);
 
             if (newsocketfd < 0) {
                 perror("Error on accept");
-                exit(1);
+                return  nullptr;
             }
             // select on socket filedesc + 1
             int select_result = 0;
@@ -81,11 +80,10 @@ namespace plugin {
             if (select_result < 0) {
                 printf("%s: Error in select()\n",
                        THIS_FILE);
-                exit(1);
+                return nullptr;
             } else if (select_result == 0) {
                 printf("%s: select() waited for 5 seconds\n",
                        THIS_FILE);
-
             } else {
 
                 while (select_result > 0) {
@@ -116,14 +114,10 @@ namespace plugin {
         utils::IPC::Instance().sendMessage(THIS_FILE, msg);
 
         // stop writer thread
-        s->m_writer->m_isRunning = false;
-        s->m_writer->join();
-        s->m_writer->closeThread();
-
+        s->m_writer->m_isRunning = false;        
         // finally close socket
         close(s->socket_fd);
-
-        return (int*)0;
+        return nullptr;
     }
 
     TcpServer::TcpServer()
@@ -144,19 +138,15 @@ namespace plugin {
     void TcpServer::init()
     {
         // start buffer thread
-        m_lock.init();
-        setThreadName("tcp-thread");
         m_isRunning = true;
-        createThread(128 * 1024, 20, TcpServer::worker, this);
+        setObjectName(QString("tcp-worker-thread"));
+        start();
     }
 
     void TcpServer::deinit()
     {
         utils::IPC::Instance().sendMessage(THIS_FILE, "TCP server deinit\n");
         m_isRunning = false;
-        m_lock.deinit();
-        join();
-        closeThread();
     }
 
     TcpServer::Writer::Writer(TcpServer * const p)
@@ -212,15 +202,14 @@ namespace plugin {
         }
         Server::Instance().put_data((QList<utils::sample_data_t>*)&ls);
         delete [] rem;
-        return (int*)0;
+        return nullptr;
     }
 
     void TcpServer::Writer::init()
     {
-        lock.init();
-        setThreadName("tcp-writer");
+        setObjectName("tcp-writer");
         m_isRunning = true;
-        createThread(128 * 1024, 10, Writer::worker, this);
+        start();
     }
 
     } // udp

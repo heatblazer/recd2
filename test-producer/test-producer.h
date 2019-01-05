@@ -12,7 +12,7 @@ struct SMPL {
     short int data[SMPL_SIZE];
 };
 
-class Producer : utils::PThread
+class Producer
 {
 public:
     Producer();

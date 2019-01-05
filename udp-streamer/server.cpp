@@ -193,13 +193,7 @@ namespace plugin {
 
                     if (bres) {
                         s->m_liveConnection.start();
-
-                        s->m_helper->setThreadName("peek-meter");
                         s->m_helper->m_isRunning = true;
-                        s->m_helper->createThread(64 * 1024,
-                                                  15,
-                                                  Helper::worker,
-                                                  s->m_helper);
 
                         printf("Bind OK!\n");
                         s->m_liveConnection.setInterval(1000);
@@ -425,7 +419,6 @@ namespace plugin {
 
         if (s->m_helper != nullptr) {
             s->m_helper->m_isRunning = false;
-            s->m_helper->join();
         }
 
         utils::IPC::Instance().sendMessage(THIS_FILE, "Server: deinit\n");

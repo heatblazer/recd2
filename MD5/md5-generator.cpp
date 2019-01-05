@@ -54,8 +54,7 @@ namespace plugin {
         {
             utils::IPC::Instance().sendMessage(THIS_FILE, "Init MD5 hasing plugin\n");
             MD5Generator* md5 = &Instance();
-            md5->setThreadName("md5-worker");
-            md5->createThread(128 * 1024, 20, MD5Generator::worker, md5);
+            md5->start();
         }
 
         int MD5Generator::put_ndata(void *data, int len)
@@ -98,9 +97,7 @@ namespace plugin {
         {
             utils::IPC::Instance().sendMessage(THIS_FILE, "Deinit Md5 hashing  plugin\n");
             Instance().isRunning = false;
-            Instance().suspend(1000);
-            Instance().join();
-            Instance().closeThread();
+            Instance().wait(1000);
         }
 
         int MD5Generator::main_proxy(int argc, char** argv)

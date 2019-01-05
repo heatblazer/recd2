@@ -9,7 +9,7 @@ namespace plugin {
 
 #endif
 
-class Consumer : utils::PThread
+class Consumer
 {
 public:
     Consumer();

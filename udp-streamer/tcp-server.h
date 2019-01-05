@@ -6,20 +6,19 @@
 
 #include "utils.h"
 
-
 namespace plugin {
     namespace udp {
 
     class Server;
 
-    class TcpServer : public utils::PThread
+    class TcpServer : public QThread
     {
-        class Writer : utils::PThread
+        class Writer : QThread
         {
             Writer(TcpServer* const p);
             static void* worker(void *pArgs);
             void init();
-            utils::PMutex lock;
+            QMutex lock;
             TcpServer* const ref;
             friend class TcpServer;
             bool m_isRunning;
@@ -42,7 +41,7 @@ namespace plugin {
             bool isBusy;
         } m_buffer;
 
-        utils::PMutex m_lock;
+        QMutex m_lock;
         Server* p_server;
         int socket_fd;
         Writer* m_writer;

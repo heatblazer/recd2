@@ -29,11 +29,8 @@ void Producer::init()
     }
     size_t r = fread(&p->samples, 1, sizeof(SMPL), fp);
     (void) r;
-    fclose(fp);
-
-    ((PThread*)p)->setThreadName("producer-thread");
+    fclose(fp);    
     p->isRunning = true;
-    p->createThread(128 * 1024, 10, Producer::worker, p);
 
 }
 
@@ -75,8 +72,6 @@ void *Producer::get_data()
 void Producer::deinit()
 {
     Instance().isRunning = false;
-    Instance().join();
-    Instance().closeThread();
     utils::IPC::Instance().sendMessage(THIS_FILE, "Deinit Producer test\n");
 }
 

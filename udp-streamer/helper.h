@@ -13,7 +13,7 @@ namespace plugin {
     namespace udp {
         class Server;
 
-        class Helper : public utils::PThread
+        class Helper : public QThread
         {
         public:
             static void* worker(void* pArgs);
@@ -22,12 +22,14 @@ namespace plugin {
             void setPacketSize(int s);
             int16_t peek(int16_t* samples, int size);
 
+        protected:
+            virtual void run();
         private:
             int m_packSize;
             bool m_isRunning;
             int16_t m_peek;
             QList<utils::frame_data_t> m_buffer;
-            utils::PMutex m_lock;
+            QMutex m_lock;
             friend class Server;
         };
     } // udp

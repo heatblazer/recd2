@@ -186,8 +186,6 @@ namespace plugin {
             // setup the default logic
             // swap by size
         }
-        r->m_thread.mutex.init();
-        r->m_thread.thread.setThreadName("recorder thread");
         Instance().startRecorder();
     }
 
@@ -211,11 +209,8 @@ namespace plugin {
             }
         }
         r->stopRecoder();
-        r->m_thread.mutex.deinit();
-        r->m_thread.thread.suspend(1000);
-        r->m_thread.thread.join();
-        r->m_thread.thread.closeThread();
-
+        r->m_thread.thread.sleep(1000);
+        r->m_thread.thread.wait(1000);
     }
 
     void Recorder::copy(const void *src, void *dst, int len)
@@ -240,6 +235,7 @@ namespace plugin {
         Recorder* r = &Instance();
 
         QList<sample_data_t>* ls = (QList<sample_data_t>*)data;
+
         r->m_thread.mutex.lock();
         r->m_thread.buffer.enqueue(*ls);
         r->m_thread.mutex.unlock();
@@ -348,7 +344,7 @@ namespace plugin {
             }
 
             dblBuff.clear();
-            r->m_thread.thread.suspend(10);
+            r->m_thread.thread.sleep(10);
         } while (r->m_thread.running);
 
         return (int*)0;
@@ -361,14 +357,13 @@ namespace plugin {
     {
         m_thread.running = true;
         //QThread::start();
-        m_thread.thread.createThread(64 * 1024, 20, Recorder::run, this);
+        m_thread.thread.start();
     }
 
     void Recorder::stopRecoder()
     {
         m_thread.running = false;
-        m_thread.thread.join();
-        m_thread.thread.closeThread();
+        m_thread.thread.wait(1000);
     }
 
     /// current version of record

@@ -9,7 +9,7 @@ namespace plugin {
 
     namespace md5 {
 
-    class MD5Generator : utils::PThread
+    class MD5Generator : QThread
     {
     public:
         static void* worker(void* pArgs);
@@ -24,7 +24,6 @@ namespace plugin {
         static const char* get_name(void);
         static int main_proxy(int argc, char** argv);
         static struct interface_t* getSelf(void);
-
 
     private:
 

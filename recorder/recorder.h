@@ -97,8 +97,8 @@ namespace plugin {
 
         // concurent stuff
         struct {
-            utils::PMutex mutex;
-            utils::PThread thread;
+            QMutex mutex;
+            QThread thread;
             QQueue<QList<utils::sample_data_t> >buffer;
             bool running;
             unsigned long speed; // sleep interval
