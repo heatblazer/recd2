@@ -5,6 +5,12 @@
 
 ***
 
+[5.01.2019]
+## Update
+Happy new year! Few minor updates:
+1. `PThread` and `PMutex` are replaced by `QThread` and `QMutex` respectively.
+2. Still have some minor issues to fix.
+
 ## Contributing
 
 To start working over the project:
