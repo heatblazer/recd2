@@ -9,31 +9,6 @@
 
 namespace utils {
 
-void *Writer::worker(void *pArgs)
-{
-    Writer* w = (Writer*) pArgs;
-
-    QQueue<QByteArray> dblBuff;
-    dblBuff.reserve(512); // bigger
-    do {
-        w->m_thread.suspend(w->m_speed);
-        w->m_mutex.lock();
-        while (!w->m_buffer.isEmpty()) {
-            dblBuff.enqueue(w->m_buffer.dequeue());
-        }
-        w->m_mutex.unlock();
-
-        while (!dblBuff.isEmpty()) {
-            QByteArray d = dblBuff.dequeue();
-            w->m_file.write(d, d.size());
-            w->m_file.flush();
-        }
-    } while (w->m_isRunning);
-
-    return (int*)0;
-}
-
-
 
 /// TODO: configure speed of the logging!!!
 /// \brief Writer::Writer
@@ -43,7 +18,6 @@ Writer::Writer()
     : m_isRunning(false),
       m_speed(1000)
 {
-    m_mutex.init();
 }
 
 Writer::~Writer()
@@ -73,19 +47,39 @@ void Writer::write(const QByteArray &data)
 void Writer::startWriter()
 {
     m_isRunning = true;
-    m_thread.createThread(64 * 1024, 10, Writer::worker, this);
+    setStackSize(64 * 1024);
+    setPriority(QThread::Priority::NormalPriority);
+    setObjectName(QString("Writer thread"));
+    start();
 }
 
 void Writer::stopWriter()
 {
     m_isRunning = false;
-    m_thread.join();
-    m_thread.closeThread();
 }
 
-void Writer::setObjectName(const QString &name)
+void Writer::run()
 {
-    m_thread.setThreadName(name.toStdString().data());
+
+    QQueue<QByteArray> dblBuff;
+    dblBuff.reserve(512); // bigger
+    do {
+        sleep(m_speed);
+
+        m_mutex.lock();
+        while (!m_buffer.isEmpty())
+        {
+            dblBuff.enqueue(m_buffer.dequeue());
+        }
+        m_mutex.unlock();
+
+        while (!dblBuff.isEmpty()) {
+            QByteArray d = dblBuff.dequeue();
+            m_file.write(d, d.size());
+            m_file.flush();
+        }
+    } while (m_isRunning);
 }
+
 
 } // utils

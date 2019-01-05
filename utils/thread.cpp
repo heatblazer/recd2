@@ -1,3 +1,4 @@
+#ifdef __UNIX
 #include "thread.h"
 
 #include <unistd.h>
@@ -266,3 +267,5 @@ bool SpinLock::unlock()
 
 
 } // utils
+
+#endif

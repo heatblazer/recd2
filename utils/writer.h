@@ -10,7 +10,7 @@
 
 namespace utils {
 
-class Writer
+class Writer : public QThread
 {
 public:
 
@@ -22,7 +22,9 @@ public:
     void write(const QByteArray& data);
     void startWriter();
     void stopWriter();
-    virtual void setObjectName(const QString& name);
+
+protected:
+    virtual void run();
 
 private:
 
@@ -30,8 +32,7 @@ private:
     QQueue<QByteArray>  m_buffer;
     bool                m_isRunning;
     ulong               m_speed;
-    PThread             m_thread;
-    PMutex              m_mutex;
+    QMutex              m_mutex;
 };
 
 } // utils

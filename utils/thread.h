@@ -1,6 +1,8 @@
 #ifndef THREAD_H
 #define THREAD_H
 
+#ifdef __UNIX
+
 #include <pthread.h>
 #include <stdint.h>
 
@@ -111,4 +113,8 @@ namespace utils {
         int m_count;
     };
 }
+
+#endif
+
 #endif // THREAD_H
+
