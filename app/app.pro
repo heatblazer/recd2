@@ -1,5 +1,6 @@
 # commnon stuff for everyone
 include($$top_srcdir/recd2.pri)
+QT -= gui
 
 CONFIG += c++11
 

@@ -13,9 +13,9 @@
 #include <fcntl.h>
 #include <errno.h>
 
-//static const char* THIS_FILE = "daemon.cpp";
+static const char* THIS_FILE = "daemon.cpp";
 
-static FILE*  s_log = NULL;
+static FILE*  s_log = nullptr;
 
 // all linux signals goes here
 static struct sigaction s_signals[32];
@@ -32,13 +32,13 @@ static void log_message(const char* msg)
     static bool one_time_flush = false;
     if (!one_time_flush) {
         s_log = fopen("daemon.log", "a+");
-        if (s_log != NULL) {
+        if (s_log != nullptr) {
             unlink("daemon.log");
             one_time_flush = true;
         }
     }
     s_log = fopen("daemon.log", "a+");
-    if (s_log == NULL) {
+    if (s_log == nullptr) {
         return ;
     }
     fwrite(msg, strlen(msg), 1, s_log);
@@ -63,7 +63,7 @@ static void testSig(int a, siginfo_t *info ,void* usr_data)
     char msg[96] = {0};
     snprintf(msg, sizeof(msg), "Received SIG (%d)\n", info->si_signo);
     log_message(msg);
-    if (g_application != NULL) {
+    if (g_application != nullptr) {
         g_application->deinit();
     }
 
@@ -80,7 +80,6 @@ static void writeToSapplicationFd(int a, siginfo_t* info, void* usr_data)
     snprintf(msg, sizeof(msg), "SIG: %d\n", info->si_signo);
     log_message(msg);
     exit(10);
-
 }
 
 int Daemon::m_pid = -1;
@@ -130,7 +129,7 @@ void Daemon::daemonize()
     }
 
     for(int i=0; i < 32; ++i) {
-        s_signals[i].sa_sigaction = NULL;
+        s_signals[i].sa_sigaction = nullptr;
         sigemptyset(&s_signals[i].sa_mask);
         s_signals[i].sa_flags = 0;
     }
@@ -163,7 +162,7 @@ void Daemon::daemonize()
     }
 
     int fd0, fd1, fd2;
-    fd0 = open("/dev/null", O_RDWR);
+    fd0 = open("/dev/nullptr", O_RDWR);
     fd1 = dup(0);
     fd2 = dup(0);
     // why does ide says they are unused???
@@ -185,11 +184,11 @@ void Daemon::attachSignalHandler(sigHndl hnd, int slot)
     } else {
         s_signals[slot].sa_sigaction = hnd;
 
-        if(sigaction(SIGHUP, &s_signals[SIGHUP], NULL) < 0) {
+        if(sigaction(SIGHUP, &s_signals[SIGHUP], nullptr) < 0) {
             fprintf(stderr, "Can`t ignore SIGHUP\n");
             exit(3);
         } else {
-            sigaction(slot, &s_signals[slot], NULL);
+            sigaction(slot, &s_signals[slot], nullptr);
             char msg[96]={0};
             snprintf(msg, sizeof(msg), "Registered SIG: (%d) to be handled!\n", slot);
             log_message(msg);

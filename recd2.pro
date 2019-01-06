@@ -14,11 +14,11 @@ SUBDIRS += \
     udp-streamer \ # udp treamer plugin
     NULL \         # dummy test plugin
     recorder \       # recorder plugin
-    alsa-rec \
+#    alsa-rec \
     utils \
     test-producer \
-    test-consumer \
-    MD5
+    test-consumer
+#    MD5
 
 app.depends = utils
 udp-streamer.depends = utils

@@ -1,10 +1,8 @@
 # commnon stuff for everyone
 include($$top_srcdir/recd2.pri)
 
-
 QT += core
-QT += gui
-QT += widgets
+QT -= gui
 
 TEMPLATE = lib
 CONFIG += console c++11

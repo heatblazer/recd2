@@ -16,7 +16,7 @@
 
 const unsigned FRAME_SIZE = 160;
 
-char dialButtons[16];
+static char dialButtons[16];
 
 struct samples {
     samples(){}

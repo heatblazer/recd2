@@ -3,6 +3,7 @@ include($$top_srcdir/recd2.pri)
 
 TEMPLATE = lib
 QT += multimedia # Audio Recorder
+QT -= gui
 LIBS += -lpthread
 LIBS += -lasound
 LIBS += -lopenal
