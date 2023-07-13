@@ -1,8 +1,5 @@
 // some test main...
 #include <QCoreApplication>
-#include "logger.h"
-#include "writer.h"
-#include "wav-writer.h"
 #include "ipc-msg.h"
 #include "ring-buffer.h"
 

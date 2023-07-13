@@ -1,7 +1,7 @@
 #ifndef THREAD_H
 #define THREAD_H
 
-#ifdef __UNIX
+#ifdef __unix__
 
 #include <pthread.h>
 #include <stdint.h>

@@ -59,6 +59,14 @@ namespace plugin {
     {
     }
 
+    ///
+    /// \brief Recorder::Instance
+    /// not a thread safe singleton if needed do the 2 nullptr check idiom
+    /// 1. check null,
+    /// 2. lock
+    /// 3. check null again
+    /// \return
+    ///
     Recorder &Recorder::Instance()
     {
         if (s_inst == nullptr) {

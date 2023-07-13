@@ -1,4 +1,4 @@
-#ifdef __UNIX
+#ifdef __unix__
 #include "thread.h"
 
 #include <unistd.h>
