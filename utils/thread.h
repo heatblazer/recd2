@@ -83,7 +83,7 @@ namespace utils {
          virtual void join();
          virtual void setThreadName(const char* name);
          virtual void suspend(unsigned long msec);
-         bool compareTo(const pthread_t* const th);
+         bool compareTo(const PThread* const th);
          virtual void closeThread();
 
          // for the inheritance

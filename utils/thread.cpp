@@ -167,9 +167,9 @@ void PThread::suspend(unsigned long msec)
 /// \param another thread
 /// \return true if are the same thread, false else
 ///
-bool PThread::compareTo(const pthread_t * const th)
+bool PThread::compareTo(const PThread * const th)
 {
-    int cmp = pthread_equal(m_thread, *th);
+    int cmp = pthread_equal(m_thread, th->m_thread);
     return (cmp > 0);
 }
 

@@ -49,6 +49,8 @@ void InterfaceList::clear()
         interface_t* tmp  = head;
 
         head = head->nextPlugin;
+        if (tmp->deinit)
+            tmp->deinit();
         // BUGFIX!
         // shall not be called on that pointer
         if (tmp != nullptr) {
