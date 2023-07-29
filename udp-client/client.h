@@ -26,6 +26,7 @@ struct frame_data_t
     uint32_t    counter;
     uint8_t     null_bytes[64];
     uint16_t    data[FRAME_DATA_SIZE];
+    uint8_t checksum;
 };
 
 class Client : public QObject

@@ -16,6 +16,7 @@ CONFIG -= app_bundle
 SOURCES += main.cpp \
     logger.cpp \
     recorder-config.cpp \
+    types.cpp \
     wav-writer.cpp \
     writer.cpp \
     ipc-msg.cpp \

@@ -39,7 +39,10 @@ struct frame_data_t
     uint32_t counter;
     uint8_t null_bytes[64];
     int16_t data[32 * 16]; // the new concpet - max is 1024 bytes
+    uint8_t checksum;
 };
+
+
 
 struct sample_data_t
 {
