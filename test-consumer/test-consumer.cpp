@@ -26,7 +26,6 @@ Consumer* Consumer::s_instance = nullptr;
 
 void Consumer::init()
 {
-    Consumer* c = &Instance();
     utils::IPC::Instance().sendMessage(THIS_FILE, "Init Consumer...\n");
 }
 

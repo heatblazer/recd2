@@ -43,7 +43,6 @@ struct frame_data_t
 };
 
 
-
 struct sample_data_t
 {
     uint8_t signal[1];
@@ -67,6 +66,7 @@ struct wav_hdr_t
     int data_len;
 };
 
+extern uint8_t gen_checksum_lrc(struct frame_data_t* fd);
 
 /// maybe inherit QPair
 /// simple pair template

@@ -1,12 +1,10 @@
 #include "types.h"
 
 
-
-
 uint8_t utils::gen_checksum_lrc(struct frame_data_t *fd)
 {
     uint8_t checksum = 0;
-    int i;
+    size_t i;
 
     uint8_t* p = (uint8_t*)&fd->counter; // go to counter
 
