@@ -14,7 +14,7 @@ namespace plugin {
             Server* s = &Server::Instance();
             (void) s;
             sleep(100);
-            QList<utils::frame_data_t> dbl;
+            QList<frame_data_t> dbl;
 
             int16_t peeks[64] = {0};
 
@@ -46,7 +46,7 @@ namespace plugin {
                     int sindex = 0, ssize = s->m_smplPerChan * size;
 
                     for(int i=0; i < size; ++i) {
-                        utils::frame_data_t fd = dbl.at(i);
+                        frame_data_t fd = dbl.at(i);
                         for(int j=0; j < s->m_channels; ++j) {
                             for(int k=0; k < s->m_smplPerChan; ++k) {
                                 smpls[sindex++ % ssize] = fd.data[k * s->m_channels + j];

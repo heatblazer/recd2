@@ -33,7 +33,7 @@ public:
     static struct interface_t* getSelf(void);
 
 private:
-    utils::frame_data_t test_data;
+    frame_data_t test_data;
     struct interface_t s_iface;
     static Producer* s_instance;
     bool isRunning;

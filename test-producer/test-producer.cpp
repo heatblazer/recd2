@@ -47,7 +47,7 @@ int Producer::put_data(void *data)
     if (Instance().s_iface.nextPlugin != NULL) {
         Instance().s_iface.nextPlugin->put_data(data);
     } else {
-        QList<utils::sample_data_t>* ls = (QList<utils::sample_data_t>*)data;
+        QList<sample_data_t>* ls = (QList<sample_data_t>*)data;
         ls->clear();
     }
     return 0;
@@ -133,9 +133,9 @@ void *Producer::worker(void *pArgs)
 
     while (p->isRunning) {
         usleep(2);
-        QList<utils::sample_data_t> ls;
+        QList<sample_data_t> ls;
         for (int i=0;  i < SMPL_SIZE; ) {
-            utils::sample_data_t s = {{0}, 0, 0};
+            sample_data_t s = {{0}, 0, 0};
             short smpl[16] = {0};
             s.samples = smpl;
             s.size = 16;
@@ -145,7 +145,7 @@ void *Producer::worker(void *pArgs)
             ls.append(s);
         }
 
-        p->put_data((QList<utils::sample_data_t>*)&ls);
+        p->put_data((QList<sample_data_t>*)&ls);
 
     }
 

@@ -42,7 +42,7 @@ int Consumer::put_data(void *data)
     if (Instance().s_iface.nextPlugin != NULL) {
         Instance().s_iface.nextPlugin->put_data(data);
     } else {
-        QList<utils::sample_data_t>* ls = (QList<utils::sample_data_t>*)data;
+        QList<sample_data_t>* ls = (QList<sample_data_t>*)data;
         ls->clear();
     }
     return 0;

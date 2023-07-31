@@ -28,7 +28,7 @@ namespace plugin {
             int m_packSize;
             bool m_isRunning;
             int16_t m_peek;
-            QList<utils::frame_data_t> m_buffer;
+            QList<frame_data_t> m_buffer;
             QMutex m_lock;
             friend class Server;
         };

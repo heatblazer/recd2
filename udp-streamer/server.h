@@ -74,7 +74,7 @@ namespace plugin {
         static struct interface_t iface;
 
     signals:
-        void dataReady(utils::frame_data_t* data);
+        void dataReady(frame_data_t* data);
 
     private slots:
         void readyReadUdp();
@@ -87,7 +87,7 @@ namespace plugin {
         void initTcpServer();
 
     private:
-        static utils::frame_data_t err_udp;
+        static frame_data_t err_udp;
         explicit Server(QObject* parent=nullptr);
         virtual ~Server();
 

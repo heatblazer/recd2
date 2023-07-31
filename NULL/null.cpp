@@ -42,7 +42,7 @@ static int put_data(void *data)
     if (s_iface.nextPlugin != NULL) {
         s_iface.nextPlugin->put_data(data);
     } else {
-        QList<utils::sample_data_t>* ls = (QList<utils::sample_data_t>*)data;
+        QList<sample_data_t>* ls = (QList<sample_data_t>*)data;
         ls->clear();
     }
     return 0;

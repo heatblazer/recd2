@@ -49,7 +49,7 @@ namespace plugin {
 
         void startRecorder();
         void stopRecoder();
-        void record(QList<utils::sample_data_t> sd);
+        void record(QList<sample_data_t> sd);
     private:
         explicit Recorder(QObject *parent=nullptr);
         virtual ~Recorder(); // we may inherit it too
@@ -99,7 +99,7 @@ namespace plugin {
         struct {
             QMutex mutex;
             QThread thread;
-            QQueue<QList<utils::sample_data_t> >buffer;
+            QQueue<QList<sample_data_t> >buffer;
             bool running;
             unsigned long speed; // sleep interval
         } m_thread;

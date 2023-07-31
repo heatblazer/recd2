@@ -78,7 +78,7 @@ namespace plugin
     int Dtmf::put_data(void *data)
     {
         Dtmf* d = &Instance();
-        QList<utils::sample_data_t>* ls = (QList<utils::sample_data_t>*)data;
+        QList<sample_data_t>* ls = (QList<sample_data_t>*)data;
         d->m_lock.lock();
         if (!ls->isEmpty()) {
             for(int i=0; i < ls->count(); ++i) {
@@ -195,7 +195,7 @@ namespace plugin
     ///
     void Dtmf::run()
     {
-        QList<utils::sample_data_t> dbl;
+        QList<sample_data_t> dbl;
         int buffSize = 0;
         while(m_isRunning) {
 
@@ -227,7 +227,7 @@ namespace plugin
                    if (dbl.isEmpty()) {
                        break;
                    }
-                   utils::sample_data_t smpl = dbl.at(it);
+                   sample_data_t smpl = dbl.at(it);
                    for(uint32_t j=0; j < smpl.size; ++j) {
                        dtmf[ii++] = smpl.samples[j];
                    }

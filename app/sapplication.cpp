@@ -166,10 +166,10 @@ int SApplication::init()
         (void) udp;
         quint16 port = 0;
         (void) port;
-        const utils::MPair<QString, QString>& trans_attr =
+        const MPair<QString, QString>& trans_attr =
                 utils::RecorderConfig::Instance().getAttribPairFromTag("Network", "transport");
 
-        const utils::MPair<QString, QString>& port_attr = utils::RecorderConfig::Instance()
+        const MPair<QString, QString>& port_attr = utils::RecorderConfig::Instance()
                 .getAttribPairFromTag("Network", "port");
 
         bool parese_res = false;

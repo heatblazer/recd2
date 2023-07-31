@@ -37,7 +37,7 @@ namespace plugin {
         bool m_isRunning ;
         // if we use other buffer data type...
         struct {
-            utils::RingBuffer<utils::frame_data_t, 512> data;
+            utils::RingBuffer<frame_data_t, 512> data;
             bool isBusy;
         } m_buffer;
 

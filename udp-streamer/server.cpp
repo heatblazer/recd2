@@ -23,7 +23,7 @@ namespace plugin {
     PeekOptions Server::s_peekOptions = {false, 0};
 
     // the err udp packet
-    struct utils::frame_data_t Server::err_udp = {0,{0},{0}}; // warn fix
+    struct frame_data_t Server::err_udp = {0,{0},{0}, 0}; // warn fix
 ////////////////////////////////////////////////////////////////////////////////
 
     Server& Server::Instance()
@@ -69,7 +69,7 @@ namespace plugin {
 
         if (1) {
             bool bres = false;
-            const utils::MPair<QString, QString> singleFile =
+            const MPair<QString, QString> singleFile =
                     utils::RecorderConfig::Instance().getAttribPairFromTag("Record",
                                                                            "files");
 
@@ -91,15 +91,15 @@ namespace plugin {
             // safety parse checks
             bool bres = false;
 
-            const utils::MPair<QString, QString> chans =
+            const MPair<QString, QString> chans =
                     utils::RecorderConfig::Instance()
                     .getAttribPairFromTag("FrameData", "channels");
 
-            const utils::MPair<QString, QString> smpls =
+            const MPair<QString, QString> smpls =
                     utils::RecorderConfig::Instance()
                     .getAttribPairFromTag("FrameData", "samplesPerChan");
 
-            const utils::MPair<QString, QString> msg_hdr =
+            const MPair<QString, QString> msg_hdr =
                     utils::RecorderConfig::Instance()
                     .getAttribPairFromTag("FrameData", "header");
 
@@ -134,9 +134,9 @@ namespace plugin {
 
         // setup peek
         {
-            const utils::MPair<QString, QString> peekOn =
+            const MPair<QString, QString> peekOn =
                     utils::RecorderConfig::Instance().getAttribPairFromTag("Peek", "enabled");
-            const utils::MPair<QString, QString> size =
+            const MPair<QString, QString> size =
                     utils::RecorderConfig::Instance().getAttribPairFromTag("Peek", "size");
 
             bool parseRes = false;
@@ -163,13 +163,13 @@ namespace plugin {
             bool bres = false;
             // removing constnes for a bit ...
 
-            utils::MPair<QString, QString>* transport =
-                    const_cast<utils::MPair<QString, QString>* >
+            MPair<QString, QString>* transport =
+                    const_cast<MPair<QString, QString>* >
                     (&utils::RecorderConfig::Instance().
                     getAttribPairFromTag("Network", "transport"));
 
-            utils::MPair<QString, QString>* port =
-                    const_cast<utils::MPair<QString, QString>* >
+            MPair<QString, QString>* port =
+                    const_cast<MPair<QString, QString>* >
                     (&utils::RecorderConfig::Instance()
                     .getAttribPairFromTag("Network", "port"));
 
@@ -240,9 +240,14 @@ namespace plugin {
 
                 qint64 read = udp->readDatagram(buff.data(), buff.size(),
                                        &m_senderHost, &m_senderPort);
-                if (read == sizeof(utils::frame_data_t)) {
-                    utils::frame_data_t udp = *(utils::frame_data_t*) buff.data();
+                if (read == sizeof(frame_data_t)) {
+                    frame_data_t udp = *(frame_data_t*) buff.data();
+                    // checksum check here
 
+                    uint8_t checksum = checksum_lrc(&udp);
+                    if (checksum != udp.checksum) {
+                        // handle checksum error
+                    }
                     if (Server::s_peekOptions.peekOnOff) {
                         m_helper->m_lock.lock();
                         m_helper->m_buffer.append(udp);
@@ -272,12 +277,12 @@ namespace plugin {
 
                         // it`s an err sender logic below
                         // always write a null bytes packet on missed udp
-                        QList<utils::sample_data_t> err_ls;
+                        QList<sample_data_t> err_ls;
 
                         if(!m_conn_info.onetimeSynch) {
                             m_conn_info.onetimeSynch = true;
                             for(uint32_t i=0; i < m_channels; ++i) {
-                                utils::sample_data_t s = {{0},0, 0};
+                                sample_data_t s = {{0},0, 0};
                                 short* smpl = new short[m_smplPerChan];
                                 s.samples = smpl;
                                 s.size = m_smplPerChan;
@@ -286,11 +291,11 @@ namespace plugin {
                                 }
                                 err_ls.append(s);
                             }
-                            put_data((QList<utils::sample_data_t>*) &err_ls);
+                            put_data((QList<sample_data_t>*) &err_ls);
                         } else {
                             for(int i=0; i < errs; ++i) {
                                for(uint32_t j=0; j < m_channels; ++j) {
-                                   utils::sample_data_t sd = {{0},0, 0};
+                                   sample_data_t sd = {{0},0, 0};
                                    short* smpl = new short[m_smplPerChan];
                                    sd.samples = smpl;
                                    sd.size = m_smplPerChan;
@@ -299,18 +304,18 @@ namespace plugin {
                                    }
                                    err_ls.append(sd);
                                }
-                               put_data((QList<utils::sample_data_t>*) &err_ls);
+                               put_data((QList<sample_data_t>*) &err_ls);
                             }
                         }
                     } else {
                     // will use a new logic emit the udp struct
                     // to the recorder, so now we don`t need
                     // to depend each other
-                        QList<utils::sample_data_t> ls;
+                        QList<sample_data_t> ls;
                         // copy all the data then send it to the plugins
                         if (!m_singleFile) {
                             for(uint32_t i=0; i < m_channels; ++i) {
-                                utils::sample_data_t s = {{0},0, 0};
+                                sample_data_t s = {{0},0, 0};
                                 short* smpl = new short[m_smplPerChan];//[MaxSampleSize] = {0};
                                 s.samples = smpl;
                                 s.size = m_smplPerChan;
@@ -324,7 +329,7 @@ namespace plugin {
                                 ls.append(s);
                             }
                        } else {
-                            utils::sample_data_t s = {{1}, 0, 0};
+                            sample_data_t s = {{1}, 0, 0};
                             s.samples = new short[512];
                             memcpy(s.samples, (short*)udp.data, 512);
                             s.size = 512;
@@ -332,7 +337,7 @@ namespace plugin {
                         }
                         // finally send it
 
-                        put_data((QList<utils::sample_data_t>*) &ls);
+                        put_data((QList<sample_data_t>*) &ls);
                     }
                  } else {
                     snprintf(msg, sizeof(msg), "Missed an UDP\n");
@@ -437,7 +442,7 @@ namespace plugin {
         if (iface.nextPlugin != nullptr) {
             iface.nextPlugin->put_data(data);
         } else {
-            QList<utils::sample_data_t>* ls = (QList<utils::sample_data_t>*) data;
+            QList<sample_data_t>* ls = (QList<sample_data_t>*) data;
 
             ls->clear();
         }

@@ -391,7 +391,7 @@ namespace plugin {
         }
 
         for(int i=0; i < sd.count(); ++i) {
-            utils::sample_data_t s = sd.at(i);
+            sample_data_t s = sd.at(i);
             uint8_t c = s.signal[0];
 
             if (c == 0) {

@@ -1,18 +1,8 @@
 #ifndef TYPES_H
 #define TYPES_H
-
 #include <stdint.h>
 #include <stdio.h>
 
-namespace utils {
-
-// I am having some troubles playing with bits...
-// now I am going to use a nice template structure
-// that displays all of them
-// this will inspect individual BITS of a data type
-// int for example usedful for sample data and stuff alike.
-// not sure if this compiles under C++11 because union templates are
-// non 98 standart compilant.
 template <typename T> union bytes_t
 {
     T var;
@@ -34,13 +24,16 @@ template <typename T> union bytes_t
 /// postimplemented struct for udp header
 /// \brief The frame_data_t struct
 ///
+///
+
+extern "C" {
 struct frame_data_t
 {
     uint32_t counter;
-    uint8_t null_bytes[64];
     int16_t data[32 * 16]; // the new concpet - max is 1024 bytes
+    uint8_t null_bytes[64];
     uint8_t checksum;
-};
+}  __attribute__((__packed__)); //if gcc;
 
 
 struct sample_data_t
@@ -48,7 +41,8 @@ struct sample_data_t
     uint8_t signal[1];
     short* samples;
     uint32_t size;
-};
+}  __attribute__((__packed__)); //if gcc;
+
 struct wav_hdr_t
 {
     char riff_tag[4];
@@ -64,9 +58,20 @@ struct wav_hdr_t
     short bits_per_sample;
     char data_tag[4];
     int data_len;
+}  __attribute__((__packed__)); //if gcc;
+
+// IPC stuff
+struct msg_t
+{
+    long val; // this is needed
+    char buff[512]; // no more than 512 bytes messages plase
 };
 
-extern uint8_t gen_checksum_lrc(struct frame_data_t* fd);
+uint8_t gen_checksum_lrc(struct frame_data_t* fd);
+
+uint8_t checksum_lrc(const struct frame_data_t* fd);
+
+}; //extern C
 
 /// maybe inherit QPair
 /// simple pair template
@@ -110,12 +115,6 @@ template <typename T1, typename T2> struct MPair
     T2 m_type2;
 };
 
-// IPC stuff
-struct msg_t
-{
-    long val; // this is needed
-    char buff[512]; // no more than 512 bytes messages plase
-};
 
-} // utils
-#endif // TYPES_H
+#endif
+

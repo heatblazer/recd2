@@ -14,7 +14,7 @@
 #include "server.h"
 #include "utils.h"
 
-#define READ_BUFF_MULTIPLIER(A) ((A) * (sizeof(utils::frame_data_t)))
+#define READ_BUFF_MULTIPLIER(A) ((A) * (sizeof(frame_data_t)))
 
 static const char* THIS_FILE = "tcp-server.cpp";
 
@@ -27,7 +27,7 @@ namespace plugin {
         int port = (int) Server::Instance().m_port;
         TcpServer* s = (TcpServer*) pArgs;
 
-        static const int SIZE = sizeof(utils::frame_data_t);
+        static const int SIZE = sizeof(frame_data_t);
         uint8_t* buffer = nullptr;
         int client, newsocketfd;
         size_t len;
@@ -87,7 +87,7 @@ namespace plugin {
             } else {
 
                 while (select_result > 0) {
-                    utils::frame_data_t frame = {0, {0}, {0}};
+                    frame_data_t frame = {0, {0}, {0}};
                     for(buffer = (uint8_t*)&frame, len = 0; len < SIZE; ) {
                         int nn = read(newsocketfd, buffer, SIZE - len);
                         len += nn;
@@ -161,8 +161,8 @@ namespace plugin {
         static const unsigned MAX = w->ref->p_server->m_channels * w->ref->p_server->m_smplPerChan;
         for (;;) {
             // perform the read stuff here
-            QList<utils::sample_data_t> ls;
-            utils::frame_data_t* t = nullptr;
+            QList<sample_data_t> ls;
+            frame_data_t* t = nullptr;
             w->lock.lock();
             t = (w->ref->m_buffer.data).read();
             w->lock.unlock();
@@ -171,7 +171,7 @@ namespace plugin {
             } else {
                 printf("Cnt: %u\r", t->counter);
                 for(unsigned i=0; i < MAX; ) {
-                    utils::sample_data_t sdata = {{0}, 0, 0};
+                    sample_data_t sdata = {{0}, 0, 0};
                     short smpl[512] = {0};
                     sdata.samples = smpl;
                     sdata.size = w->ref->p_server->m_smplPerChan;
@@ -180,17 +180,17 @@ namespace plugin {
                     }
                     ls.append(sdata);
                 }
-                Server::Instance().put_data((QList<utils::sample_data_t>*)&ls);
+                Server::Instance().put_data((QList<sample_data_t>*)&ls);
             }
         } // forever loop
 
         // at end read all from rbuffer
-        utils::frame_data_t* rem = nullptr;
-        QList<utils::sample_data_t> ls;
+        frame_data_t* rem = nullptr;
+        QList<sample_data_t> ls;
         int s = w->ref->m_buffer.data.readAll(&rem);
         for(int i=0; i < s; ++i) {
             for(unsigned ii=0; ii < MAX; ) {
-                utils::sample_data_t sdata = {{0}, 0, 0};
+                sample_data_t sdata = {{0}, 0, 0};
                 short smpl[512] = {0};
                 sdata.samples = smpl;
                 sdata.size = w->ref->p_server->m_smplPerChan;;
@@ -200,7 +200,7 @@ namespace plugin {
                 ls.append(sdata);
             }
         }
-        Server::Instance().put_data((QList<utils::sample_data_t>*)&ls);
+        Server::Instance().put_data((QList<sample_data_t>*)&ls);
         delete [] rem;
         return nullptr;
     }

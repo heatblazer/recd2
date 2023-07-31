@@ -42,7 +42,7 @@ namespace plugin {
 
         struct {
             bool is_busy;
-            QList<utils::sample_data_t> data;
+            QList<sample_data_t> data;
         } m_sampleBuffer;
 
         QMutex m_lock;
