@@ -35,7 +35,7 @@ uint8_t checksum_lrc(const frame_data_t *fd)
     uint8_t checksum = 0;
     size_t i;
 
-    const uint8_t* p = (uint8_t*)&fd->counter; // go to counter
+    const uint8_t* p = (const uint8_t*)&fd->counter; // go to counter
 
     for(i=0; i < sizeof(fd->counter); i++) {
         checksum += p[i] & 0xff;
@@ -46,7 +46,7 @@ uint8_t checksum_lrc(const frame_data_t *fd)
         checksum += p[i] & 0xff;
     }
 
-    p = (uint8_t*)&fd->data[0]; // go to data
+    p = (const uint8_t*)&fd->data[0]; // go to data
     for(i=0; i < sizeof(fd->data)/sizeof(fd->data[0]); i++) {
         checksum += p[i] & 0xff;
     }
